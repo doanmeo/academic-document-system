@@ -1,0 +1,19 @@
+Academic Document System — Khung dự án (text, Tuần 0)
+=====================================================
+
+academic-document-system/
+├── README.md
+├── .gitignore
+├── docs/
+│   ├── api-envelope.md
+│   └── supabase-bucket.md
+├── db/
+│   └── V1__init_users_and_catalogs.sql
+├── backend/                     # Spring Boot (TV1)
+│   ├── .env.example
+│   └── (Spring Initializr — Tuần 1)
+└── frontend/                    # React Vite TS (TV2)
+    ├── .env.example
+    └── (npm create vite — Tuần 1)
+
+Branch: main | develop | feature/* | fix/*
