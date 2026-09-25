@@ -1,0 +1,26 @@
+# env
+.env
+.env.local
+.env.*.local
+**/backend/.env
+**/frontend/.env
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.iml
+
+# backend
+**/target/
+**/build/
+**/.gradle/
+**/out/
+
+# frontend
+**/node_modules/
+**/dist/
+**/.vite/
+
+# logs
+*.log
