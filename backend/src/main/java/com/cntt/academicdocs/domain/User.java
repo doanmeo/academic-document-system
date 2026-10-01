@@ -1,0 +1,93 @@
+package com.cntt.academicdocs.domain;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "users")
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true, length = 191)
+    private String email;
+
+    @Column(name = "password_hash", nullable = false, length = 255)
+    private String passwordHash;
+
+    @Column(name = "full_name", nullable = false, length = 150)
+    private String fullName;
+
+    @Column(name = "student_code", unique = true, length = 50)
+    private String studentCode;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private UserRole role = UserRole.STUDENT;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "major_id")
+    private Major major;
+
+    @Column(name = "avatar_url", length = 500)
+    private String avatarUrl;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean active = true;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt = LocalDateTime.now();
+
+    public User() {}
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+
+    public String getStudentCode() { return studentCode; }
+    public void setStudentCode(String studentCode) { this.studentCode = studentCode; }
+
+    public UserRole getRole() { return role; }
+    public void setRole(UserRole role) { this.role = role; }
+
+    public Major getMajor() { return major; }
+    public void setMajor(Major major) { this.major = major; }
+
+    public String getAvatarUrl() { return avatarUrl; }
+    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public boolean isAdmin() {
+        return this.role == UserRole.ADMIN;
+    }
+
+    public boolean isStudent() {
+        return this.role == UserRole.STUDENT;
+    }
+}

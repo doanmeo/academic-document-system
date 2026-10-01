@@ -1,64 +1,98 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import api from '../api/axios'
-
-interface User {
-  token: string;
-  // Add other user fields here later
-}
+import { authApi } from '../api/authApi'
+import type { LoginPayload, RegisterPayload } from '../api/authApi'
+import type { User } from '../types'
 
 interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  loading: boolean;
-  isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<any>;
-  register: (name: string, email: string, password: string) => Promise<any>;
-  logout: () => void;
+  user: User | null
+  loading: boolean
+  isAuthenticated: boolean
+  isAdmin: boolean
+  login: (data: LoginPayload) => Promise<void>
+  register: (data: RegisterPayload) => Promise<void>
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'))
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Nếu có token trong localStorage thì coi như đã đăng nhập
+    const token = localStorage.getItem('accessToken')
     if (token) {
-      setUser({ token })
+      authApi
+        .getCurrentUser()
+        .then((res) => {
+          if (res.success && res.data) {
+            setUser(res.data)
+          } else {
+            localStorage.removeItem('accessToken')
+            localStorage.removeItem('refreshToken')
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem('accessToken')
+          localStorage.removeItem('refreshToken')
+        })
+        .finally(() => {
+          setLoading(false)
+        })
+    } else {
+      setLoading(false)
     }
-    setLoading(false)
-  }, [token])
+  }, [])
 
-  const login = async (email: string, password: string) => {
-    const res = await api.post('/auth/login', { email, password })
-    const { token: newToken } = res.data
-    localStorage.setItem('token', newToken)
-    setToken(newToken)
-    setUser({ token: newToken })
-    return res.data
+  const login = async (data: LoginPayload) => {
+    const res = await authApi.login(data)
+    if (res.success && res.data) {
+      localStorage.setItem('accessToken', res.data.accessToken)
+      localStorage.setItem('refreshToken', res.data.refreshToken)
+      setUser(res.data.user)
+    } else {
+      throw new Error(res.message || 'Đăng nhập thất bại')
+    }
   }
 
-  const register = async (name: string, email: string, password: string) => {
-    const res = await api.post('/auth/register', { name, email, password })
-    const { token: newToken } = res.data
-    localStorage.setItem('token', newToken)
-    setToken(newToken)
-    setUser({ token: newToken })
-    return res.data
+  const register = async (data: RegisterPayload) => {
+    const res = await authApi.register(data)
+    if (res.success && res.data) {
+      localStorage.setItem('accessToken', res.data.accessToken)
+      localStorage.setItem('refreshToken', res.data.refreshToken)
+      setUser(res.data.user)
+    } else {
+      throw new Error(res.message || 'Đăng ký thất bại')
+    }
   }
 
-  const logout = () => {
-    localStorage.removeItem('token')
-    setToken(null)
-    setUser(null)
+  const logout = async () => {
+    try {
+      await authApi.logout()
+    } catch {
+      // Ignore network errors on logout
+    } finally {
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      setUser(null)
+    }
   }
 
-  const isAuthenticated = !!token
+  const isAuthenticated = !!user
+  const isAdmin = user?.role === 'ADMIN'
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, isAuthenticated, login, register, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        isAuthenticated,
+        isAdmin,
+        login,
+        register,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
