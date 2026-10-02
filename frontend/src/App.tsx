@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute'
+import Layout from './components/Layout'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Home from './pages/Home'
@@ -7,16 +8,21 @@ import Home from './pages/Home'
 function App() {
   return (
     <Routes>
-      {/* Public routes */}
+      {/* Public Auth routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* Protected routes */}
+      {/* Protected routes wrapped in Layout */}
       <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<Home />} />
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/search" element={<Home />} />
+          <Route path="/upload" element={<Home />} />
+          <Route path="/bookmarks" element={<Home />} />
+        </Route>
       </Route>
 
-      {/* Fallback */}
+      {/* Fallback redirect */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
