@@ -1,0 +1,119 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R 6 0 R 8 0 R 10 0 R] /Count 4 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 5 0 R /Resources << /Font << /F1 3 0 R >> >> >>
+endobj
+5 0 obj
+<< /Length 472 >>
+stream
+BT
+/F1 13 Tf
+50 720 Td
+22 TL
+(TRUONG DAI HOC GIAO THONG VAN TAI) Tj T*
+(KHOA CONG NGHE THONG TIN) Tj T*
+() Tj T*
+(BAO CAO KET THUC HOC PHAN) Tj T*
+(PHAT TRIEN PHAN MEM MA NGUON MO) Tj T*
+() Tj T*
+(De tai: He thong quan ly va tra cuu tai lieu hoc tap cho Khoa CNTT) Tj T*
+(Giang vien huong dan: ThS. Dao Thi Le Thuy) Tj T*
+(Sinh vien thuc hien: Vu Van Doan \(231230746\), Cao Ngoc Long \(231220827\), Vu Duc An Ninh \(231230756\)) Tj T*
+() Tj T*
+(Ha Noi - 03/2026) Tj T*
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 7 0 R /Resources << /Font << /F1 3 0 R >> >> >>
+endobj
+7 0 obj
+<< /Length 450 >>
+stream
+BT
+/F1 13 Tf
+50 720 Td
+22 TL
+(CHUONG 1: TONG QUAN HE THONG) Tj T*
+() Tj T*
+(1.1 Hien trang chia se tai lieu tai Khoa CNTT) Tj T*
+(Khoa CNTT - DH Giao thong Van tai can mot he thong luu tru, tra cuu tai lieu hoc thuat so hoa tap trung.) Tj T*
+() Tj T*
+(1.2 Muc tieu de tai va pham vi trien khai) Tj T*
+(- Xay dung nen tang quan ly tai lieu, de tai, do an mon hoc.) Tj T*
+(- Tich hop cong cu xem PDF truc tuyen va danh gia chat luong hoc tap.) Tj T*
+ET
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 9 0 R /Resources << /Font << /F1 3 0 R >> >> >>
+endobj
+9 0 obj
+<< /Length 466 >>
+stream
+BT
+/F1 13 Tf
+50 720 Td
+22 TL
+(CHUONG 2: KIEN TRUC HE THONG) Tj T*
+() Tj T*
+(2.1 Kien truc Client-Server & RESTful API Spring Boot 3) Tj T*
+(- Backend: Spring Boot 3, Spring Security, JWT) Tj T*
+(- Frontend: React 18, Vite, Tailwind CSS) Tj T*
+(- Co so du lieu: MySQL 8.0, Supabase Storage) Tj T*
+() Tj T*
+(2.2 Trinh doc PDF truc tuyen) Tj T*
+(- Tich hop truc tiep tren trinh duyet web) Tj T*
+(- Ho tro xem phong to, thu nho, chuyen trang va tai ve an toan.) Tj T*
+ET
+endstream
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 11 0 R /Resources << /Font << /F1 3 0 R >> >> >>
+endobj
+11 0 obj
+<< /Length 402 >>
+stream
+BT
+/F1 13 Tf
+50 720 Td
+22 TL
+(CHUONG 3: KET QUA VA HUONG PHAT TRIEN) Tj T*
+() Tj T*
+(3.1 Ket qua dat duoc) Tj T*
+(- Giao dien Academic Precision dong bo 100%) Tj T*
+(- Quan ly hang doi kiem duyet, phan quyen admin/sinh vien) Tj T*
+(- Xem toan van tai lieu truc tiep khong can download.) Tj T*
+() Tj T*
+(3.2 Danh gia) Tj T*
+(- He thong dap ung tot yeu cau mon hoc va san sang ung dung thuc te.) Tj T*
+ET
+endstream
+endobj
+xref
+0 12
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000134 00000 n 
+0000000204 00000 n 
+0000000330 00000 n 
+0000000853 00000 n 
+0000000979 00000 n 
+0000001480 00000 n 
+0000001606 00000 n 
+0000002123 00000 n 
+0000002251 00000 n 
+trailer
+<< /Size 12 /Root 1 0 R >>
+startxref
+2705
+%%EOF

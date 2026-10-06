@@ -1,6 +1,8 @@
 package com.cntt.academicdocs.domain;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,16 +13,17 @@ public class DocumentFile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "document_id")
-    private Long documentId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "document_id", nullable = false)
+    private Document document;
 
-    @Column(name = "file_name", nullable = false, length = 255)
+    @Column(name = "file_name", nullable = false, length = 300)
     private String fileName;
 
     @Column(name = "storage_key", nullable = false, length = 500)
     private String storageKey;
 
-    @Column(name = "mime_type", nullable = false, length = 120)
+    @Column(name = "mime_type", nullable = false, length = 100)
     private String mimeType;
 
     @Column(name = "file_size", nullable = false)
@@ -29,91 +32,39 @@ public class DocumentFile {
     @Column(name = "is_primary", nullable = false)
     private Boolean isPrimary = false;
 
-    @Column(name = "created_by", nullable = false)
-    private Long createdBy;
+    @Column(name = "external_url", length = 500)
+    private String externalUrl;
 
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        if (this.isPrimary == null) {
-            this.isPrimary = false;
-        }
-    }
+    public DocumentFile() {}
 
-    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public Long getId() {
-        return id;
-    }
+    public Document getDocument() { return document; }
+    public void setDocument(Document document) { this.document = document; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getFileName() { return fileName; }
+    public void setFileName(String fileName) { this.fileName = fileName; }
 
-    public Long getDocumentId() {
-        return documentId;
-    }
+    public String getStorageKey() { return storageKey; }
+    public void setStorageKey(String storageKey) { this.storageKey = storageKey; }
 
-    public void setDocumentId(Long documentId) {
-        this.documentId = documentId;
-    }
+    public String getMimeType() { return mimeType; }
+    public void setMimeType(String mimeType) { this.mimeType = mimeType; }
 
-    public String getFileName() {
-        return fileName;
-    }
+    public Long getFileSize() { return fileSize; }
+    public void setFileSize(Long fileSize) { this.fileSize = fileSize; }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
+    public Boolean getIsPrimary() { return isPrimary; }
+    public void setIsPrimary(Boolean primary) { isPrimary = primary; }
 
-    public String getStorageKey() {
-        return storageKey;
-    }
+    public String getExternalUrl() { return externalUrl; }
+    public void setExternalUrl(String externalUrl) { this.externalUrl = externalUrl; }
 
-    public void setStorageKey(String storageKey) {
-        this.storageKey = storageKey;
-    }
-
-    public String getMimeType() {
-        return mimeType;
-    }
-
-    public void setMimeType(String mimeType) {
-        this.mimeType = mimeType;
-    }
-
-    public Long getFileSize() {
-        return fileSize;
-    }
-
-    public void setFileSize(Long fileSize) {
-        this.fileSize = fileSize;
-    }
-
-    public Boolean getIsPrimary() {
-        return isPrimary;
-    }
-
-    public void setIsPrimary(Boolean primary) {
-        isPrimary = primary;
-    }
-
-    public Long getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(Long createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

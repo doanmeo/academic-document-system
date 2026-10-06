@@ -1,145 +1,143 @@
 package com.cntt.academicdocs.service;
 
-import com.cntt.academicdocs.domain.*;
+import com.cntt.academicdocs.domain.Document;
+import com.cntt.academicdocs.domain.DocumentStatus;
+import com.cntt.academicdocs.domain.Report;
+import com.cntt.academicdocs.domain.User;
 import com.cntt.academicdocs.dto.CreateReportRequest;
 import com.cntt.academicdocs.dto.HandleReportRequest;
-import com.cntt.academicdocs.dto.ReportResponse;
-import com.cntt.academicdocs.exception.AppException;
+import com.cntt.academicdocs.dto.PageResponse;
+import com.cntt.academicdocs.dto.ReportDTO;
+import com.cntt.academicdocs.exception.BusinessException;
 import com.cntt.academicdocs.repository.DocumentRepository;
-import com.cntt.academicdocs.repository.DocumentReviewRepository;
+import com.cntt.academicdocs.repository.LovValueRepository;
 import com.cntt.academicdocs.repository.ReportRepository;
 import com.cntt.academicdocs.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ReportService {
 
     private final ReportRepository reportRepository;
     private final DocumentRepository documentRepository;
-    private final DocumentReviewRepository documentReviewRepository;
     private final UserRepository userRepository;
+    private final LovValueRepository lovValueRepository;
 
     public ReportService(
             ReportRepository reportRepository,
             DocumentRepository documentRepository,
-            DocumentReviewRepository documentReviewRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            LovValueRepository lovValueRepository
     ) {
         this.reportRepository = reportRepository;
         this.documentRepository = documentRepository;
-        this.documentReviewRepository = documentReviewRepository;
         this.userRepository = userRepository;
+        this.lovValueRepository = lovValueRepository;
     }
 
     @Transactional
-    public ReportResponse createReport(Long documentId, CreateReportRequest request, Long reporterId) {
-        if (reporterId == null) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Vui lòng đăng nhập để gửi báo cáo");
-        }
-
+    public ReportDTO createReport(Long documentId, Long reporterId, CreateReportRequest req) {
         Document document = documentRepository.findById(documentId)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "DOCUMENT_NOT_FOUND", "Không tìm thấy tài liệu"));
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "DOCUMENT_NOT_FOUND", "Không tìm thấy tài liệu"));
 
         if (document.getStatus() != DocumentStatus.APPROVED) {
-            throw new AppException(HttpStatus.BAD_REQUEST, "INVALID_DOCUMENT_STATUS", "Chỉ có thể báo cáo vi phạm đối với tài liệu đã được phê duyệt (APPROVED)");
+            throw new BusinessException(HttpStatus.UNPROCESSABLE_ENTITY, "DOCUMENT_NOT_APPROVED", "Chỉ có thể báo cáo vi phạm tài liệu đã được phê duyệt");
         }
+
+        User reporter = userRepository.findById(reporterId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Không tìm thấy người dùng"));
 
         Report report = new Report();
-        report.setDocumentId(documentId);
-        report.setReporterId(reporterId);
-        report.setReasonCode(request.getReasonCode());
-        report.setDescription(request.getDescription());
-        report.setStatus(ReportStatus.PENDING);
+        report.setDocument(document);
+        report.setReporter(reporter);
+        report.setReasonCode(req.getReasonCode());
+        report.setDescription(req.getDescription());
+        report.setStatus("PENDING");
 
         Report saved = reportRepository.save(report);
-        return mapToResponse(saved, document);
+        return toDTO(saved);
     }
 
     @Transactional(readOnly = true)
-    public List<ReportResponse> getMyReports(Long reporterId) {
-        if (reporterId == null) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Vui lòng đăng nhập");
+    public PageResponse<ReportDTO> getMyReports(Long userId, Pageable pageable) {
+        Page<Report> page = reportRepository.findByReporter_IdOrderByCreatedAtDesc(userId, pageable);
+        List<ReportDTO> dtoList = page.getContent().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+        return PageResponse.of(page, dtoList);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<ReportDTO> getAdminReports(String status, Pageable pageable) {
+        Page<Report> page;
+        if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status)) {
+            page = reportRepository.findByStatusOrderByCreatedAtDesc(status.toUpperCase(), pageable);
+        } else {
+            page = reportRepository.findAll(pageable);
         }
-        return reportRepository.findByReporterIdOrderByCreatedAtDesc(reporterId).stream()
-                .map(r -> {
-                    Document doc = documentRepository.findById(r.getDocumentId()).orElse(null);
-                    return mapToResponse(r, doc);
-                })
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public List<ReportResponse> getAdminReports(ReportStatus status) {
-        List<Report> reports = (status != null)
-                ? reportRepository.findByStatusOrderByCreatedAtDesc(status)
-                : reportRepository.findAllByOrderByCreatedAtDesc();
-
-        return reports.stream().map(r -> {
-            Document doc = documentRepository.findById(r.getDocumentId()).orElse(null);
-            return mapToResponse(r, doc);
-        }).toList();
+        List<ReportDTO> dtoList = page.getContent().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+        return PageResponse.of(page, dtoList);
     }
 
     @Transactional
-    public ReportResponse handleReport(Long reportId, HandleReportRequest request, Long adminId) {
+    public ReportDTO handleReport(Long reportId, Long adminId, HandleReportRequest req) {
         Report report = reportRepository.findById(reportId)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "REPORT_NOT_FOUND", "Không tìm thấy báo cáo vi phạm"));
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "REPORT_NOT_FOUND", "Không tìm thấy báo cáo"));
 
-        report.setStatus(request.getDecision());
-        report.setResolvedBy(adminId);
-        report.setResolutionNote(request.getNote());
-        report.setResolvedAt(LocalDateTime.now());
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Không tìm thấy quản trị viên"));
 
-        Document document = documentRepository.findById(report.getDocumentId()).orElse(null);
+        String decision = req.getDecision().toUpperCase();
+        if (!"RESOLVED".equals(decision) && !"REJECTED".equals(decision)) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "INVALID_DECISION", "Quyết định xử lý phải là RESOLVED hoặc REJECTED");
+        }
 
-        // If hideDocument is requested, hide the document and record in moderation history
-        if (request.getHideDocument() && document != null) {
-            String fromStatus = document.getStatus().name();
+        report.setStatus(decision);
+        report.setHandledBy(admin);
+        report.setHandledAt(LocalDateTime.now());
+        report.setHandlingNote(req.getNote());
+
+        if (Boolean.TRUE.equals(req.getHideDocument())) {
+            Document document = report.getDocument();
             document.setStatus(DocumentStatus.HIDDEN);
             documentRepository.save(document);
-
-            DocumentReview review = new DocumentReview(
-                    document.getId(),
-                    adminId != null ? adminId : 0L,
-                    fromStatus,
-                    DocumentStatus.HIDDEN.name(),
-                    "Ẩn tài liệu do xử lý báo cáo vi phạm #" + report.getId() + (request.getNote() != null ? " - " + request.getNote() : "")
-            );
-            documentReviewRepository.save(review);
         }
 
         Report saved = reportRepository.save(report);
-        return mapToResponse(saved, document);
+        return toDTO(saved);
     }
 
-    private ReportResponse mapToResponse(Report report, Document document) {
-        ReportResponse res = new ReportResponse();
-        res.setId(report.getId());
-        res.setDocumentId(report.getDocumentId());
-        res.setDocumentTitle(document != null ? document.getTitle() : "Tài liệu #" + report.getDocumentId());
-        res.setReporterId(report.getReporterId());
+    private ReportDTO toDTO(Report report) {
+        String reasonLabel = lovValueRepository.findByGroupCodeAndActiveTrue("REPORT_REASON").stream()
+                .filter(v -> v.getCode().equalsIgnoreCase(report.getReasonCode()))
+                .map(v -> v.getLabel())
+                .findFirst()
+                .orElse(report.getReasonCode());
 
-        User reporter = userRepository.findById(report.getReporterId()).orElse(null);
-        res.setReporterName(reporter != null ? reporter.getFullName() : "Sinh viên");
-
-        res.setReasonCode(report.getReasonCode());
-        res.setDescription(report.getDescription());
-        res.setStatus(report.getStatus());
-        res.setResolvedBy(report.getResolvedBy());
-
-        if (report.getResolvedBy() != null && report.getResolvedBy() > 0) {
-            User resolver = userRepository.findById(report.getResolvedBy()).orElse(null);
-            res.setResolverName(resolver != null ? resolver.getFullName() : "Quản trị viên");
-        }
-
-        res.setResolutionNote(report.getResolutionNote());
-        res.setCreatedAt(report.getCreatedAt());
-        res.setResolvedAt(report.getResolvedAt());
-        return res;
+        ReportDTO dto = new ReportDTO();
+        dto.setId(report.getId());
+        dto.setDocumentId(report.getDocument() != null ? report.getDocument().getId() : null);
+        dto.setDocumentTitle(report.getDocument() != null ? report.getDocument().getTitle() : "");
+        dto.setReporterId(report.getReporter() != null ? report.getReporter().getId() : null);
+        dto.setReporterName(report.getReporter() != null ? report.getReporter().getFullName() : "");
+        dto.setReasonCode(report.getReasonCode());
+        dto.setReasonLabel(reasonLabel);
+        dto.setDescription(report.getDescription());
+        dto.setStatus(report.getStatus());
+        dto.setHandledBy(report.getHandledBy() != null ? report.getHandledBy().getFullName() : null);
+        dto.setHandledAt(report.getHandledAt());
+        dto.setHandlingNote(report.getHandlingNote());
+        dto.setCreatedAt(report.getCreatedAt());
+        return dto;
     }
 }

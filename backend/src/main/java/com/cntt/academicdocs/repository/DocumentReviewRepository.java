@@ -8,6 +8,5 @@ import java.util.List;
 
 @Repository
 public interface DocumentReviewRepository extends JpaRepository<DocumentReview, Long> {
-
-    List<DocumentReview> findByDocumentIdOrderByCreatedAtDesc(Long documentId);
+    List<DocumentReview> findByDocument_IdOrderByCreatedAtDesc(Long documentId);
 }

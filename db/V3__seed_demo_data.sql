@@ -1,149 +1,96 @@
--- ==============================================================================
--- Migration V3: Seed Demo Data for Final Project Presentation
--- Engine: MySQL 8.0+
--- Database: academic_docs
--- ==============================================================================
+-- V3: Seed demo data for documents, files, members, technologies, reviews, bookmarks, ratings, reports
 
 USE academic_docs;
 
--- 1. Bổ sung môn học & năm học (nếu chưa có)
-INSERT IGNORE INTO majors (code, name, is_active) VALUES
-('SE', 'Kỹ thuật phần mềm', 1),
-('IS', 'Hệ thống thông tin', 1),
-('CS', 'Khoa học máy tính', 1),
-('CN', 'Mạng máy tính & Truyền thông', 1);
+-- 8 Approved Documents
+INSERT INTO documents (id, title, abstract_text, description, status, document_type_code, uploader_id, subject_id, major_id, academic_year_id, advisor_name, github_url, view_count, download_count, avg_rating, rating_count, approved_by, approved_at, created_at)
+VALUES
+(1, 'Graph Algorithms: Tối ưu Phân cụm', 
+ 'Nghiên cứu tập trung giải quyết bài toán phân cụm đồ thị quy mô lớn với độ phức tạp tính toán tối ưu O(V log V). Ứng dụng kỹ thuật phân rã phổ kết hợp thuật toán tối ưu Louvain, giúp giảm 42% độ trễ xử lý các tập dữ liệu mạng lưới giao thông thông minh thời gian thực.',
+ 'Mô tả chi tiết: Đồ án nghiên cứu chuyên sâu về các thuật toán tối ưu trên đồ thị lớn...',
+ 'APPROVED', 'THESIS', 2, 1, 1, 1, 'PGS. TS. Đào Thị Lệ Thủy', 'https://github.com/utc-fit/graph-louvain-opt', 1280, 320, 4.9, 48, 1, NOW(), DATE_SUB(NOW(), INTERVAL 20 DAY)),
 
-INSERT IGNORE INTO subjects (code, name, description, is_active) VALUES
-('INT1001', 'Nhập môn lập trình', 'Kiến thức cơ sở lập trình', 1),
-('INT2001', 'Cơ sở dữ liệu', 'Hệ quản trị CSDL quan hệ', 1),
-('INT3001', 'Phát triển phần mềm mã nguồn mở', 'Mã nguồn mở và quy trình phát triển', 1),
-('INT3002', 'Kiến trúc và Thiết kế phần mềm', 'Thiết kế kiến trúc hệ thống và microservices', 1),
-('INT3003', 'Trí tuệ nhân tạo và Học máy', 'Các mô hình học máy và xử lý ngôn ngữ tự nhiên', 1),
-('INT3004', 'An toàn thông tin và Mạng máy tính', 'Bảo mật hệ thống thông tin', 1);
+(2, 'Mô hình Học sâu trong Thị giác máy', 
+ 'Xây dựng kiến trúc mạng nơ-ron tích chập (CNN) phát hiện chướng ngại vật và biển báo giao thông trong điều kiện thời tiết sương mù và ánh sáng yếu.',
+ 'Mô tả chi tiết: Triển khai mô hình YOLOv8 tùy biến kết hợp Attention mechanism...',
+ 'APPROVED', 'CAPSTONE', 2, 2, 1, 1, 'TS. Nguyễn Thị Mai', 'https://github.com/utc-fit/deeplearning-medical-vision', 1540, 410, 4.8, 36, 1, NOW(), DATE_SUB(NOW(), INTERVAL 25 DAY)),
 
-INSERT IGNORE INTO academic_years (code, name, start_year, is_active) VALUES
-('2022-2023', 'Năm học 2022-2023', 2022, 1),
-('2023-2024', 'Năm học 2023-2024', 2023, 1),
-('2024-2025', 'Năm học 2024-2025', 2024, 1),
-('2025-2026', 'Năm học 2025-2026', 2025, 1);
+(3, 'Tính toán Biên trong IoT Công nghiệp', 
+ 'Kiến trúc điện toán biên phân tán (Edge Computing) xử lý dữ liệu cảm biến thời gian thực, giảm áp lực băng thông lên Cloud và đảm bảo tính sẵn sàng cao.',
+ 'Mô tả chi tiết: Áp dụng MQTT, Kafka và triển khai K3s trên các node Raspberry Pi 4...',
+ 'APPROVED', 'THESIS', 3, 3, 2, 1, 'PGS. TS. Trần Văn Hùng', 'https://github.com/utc-fit/edge-iot-mesh', 980, 210, 4.7, 19, 1, NOW(), DATE_SUB(NOW(), INTERVAL 30 DAY)),
 
-INSERT IGNORE INTO technologies (name, slug, is_active) VALUES
-('React', 'react', 1),
-('Spring Boot', 'spring-boot', 1),
-('MySQL', 'mysql', 1),
-('TypeScript', 'typescript', 1),
-('Docker', 'docker', 1),
-('Python', 'python', 1),
-('PostgreSQL', 'postgresql', 1);
+(4, 'Tối ưu Hóa Truy vấn SQL Phân tán', 
+ 'Phân tích kế hoạch thực thi (Execution Plan), đánh chỉ mục chuyên sâu và thiết kế bộ đệm đa tầng cho hệ thống cơ sở dữ liệu giao dịch tần suất cao.',
+ 'Mô tả chi tiết: Nghiên cứu phân mảnh cơ sở dữ liệu (sharding), tối ưu query latency...',
+ 'APPROVED', 'LECTURE', 2, 4, 1, 1, 'ThS. Lê Hoàng Nam', 'https://github.com/utc-fit/sql-distributed-opt', 870, 190, 4.6, 14, 1, NOW(), DATE_SUB(NOW(), INTERVAL 45 DAY)),
 
--- 2. Đảm bảo tài khoản demo (BCrypt hash cho Admin@123 và Student@123)
--- Admin: $2a$10$7Z8VdG0p9F3/G37jX8Kke.sJcIkmM5B6fKxP.8rB/6c9l5V.P9lK. (hoặc BCrypt hash tương đương)
--- Mật khẩu chuẩn:
--- admin@cntt.local / Admin@123  ($2a$10$rCzC0P50l7mP3W7/n4g5jOT9gqY5n6I2m1R0qE8g4C8U0Z7x0j2mG)
--- sv01@cntt.local  / Student@123
--- sv02@cntt.local  / Student@123
+(5, 'Bảo mật Ứng dụng Web theo Chuẩn OWASP Top 10', 
+ 'Phân tích các lỗ hổng bảo mật phổ biến (SQL Injection, XSS, CSRF, SSRF) và xây dựng hệ thống phòng thủ đa lớp kết hợp Web Application Firewall (WAF).',
+ 'Mô tả chi tiết: Xây dựng demo lab kiểm thử an toàn thông tin theo chuẩn NIST & OWASP...',
+ 'APPROVED', 'LAB', 3, 5, 3, 1, 'ThS. Nguyễn Duy Hưng', 'https://github.com/utc-fit/owasp-security-lab', 2150, 580, 4.9, 62, 1, NOW(), DATE_SUB(NOW(), INTERVAL 50 DAY)),
 
-INSERT INTO users (email, password_hash, full_name, student_code, role, is_active)
-SELECT 'admin@cntt.local', '$2a$10$wN9rIknQ7iH1Q47G2.pC5O8IbmFwGgJc5f6F5g8rKq8Z7x0j2mG3e', 'Admin Khoa', NULL, 'ADMIN', 1
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@cntt.local');
+(6, 'Thiết kế CSDL Phân tán quy mô lớn', 
+ 'Giải pháp phân mảnh ngang (Sharding), sao lưu đồng bộ và bất đồng bộ trên cụm cơ sở dữ liệu phân tán PostgreSQL và Redis Cluster.',
+ 'Mô tả chi tiết: Hệ thống cluster 5 nodes đảm bảo ACID và High Availability 99.99%...',
+ 'APPROVED', 'CAPSTONE', 2, 6, 1, 1, 'TS. Đào Thị Lệ Thủy', 'https://github.com/utc-fit/distributed-db-cluster', 1680, 380, 4.8, 31, 1, NOW(), DATE_SUB(NOW(), INTERVAL 60 DAY)),
 
-INSERT INTO users (email, password_hash, full_name, student_code, role, is_active)
-SELECT 'sv01@cntt.local', '$2a$10$wN9rIknQ7iH1Q47G2.pC5O8IbmFwGgJc5f6F5g8rKq8Z7x0j2mG3e', 'Nguyen Van A', 'SV001', 'STUDENT', 1
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'sv01@cntt.local');
+(7, 'Kiến trúc Micro-Frontend hiện đại', 
+ 'Phát triển kiến trúc Web phân tán ứng dụng Module Federation, kết hợp React 19 và Tailwind CSS giúp các đội ngũ độc lập phát triển và phát hành vi dịch vụ giao diện.',
+ 'Mô tả chi tiết: Độc lập bundle, chia sẻ component thư viện thông qua runtime injection...',
+ 'APPROVED', 'THESIS', 3, 7, 1, 1, 'ThS. Nguyễn Duy Hưng', 'https://github.com/utc-fit/micro-frontends-react', 2340, 620, 4.9, 52, 1, NOW(), DATE_SUB(NOW(), INTERVAL 70 DAY)),
 
-INSERT INTO users (email, password_hash, full_name, student_code, role, is_active)
-SELECT 'sv02@cntt.local', '$2a$10$wN9rIknQ7iH1Q47G2.pC5O8IbmFwGgJc5f6F5g8rKq8Z7x0j2mG3e', 'Tran Thi B', 'SV002', 'STUDENT', 1
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'sv02@cntt.local');
+(8, 'Tối ưu CI/CD Kubernetes Pipeline', 
+ 'Tự động hóa toàn diện quy trình kiểm thử đơn vị, quét lỗ hổng bảo mật SonarQube và triển khai GitOps an toàn lên môi trường Production với ArgoCD.',
+ 'Mô tả chi tiết: Pipeline chuẩn GitHub Actions kết hợp Vault secrets management...',
+ 'APPROVED', 'PROJECT', 2, 8, 2, 1, 'TS. Vũ Trọng Khang', 'https://github.com/utc-fit/k8s-gitops-pipeline', 1890, 450, 4.7, 25, 1, NOW(), DATE_SUB(NOW(), INTERVAL 80 DAY)),
 
--- 3. Seed demo documents (APPROVED, PENDING, REJECTED)
--- Document 1: APPROVED
-INSERT INTO documents (id, title, abstract_text, description, document_type_id, subject_id, major_id, academic_year_id, advisor_name, github_url, created_by, status, rejection_note, view_count, download_count, created_at, updated_at)
-VALUES (
-  1,
-  'Nghiên cứu và Ứng dụng Kiến trúc Microservices trong Quản trị Tài liệu Học thuật',
-  'Đồ án tập trung khảo sát các mô hình kiến trúc Microservices hiện đại, kết hợp Spring Boot 3 và Supabase Storage để quản lý tài liệu dung lượng lớn bảo mật.',
-  'Báo cáo hoàn chỉnh kèm sơ đồ kiến trúc, giải thuật xác thực JWT phân tán và tối ưu truy vấn MySQL.',
-  (SELECT id FROM lov_values WHERE code = 'THESIS' LIMIT 1),
-  (SELECT id FROM subjects WHERE code = 'INT3001' LIMIT 1),
-  (SELECT id FROM majors WHERE code = 'SE' LIMIT 1),
-  (SELECT id FROM academic_years WHERE code = '2024-2025' LIMIT 1),
-  'PGS.TS. Trần Đình Minh',
-  'https://github.com/cntt-fit/academic-docs-microservices',
-  (SELECT id FROM users WHERE email = 'sv01@cntt.local' LIMIT 1),
-  'APPROVED',
-  NULL,
-  128,
-  35,
-  NOW() - INTERVAL 5 DAY,
-  NOW() - INTERVAL 4 DAY
-) ON DUPLICATE KEY UPDATE title = VALUES(title);
+-- 1 Pending, 1 Revision Required, 1 Draft, 1 Rejected
+(9, 'Nghiên cứu ứng dụng Blockchain trong xác thực văn bằng UTC',
+ 'Xây dựng mạng lưới private blockchain dựa trên Hyperledger Fabric để cấp phát và thẩm định chứng chỉ số hóa cho sinh viên tốt nghiệp.',
+ 'Mô tả chi tiết: Smart contract kiểm tra tính hợp lệ của chữ ký số Hội đồng...',
+ 'PENDING', 'THESIS', 3, 1, 1, 1, 'TS. Nguyễn Mạnh Hùng', 'https://github.com/utc-fit/diploma-blockchain', 45, 0, 0.0, 0, NULL, NULL, NOW()),
 
--- Document 2: PENDING
-INSERT INTO documents (id, title, abstract_text, description, document_type_id, subject_id, major_id, academic_year_id, advisor_name, github_url, created_by, status, rejection_note, view_count, download_count, created_at, updated_at)
-VALUES (
-  2,
-  'Xây dựng Hệ thống Trích xuất và Tóm tắt Văn bản Tự động bằng LLM',
-  'Nghiên cứu áp dụng các mô hình ngôn ngữ lớn (LLM) để tự động sinh tóm tắt tài liệu học thuật và phân loại theo chủ đề.',
-  'Bao gồm pipeline xử lý dữ liệu PDF tiếng Việt, embedding vector và mô hình sinh văn bản.',
-  (SELECT id FROM lov_values WHERE code = 'THESIS' LIMIT 1),
-  (SELECT id FROM subjects WHERE code = 'INT3003' LIMIT 1),
-  (SELECT id FROM majors WHERE code = 'CS' LIMIT 1),
-  (SELECT id FROM academic_years WHERE code = '2024-2025' LIMIT 1),
-  'TS. Lê Thị Mai Hoa',
-  'https://github.com/cntt-fit/llm-text-summarizer',
-  (SELECT id FROM users WHERE email = 'sv01@cntt.local' LIMIT 1),
-  'PENDING',
-  NULL,
-  12,
-  0,
-  NOW() - INTERVAL 1 DAY,
-  NOW() - INTERVAL 1 DAY
-) ON DUPLICATE KEY UPDATE title = VALUES(title);
+(10, 'Hệ thống Quản lý Thư viện Số UTC - Kiến trúc Clean & Microservices',
+ 'Thiết kế hệ thống mượn trả tài liệu học thuật theo mô hình hướng dịch vụ Spring Boot 3 & Next.js.',
+ 'Cần bổ sung: Sơ đồ ERD độ phân giải cao và cam kết bản quyền mã nguồn theo yêu cầu của hội đồng thẩm định.',
+ 'REVISION_REQUIRED', 'CAPSTONE', 2, 2, 1, 1, 'PGS. TS. Trần Văn Hùng', 'https://github.com/utc-fit/clean-library-sys', 120, 5, 0.0, 0, NULL, NULL, NOW());
 
--- Document 3: REJECTED
-INSERT INTO documents (id, title, abstract_text, description, document_type_id, subject_id, major_id, academic_year_id, advisor_name, github_url, created_by, status, rejection_note, view_count, download_count, created_at, updated_at)
-VALUES (
-  3,
-  'Báo cáo Thực tập Doanh nghiệp tại Công ty Giải pháp Phần mềm ABC',
-  'Báo cáo tổng kết quá trình thực tập vị trí Frontend Developer tại ABC Corp trong thời gian 3 tháng.',
-  'Báo cáo mô tả công việc và bài học kinh nghiệm.',
-  (SELECT id FROM lov_values WHERE code = 'ASSIGNMENT' LIMIT 1),
-  (SELECT id FROM subjects WHERE code = 'INT2001' LIMIT 1),
-  (SELECT id FROM majors WHERE code = 'IS' LIMIT 1),
-  (SELECT id FROM academic_years WHERE code = '2023-2024' LIMIT 1),
-  'ThS. Phạm Quang Huy',
-  NULL,
-  (SELECT id FROM users WHERE email = 'sv02@cntt.local' LIMIT 1),
-  'REJECTED',
-  'Thiếu nhận xét và chữ ký đóng dấu từ phía Doanh nghiệp tiếp nhận thực tập; cấu trúc chương 3 chưa đầy đủ biểu đồ thiết kế CSDL.',
-  5,
-  0,
-  NOW() - INTERVAL 2 DAY,
-  NOW() - INTERVAL 2 DAY
-) ON DUPLICATE KEY UPDATE title = VALUES(title);
+-- Files
+INSERT INTO document_files (id, document_id, file_name, storage_key, mime_type, file_size, is_primary)
+VALUES
+(1, 1, 'KLTN_GraphAlgorithms_AliceWang.pdf', 'docs/1/graph-algorithms.pdf', 'application/pdf', 15400000, 1),
+(2, 2, 'KLTN_DeepLearning_MedicalVision.pdf', 'docs/2/deeplearning-vision.pdf', 'application/pdf', 22100000, 1),
+(3, 3, 'BTL_EdgeComputing_K3s_IoT.pdf', 'docs/3/edge-iot.pdf', 'application/pdf', 8400000, 1),
+(4, 10, 'DoAn_Clean_Library_V1.pdf', 'docs/10/clean-library-v1.pdf', 'application/pdf', 12300000, 1);
 
--- 4. Seed document_files
-INSERT INTO document_files (id, document_id, file_name, storage_key, mime_type, file_size, is_primary, created_by, created_at)
-VALUES 
-(1, 1, 'Bao_cao_Do_an_Tot_nghiep_Microservices.pdf', 'seed/microservices_thesis.pdf', 'application/pdf', 4829104, 1, (SELECT id FROM users WHERE email = 'sv01@cntt.local' LIMIT 1), NOW() - INTERVAL 5 DAY),
-(2, 2, 'Khoa_luan_LLM_Text_Summarizer.pdf', 'seed/llm_summarizer.pdf', 'application/pdf', 3154890, 1, (SELECT id FROM users WHERE email = 'sv01@cntt.local' LIMIT 1), NOW() - INTERVAL 1 DAY)
-ON DUPLICATE KEY UPDATE file_name = VALUES(file_name);
+-- Technologies
+INSERT INTO document_technologies (document_id, technology_id, usage_note)
+VALUES
+(1, 1, 'Backend core services'),
+(2, 2, 'Training model and preprocessing'),
+(3, 1, 'Microservices on Edge'),
+(7, 3, 'Frontend framework'),
+(8, 4, 'Infrastructure container runtime');
 
--- 5. Seed document_reviews
-INSERT INTO document_reviews (id, document_id, reviewer_id, from_status, to_status, comment, created_at)
-VALUES 
-(1, 1, (SELECT id FROM users WHERE email = 'admin@cntt.local' LIMIT 1), 'PENDING', 'APPROVED', 'Tài liệu đạt chuẩn chất lượng đồ án tốt nghiệp, đề tài có tính ứng dụng cao.', NOW() - INTERVAL 4 DAY),
-(2, 3, (SELECT id FROM users WHERE email = 'admin@cntt.local' LIMIT 1), 'PENDING', 'REJECTED', 'Thiếu nhận xét và chữ ký đóng dấu từ phía Doanh nghiệp tiếp nhận thực tập; cấu trúc chương 3 chưa đầy đủ biểu đồ thiết kế CSDL.', NOW() - INTERVAL 2 DAY)
-ON DUPLICATE KEY UPDATE comment = VALUES(comment);
+-- Bookmarks
+INSERT INTO bookmarks (user_id, document_id)
+VALUES
+(2, 2),
+(2, 5),
+(3, 1),
+(3, 7);
 
--- 6. Seed bookmarks
-INSERT INTO bookmarks (id, user_id, document_id, created_at)
-VALUES 
-(1, (SELECT id FROM users WHERE email = 'sv02@cntt.local' LIMIT 1), 1, NOW() - INTERVAL 3 DAY)
-ON DUPLICATE KEY UPDATE document_id = VALUES(document_id);
+-- Ratings
+INSERT INTO ratings (user_id, document_id, score)
+VALUES
+(2, 1, 5),
+(3, 1, 5),
+(2, 2, 5),
+(3, 2, 4);
 
--- 7. Seed violation reports
+-- Reports
 INSERT INTO reports (id, document_id, reporter_id, reason_code, description, status, created_at)
-VALUES 
-(1, 1, (SELECT id FROM users WHERE email = 'sv02@cntt.local' LIMIT 1), 'COPYRIGHT_VIOLATION', 'Đoạn mô tả chương 2 có nội dung tham khảo từ tài liệu mở mà chưa trích dẫn đầy đủ nguồn.', 'PENDING', NOW() - INTERVAL 1 DAY)
-ON DUPLICATE KEY UPDATE description = VALUES(description);
+VALUES
+(1, 2, 3, 'PLAGIARISM', 'Toàn bộ Đoạn 3.2 (trang 42 đến 48) về mô hình Convolutional-LSTM sao chép nguyên văn đồ án tốt nghiệp của nhóm SV K62 năm 2024 không ghi chú nguồn gốc.', 'PENDING', NOW()),
+(2, 3, 2, 'MISLEADING', 'Chương 4 phần tập lệnh Thumb-2 có nhiều đoạn mã giả lập in sai thanh ghi dẫn đến chạy thử nghiệm bị tràn bộ nhớ stack.', 'IN_REVIEW', NOW());

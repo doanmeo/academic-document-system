@@ -1,18 +1,15 @@
 import { Outlet } from 'react-router-dom'
 import Navbar from './Navbar'
-import { Toaster } from 'sonner'
+import Footer from './Footer'
 
 export default function Layout() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 antialiased">
-      <Toaster position="top-right" richColors />
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 font-sans antialiased flex flex-col">
       <Navbar />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 flex flex-col">
         <Outlet />
       </main>
-      <footer className="bg-white border-t border-gray-200 py-6 text-center text-xs text-gray-500">
-        <p>© 2026 Academic Document System — Khoa Công nghệ Thông tin</p>
-      </footer>
+      <Footer />
     </div>
   )
 }

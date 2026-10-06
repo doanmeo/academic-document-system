@@ -1,6 +1,8 @@
 package com.cntt.academicdocs.domain;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,94 +13,49 @@ public class DocumentReview {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "document_id", nullable = false)
-    private Long documentId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "document_id", nullable = false)
+    private Document document;
 
-    @Column(name = "reviewer_id", nullable = false)
-    private Long reviewerId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reviewer_id", nullable = false)
+    private User reviewer;
 
-    @Column(name = "from_status", nullable = false, length = 50)
-    private String fromStatus;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "from_status", nullable = false, length = 30)
+    private DocumentStatus fromStatus;
 
-    @Column(name = "to_status", nullable = false, length = 50)
-    private String toStatus;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "to_status", nullable = false, length = 30)
+    private DocumentStatus toStatus;
 
     @Column(columnDefinition = "TEXT")
     private String comment;
 
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
+    public DocumentReview() {}
 
-    public DocumentReview() {
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public DocumentReview(Long documentId, Long reviewerId, String fromStatus, String toStatus, String comment) {
-        this.documentId = documentId;
-        this.reviewerId = reviewerId;
-        this.fromStatus = fromStatus;
-        this.toStatus = toStatus;
-        this.comment = comment;
-        this.createdAt = LocalDateTime.now();
-    }
+    public Document getDocument() { return document; }
+    public void setDocument(Document document) { this.document = document; }
 
-    public Long getId() {
-        return id;
-    }
+    public User getReviewer() { return reviewer; }
+    public void setReviewer(User reviewer) { this.reviewer = reviewer; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public DocumentStatus getFromStatus() { return fromStatus; }
+    public void setFromStatus(DocumentStatus fromStatus) { this.fromStatus = fromStatus; }
 
-    public Long getDocumentId() {
-        return documentId;
-    }
+    public DocumentStatus getToStatus() { return toStatus; }
+    public void setToStatus(DocumentStatus toStatus) { this.toStatus = toStatus; }
 
-    public void setDocumentId(Long documentId) {
-        this.documentId = documentId;
-    }
+    public String getComment() { return comment; }
+    public void setComment(String comment) { this.comment = comment; }
 
-    public Long getReviewerId() {
-        return reviewerId;
-    }
-
-    public void setReviewerId(Long reviewerId) {
-        this.reviewerId = reviewerId;
-    }
-
-    public String getFromStatus() {
-        return fromStatus;
-    }
-
-    public void setFromStatus(String fromStatus) {
-        this.fromStatus = fromStatus;
-    }
-
-    public String getToStatus() {
-        return toStatus;
-    }
-
-    public void setToStatus(String toStatus) {
-        this.toStatus = toStatus;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

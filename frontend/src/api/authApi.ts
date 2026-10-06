@@ -1,38 +1,43 @@
 import api from './axios'
-import type { ApiResponse, AuthResponse, User } from '../types'
+import type {
+  AuthResponse,
+  AuthTokens,
+  LoginRequest,
+  RegisterRequest,
+  LogoutRequest,
+  User,
+} from '../types/auth'
 
-export interface LoginPayload {
-  email: string
-  password: string
+// Helper: unwrap envelope data.data
+const unwrap = <T>(res: { data: { data: T } }): T => res.data.data
+
+// ─── Auth API ─────────────────────────────────────────────────────────────────
+
+/** POST /auth/register → trả về AuthResponse (có user + tokens) */
+export const register = async (payload: RegisterRequest): Promise<AuthResponse> => {
+  const res = await api.post<{ data: { data: AuthResponse } }>('/auth/register', payload)
+  return unwrap(res)
 }
 
-export interface RegisterPayload {
-  email: string
-  password: string
-  fullName: string
-  studentCode?: string
-  majorId?: number
+/** POST /auth/login → trả về AuthResponse (có user + tokens) */
+export const login = async (payload: LoginRequest): Promise<AuthResponse> => {
+  const res = await api.post<{ data: { data: AuthResponse } }>('/auth/login', payload)
+  return unwrap(res)
 }
 
-export const authApi = {
-  login: async (data: LoginPayload): Promise<ApiResponse<AuthResponse>> => {
-    const res = await api.post<ApiResponse<AuthResponse>>('/auth/login', data)
-    return res.data
-  },
+/** POST /auth/refresh → trả về tokens mới (không có user) */
+export const refreshTokens = async (refreshToken: string): Promise<AuthTokens> => {
+  const res = await api.post<{ data: { data: AuthTokens } }>('/auth/refresh', { refreshToken })
+  return unwrap(res)
+}
 
-  register: async (data: RegisterPayload): Promise<ApiResponse<AuthResponse>> => {
-    const res = await api.post<ApiResponse<AuthResponse>>('/auth/register', data)
-    return res.data
-  },
+/** POST /auth/logout */
+export const logout = async (payload: LogoutRequest): Promise<void> => {
+  await api.post('/auth/logout', payload)
+}
 
-  getCurrentUser: async (): Promise<ApiResponse<User>> => {
-    const res = await api.get<ApiResponse<User>>('/auth/me')
-    return res.data
-  },
-
-  logout: async (): Promise<ApiResponse<void>> => {
-    const refreshToken = localStorage.getItem('refreshToken')
-    const res = await api.post<ApiResponse<void>>('/auth/logout', { refreshToken })
-    return res.data
-  },
+/** GET /auth/me → thông tin người dùng hiện tại */
+export const getMe = async (): Promise<User> => {
+  const res = await api.get<{ data: { data: User } }>('/auth/me')
+  return unwrap(res)
 }

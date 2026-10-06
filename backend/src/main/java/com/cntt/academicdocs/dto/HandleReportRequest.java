@@ -1,47 +1,23 @@
 package com.cntt.academicdocs.dto;
 
-import com.cntt.academicdocs.domain.ReportStatus;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 public class HandleReportRequest {
 
-    @NotNull(message = "Quyết định xử lý không được để trống (RESOLVED hoặc REJECTED)")
-    private ReportStatus decision;
+    @NotBlank(message = "Quyết định xử lý không được để trống")
+    private String decision;
 
     private String note;
+    private Boolean hideDocument;
 
-    private Boolean hideDocument = false;
+    public HandleReportRequest() {}
 
-    public HandleReportRequest() {
-    }
+    public String getDecision() { return decision; }
+    public void setDecision(String decision) { this.decision = decision; }
 
-    public HandleReportRequest(ReportStatus decision, String note, Boolean hideDocument) {
-        this.decision = decision;
-        this.note = note;
-        this.hideDocument = hideDocument;
-    }
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
 
-    public ReportStatus getDecision() {
-        return decision;
-    }
-
-    public void setDecision(ReportStatus decision) {
-        this.decision = decision;
-    }
-
-    public String getNote() {
-        return note;
-    }
-
-    public void setNote(String note) {
-        this.note = note;
-    }
-
-    public Boolean getHideDocument() {
-        return hideDocument != null ? hideDocument : false;
-    }
-
-    public void setHideDocument(Boolean hideDocument) {
-        this.hideDocument = hideDocument;
-    }
+    public Boolean getHideDocument() { return hideDocument; }
+    public void setHideDocument(Boolean hideDocument) { this.hideDocument = hideDocument; }
 }

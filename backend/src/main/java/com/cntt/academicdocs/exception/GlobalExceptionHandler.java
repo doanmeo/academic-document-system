@@ -65,10 +65,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
         log.error("Unhandled exception: ", ex);
+        String message = "Đã xảy ra lỗi hệ thống nội bộ. Vui lòng liên hệ ban quản trị.";
         List<ApiResponse.ApiError> errors = List.of(
-                new ApiResponse.ApiError(null, "INTERNAL_SERVER_ERROR", ex.getMessage())
+                new ApiResponse.ApiError(null, "INTERNAL_SERVER_ERROR", message)
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("Lỗi máy chủ nội bộ", errors));
+                .body(ApiResponse.error(message, errors));
     }
 }

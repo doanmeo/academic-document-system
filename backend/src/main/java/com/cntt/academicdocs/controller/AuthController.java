@@ -53,7 +53,7 @@ public class AuthController {
     ) {
         String refreshToken = body != null ? body.get("refreshToken") : null;
         authService.logout(refreshToken, currentUserId);
-        return ResponseEntity.ok(ApiResponse.success("Đăng xuất thành công", null));
+        return ResponseEntity.ok(ApiResponse.ok("Đăng xuất thành công"));
     }
 
     @GetMapping("/me")

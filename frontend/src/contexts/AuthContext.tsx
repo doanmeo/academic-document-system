@@ -1,107 +1,115 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { authApi } from '../api/authApi'
-import type { LoginPayload, RegisterPayload } from '../api/authApi'
-import type { User } from '../types'
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  type ReactNode,
+} from 'react'
+import * as authApi from '../api/authApi'
+import type { User, RegisterRequest } from '../types/auth'
 
+// ─── Context shape ────────────────────────────────────────────────────────────
 interface AuthContextType {
   user: User | null
   loading: boolean
   isAuthenticated: boolean
-  isAdmin: boolean
-  login: (data: LoginPayload) => Promise<void>
-  register: (data: RegisterPayload) => Promise<void>
+  login: (email: string, password: string) => Promise<void>
+  register: (payload: RegisterRequest) => Promise<void>
   logout: () => Promise<void>
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
+// ─── Provider ─────────────────────────────────────────────────────────────────
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Khi app khởi động: nếu có accessToken → fetch thông tin user hiện tại
   useEffect(() => {
-    const token = localStorage.getItem('accessToken')
-    if (token) {
-      authApi
-        .getCurrentUser()
-        .then((res) => {
-          if (res.success && res.data) {
-            setUser(res.data)
-          } else {
-            localStorage.removeItem('accessToken')
-            localStorage.removeItem('refreshToken')
-          }
-        })
-        .catch(() => {
-          localStorage.removeItem('accessToken')
-          localStorage.removeItem('refreshToken')
-        })
-        .finally(() => {
-          setLoading(false)
-        })
-    } else {
-      setLoading(false)
+    const init = async () => {
+      const token = localStorage.getItem('accessToken')
+      if (!token) {
+        setLoading(false)
+        return
+      }
+      try {
+        const me = await authApi.getMe()
+        setUser(me)
+      } catch {
+        // Token hết hạn hoặc không hợp lệ → axios interceptor đã xử lý refresh
+        // Nếu refresh cũng fail → interceptor đã clear localStorage
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
     }
+    init()
   }, [])
 
-  const login = async (data: LoginPayload) => {
-    const res = await authApi.login(data)
-    if (res.success && res.data) {
-      localStorage.setItem('accessToken', res.data.accessToken)
-      localStorage.setItem('refreshToken', res.data.refreshToken)
-      setUser(res.data.user)
-    } else {
-      throw new Error(res.message || 'Đăng nhập thất bại')
-    }
-  }
+  // ─── login ──────────────────────────────────────────────────────────────────
+  const login = useCallback(async (email: string, password: string) => {
+    const { accessToken, refreshToken, user: loggedInUser } = await authApi.login({
+      email,
+      password,
+    })
+    localStorage.setItem('accessToken', accessToken)
+    localStorage.setItem('refreshToken', refreshToken)
+    setUser(loggedInUser)
+  }, [])
 
-  const register = async (data: RegisterPayload) => {
-    const res = await authApi.register(data)
-    if (res.success && res.data) {
-      localStorage.setItem('accessToken', res.data.accessToken)
-      localStorage.setItem('refreshToken', res.data.refreshToken)
-      setUser(res.data.user)
-    } else {
-      throw new Error(res.message || 'Đăng ký thất bại')
-    }
-  }
+  // ─── register ────────────────────────────────────────────────────────────────
+  const register = useCallback(async (payload: RegisterRequest) => {
+    const { accessToken, refreshToken, user: newUser } = await authApi.register(payload)
+    localStorage.setItem('accessToken', accessToken)
+    localStorage.setItem('refreshToken', refreshToken)
+    setUser(newUser)
+  }, [])
 
-  const logout = async () => {
+  // ─── logout ──────────────────────────────────────────────────────────────────
+  const logout = useCallback(async () => {
+    const refreshToken = localStorage.getItem('refreshToken')
     try {
-      await authApi.logout()
+      if (refreshToken) {
+        await authApi.logout({ refreshToken })
+      }
     } catch {
-      // Ignore network errors on logout
+      // Bỏ qua lỗi khi logout (token đã hết hạn trên server)
     } finally {
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
       setUser(null)
     }
-  }
+  }, [])
 
-  const isAuthenticated = !!user
-  const isAdmin = user?.role === 'ADMIN'
+  // ─── refreshUser: re-fetch thông tin user (dùng sau khi cập nhật profile) ──
+  const refreshUser = useCallback(async () => {
+    try {
+      const me = await authApi.getMe()
+      setUser(me)
+    } catch {
+      // Không làm gì — interceptor đã xử lý
+    }
+  }, [])
+
+  const isAuthenticated = user !== null
 
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        isAuthenticated,
-        isAdmin,
-        login,
-        register,
-        logout,
-      }}
+      value={{ user, loading, isAuthenticated, login, register, logout, refreshUser }}
     >
       {children}
     </AuthContext.Provider>
   )
 }
 
+// ─── Hook ─────────────────────────────────────────────────────────────────────
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext)
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider')
+    throw new Error('useAuth phải được dùng bên trong AuthProvider')
   }
   return context
 }

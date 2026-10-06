@@ -3,78 +3,78 @@ package com.cntt.academicdocs.service;
 import com.cntt.academicdocs.domain.Bookmark;
 import com.cntt.academicdocs.domain.Document;
 import com.cntt.academicdocs.domain.DocumentStatus;
-import com.cntt.academicdocs.dto.BookmarkResponse;
-import com.cntt.academicdocs.dto.DocumentResponse;
-import com.cntt.academicdocs.exception.AppException;
+import com.cntt.academicdocs.domain.User;
+import com.cntt.academicdocs.dto.DocumentSummaryDTO;
+import com.cntt.academicdocs.dto.PageResponse;
+import com.cntt.academicdocs.exception.BusinessException;
 import com.cntt.academicdocs.repository.BookmarkRepository;
 import com.cntt.academicdocs.repository.DocumentRepository;
+import com.cntt.academicdocs.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class BookmarkService {
 
     private final BookmarkRepository bookmarkRepository;
     private final DocumentRepository documentRepository;
+    private final UserRepository userRepository;
     private final DocumentService documentService;
 
     public BookmarkService(
             BookmarkRepository bookmarkRepository,
             DocumentRepository documentRepository,
+            UserRepository userRepository,
             DocumentService documentService
     ) {
         this.bookmarkRepository = bookmarkRepository;
         this.documentRepository = documentRepository;
+        this.userRepository = userRepository;
         this.documentService = documentService;
     }
 
     @Transactional
-    public BookmarkResponse addBookmark(Long documentId, Long userId) {
-        if (userId == null) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Vui lòng đăng nhập để lưu tài liệu");
-        }
-
+    public void addBookmark(Long documentId, Long userId) {
         Document document = documentRepository.findById(documentId)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "DOCUMENT_NOT_FOUND", "Không tìm thấy tài liệu"));
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "DOCUMENT_NOT_FOUND", "Không tìm thấy tài liệu"));
 
         if (document.getStatus() != DocumentStatus.APPROVED) {
-            throw new AppException(HttpStatus.BAD_REQUEST, "INVALID_DOCUMENT_STATUS", "Chỉ có thể đánh dấu yêu thích tài liệu đã được phê duyệt (APPROVED)");
+            throw new BusinessException(HttpStatus.UNPROCESSABLE_ENTITY, "DOCUMENT_NOT_APPROVED", "Chỉ có thể lưu tài liệu đã được phê duyệt");
         }
 
-        if (bookmarkRepository.existsByUserIdAndDocumentId(userId, documentId)) {
-            throw new AppException(HttpStatus.CONFLICT, "DUPLICATE_BOOKMARK", "Tài liệu này đã được lưu vào danh sách yêu thích");
+        if (bookmarkRepository.existsByUser_IdAndDocument_Id(userId, documentId)) {
+            throw new BusinessException(HttpStatus.CONFLICT, "BOOKMARK_EXISTS", "Tài liệu này đã được lưu trong danh sách");
         }
 
-        Bookmark bookmark = new Bookmark(userId, documentId);
-        Bookmark saved = bookmarkRepository.save(bookmark);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Không tìm thấy người dùng"));
 
-        DocumentResponse docResponse = documentService.mapToResponse(document);
-        return new BookmarkResponse(saved.getId(), saved.getUserId(), saved.getDocumentId(), saved.getCreatedAt(), docResponse);
+        Bookmark bookmark = new Bookmark();
+        bookmark.setUser(user);
+        bookmark.setDocument(document);
+        bookmarkRepository.save(bookmark);
     }
 
     @Transactional
     public void removeBookmark(Long documentId, Long userId) {
-        if (userId == null) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Vui lòng đăng nhập");
+        if (!bookmarkRepository.existsByUser_IdAndDocument_Id(userId, documentId)) {
+            throw new BusinessException(HttpStatus.NOT_FOUND, "BOOKMARK_NOT_FOUND", "Tài liệu chưa được lưu trong danh sách");
         }
-
-        bookmarkRepository.deleteByUserIdAndDocumentId(userId, documentId);
+        bookmarkRepository.deleteByUser_IdAndDocument_Id(userId, documentId);
     }
 
     @Transactional(readOnly = true)
-    public List<BookmarkResponse> getMyBookmarks(Long userId) {
-        if (userId == null) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Vui lòng đăng nhập");
-        }
-
-        List<Bookmark> bookmarks = bookmarkRepository.findByUserIdOrderByCreatedAtDesc(userId);
-        return bookmarks.stream().map(b -> {
-            Document doc = documentRepository.findById(b.getDocumentId()).orElse(null);
-            DocumentResponse docResponse = doc != null ? documentService.mapToResponse(doc) : null;
-            return new BookmarkResponse(b.getId(), b.getUserId(), b.getDocumentId(), b.getCreatedAt(), docResponse);
-        }).toList();
+    public PageResponse<DocumentSummaryDTO> getMyBookmarks(Long userId, Pageable pageable) {
+        Page<Bookmark> page = bookmarkRepository.findByUser_IdOrderByCreatedAtDesc(userId, pageable);
+        List<DocumentSummaryDTO> dtoList = page.getContent().stream()
+                .map(b -> documentService.toSummaryDTO(b.getDocument(), userId))
+                .collect(Collectors.toList());
+        return PageResponse.of(page, dtoList);
     }
 }

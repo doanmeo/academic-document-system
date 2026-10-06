@@ -1,29 +1,43 @@
 import api from './axios'
-import type { ApiResponse, Subject, Major, AcademicYear, Technology, LovValue } from '../types'
+import type {
+  Subject,
+  Major,
+  AcademicYear,
+  Technology,
+  LovItem,
+  LovGroupCode,
+} from '../types/catalog'
 
-export const catalogApi = {
-  getSubjects: async (): Promise<ApiResponse<Subject[]>> => {
-    const res = await api.get<ApiResponse<Subject[]>>('/catalog/subjects')
-    return res.data
-  },
+const unwrap = <T>(res: { data: { data: T } }): T => res.data.data
 
-  getMajors: async (): Promise<ApiResponse<Major[]>> => {
-    const res = await api.get<ApiResponse<Major[]>>('/catalog/majors')
-    return res.data
-  },
+// ─── Catalog API ──────────────────────────────────────────────────────────────
 
-  getAcademicYears: async (): Promise<ApiResponse<AcademicYear[]>> => {
-    const res = await api.get<ApiResponse<AcademicYear[]>>('/catalog/academic-years')
-    return res.data
-  },
+/** GET /catalog/subjects */
+export const getSubjects = async (): Promise<Subject[]> => {
+  const res = await api.get('/catalog/subjects')
+  return unwrap(res)
+}
 
-  getTechnologies: async (): Promise<ApiResponse<Technology[]>> => {
-    const res = await api.get<ApiResponse<Technology[]>>('/catalog/technologies')
-    return res.data
-  },
+/** GET /catalog/majors */
+export const getMajors = async (): Promise<Major[]> => {
+  const res = await api.get('/catalog/majors')
+  return unwrap(res)
+}
 
-  getLovValues: async (groupCode: string): Promise<ApiResponse<LovValue[]>> => {
-    const res = await api.get<ApiResponse<LovValue[]>>(`/catalog/lov/${groupCode}`)
-    return res.data
-  },
+/** GET /catalog/academic-years */
+export const getAcademicYears = async (): Promise<AcademicYear[]> => {
+  const res = await api.get('/catalog/academic-years')
+  return unwrap(res)
+}
+
+/** GET /catalog/technologies */
+export const getTechnologies = async (): Promise<Technology[]> => {
+  const res = await api.get('/catalog/technologies')
+  return unwrap(res)
+}
+
+/** GET /catalog/lov/:groupCode */
+export const getLov = async (groupCode: LovGroupCode): Promise<LovItem[]> => {
+  const res = await api.get(`/catalog/lov/${groupCode}`)
+  return unwrap(res)
 }

@@ -1,25 +1,27 @@
 package com.cntt.academicdocs.controller;
 
-import com.cntt.academicdocs.domain.ReportStatus;
 import com.cntt.academicdocs.dto.ApiResponse;
 import com.cntt.academicdocs.dto.HandleReportRequest;
-import com.cntt.academicdocs.dto.ReportResponse;
-import com.cntt.academicdocs.exception.AppException;
+import com.cntt.academicdocs.dto.PageResponse;
+import com.cntt.academicdocs.dto.ReportDTO;
+import com.cntt.academicdocs.exception.BusinessException;
 import com.cntt.academicdocs.service.ReportService;
+import com.cntt.academicdocs.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/reports")
-@Tag(name = "Admin Reports", description = "Endpoints for administrators to review and resolve violation reports")
+@PreAuthorize("hasRole('ADMIN')")
+@Tag(name = "Admin Reports", description = "Quản lý và giải quyết khiếu nại báo cáo vi phạm")
 public class AdminReportController {
 
     private final ReportService reportService;
@@ -29,33 +31,26 @@ public class AdminReportController {
     }
 
     @GetMapping
-    @Operation(summary = "Get list of violation reports, optionally filtered by status (ADMIN only)")
-    public ResponseEntity<ApiResponse<List<ReportResponse>>> getReports(
-            @RequestParam(value = "status", required = false) ReportStatus status,
-            Authentication authentication
+    @Operation(summary = "Lấy danh sách báo cáo vi phạm")
+    public ResponseEntity<ApiResponse<PageResponse<ReportDTO>>> getReports(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        validateAdminRole(authentication);
-        List<ReportResponse> response = reportService.getAdminReports(status);
-        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách báo cáo vi phạm thành công", response));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        PageResponse<ReportDTO> result = reportService.getAdminReports(status, pageable);
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     @PostMapping("/{id}/handle")
-    @Operation(summary = "Handle violation report (RESOLVED / REJECTED) with optional document hiding (ADMIN only)")
-    public ResponseEntity<ApiResponse<ReportResponse>> handleReport(
+    @Operation(summary = "Xử lý báo cáo vi phạm (xác nhận vi phạm hoặc bác bỏ)")
+    public ResponseEntity<ApiResponse<ReportDTO>> handleReport(
             @PathVariable Long id,
-            @Valid @RequestBody HandleReportRequest request,
-            @AuthenticationPrincipal Long currentUserId,
-            Authentication authentication
+            @Valid @RequestBody HandleReportRequest request
     ) {
-        validateAdminRole(authentication);
-        ReportResponse response = reportService.handleReport(id, request, currentUserId);
-        return ResponseEntity.ok(ApiResponse.success("Xử lý báo cáo vi phạm thành công", response));
-    }
-
-    private void validateAdminRole(Authentication authentication) {
-        if (authentication == null || authentication.getAuthorities() == null ||
-                authentication.getAuthorities().stream().noneMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()))) {
-            throw new AppException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Chỉ quản trị viên mới có quyền thực hiện thao tác này");
-        }
+        Long adminId = SecurityUtils.getCurrentUserId();
+        if (adminId == null) throw new BusinessException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Yêu cầu đăng nhập");
+        ReportDTO result = reportService.handleReport(id, adminId, request);
+        return ResponseEntity.ok(ApiResponse.success(result, "Đã xử lý báo cáo vi phạm thành công"));
     }
 }

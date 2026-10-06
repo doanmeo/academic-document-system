@@ -27,6 +27,18 @@ public class ApiResponse<T> {
         return new ApiResponse<>(true, message, data, null);
     }
 
+    public static <T> ApiResponse<T> success(T data, String message) {
+        return new ApiResponse<>(true, message, data, null);
+    }
+
+    public static ApiResponse<Void> ok() {
+        return new ApiResponse<>(true, "Request processed successfully", null, null);
+    }
+
+    public static ApiResponse<Void> ok(String message) {
+        return new ApiResponse<>(true, message, null, null);
+    }
+
     public static <T> ApiResponse<T> error(String message) {
         return new ApiResponse<>(false, message, null, null);
     }
