@@ -9,6 +9,7 @@ import com.cntt.academicdocs.dto.FileUploadResponse;
 import com.cntt.academicdocs.exception.AppException;
 import com.cntt.academicdocs.repository.DocumentFileRepository;
 import com.cntt.academicdocs.repository.DocumentRepository;
+import com.cntt.academicdocs.repository.RatingRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,10 +22,16 @@ public class DocumentService {
 
     private final DocumentRepository documentRepository;
     private final DocumentFileRepository documentFileRepository;
+    private final RatingRepository ratingRepository;
 
-    public DocumentService(DocumentRepository documentRepository, DocumentFileRepository documentFileRepository) {
+    public DocumentService(
+            DocumentRepository documentRepository,
+            DocumentFileRepository documentFileRepository,
+            RatingRepository ratingRepository
+    ) {
         this.documentRepository = documentRepository;
         this.documentFileRepository = documentFileRepository;
+        this.ratingRepository = ratingRepository;
     }
 
     @Transactional
@@ -162,6 +169,11 @@ public class DocumentService {
                 f.getIsPrimary(),
                 f.getDocumentId()
         )).toList());
+
+        Double avg = ratingRepository.getAverageScoreByDocumentId(document.getId());
+        Integer count = ratingRepository.getCountByDocumentId(document.getId());
+        res.setAvgRating(avg != null ? Math.round(avg * 10.0) / 10.0 : 0.0);
+        res.setRatingCount(count != null ? count : 0);
 
         return res;
     }

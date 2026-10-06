@@ -24,6 +24,8 @@ public class DocumentResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<FileUploadResponse> files;
+    private Double avgRating;
+    private Integer ratingCount;
 
     public DocumentResponse() {
     }
@@ -170,5 +172,21 @@ public class DocumentResponse {
 
     public void setFiles(List<FileUploadResponse> files) {
         this.files = files;
+    }
+
+    public Double getAvgRating() {
+        return avgRating;
+    }
+
+    public void setAvgRating(Double avgRating) {
+        this.avgRating = avgRating;
+    }
+
+    public Integer getRatingCount() {
+        return ratingCount;
+    }
+
+    public void setRatingCount(Integer ratingCount) {
+        this.ratingCount = ratingCount;
     }
 }
