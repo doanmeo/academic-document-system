@@ -13,6 +13,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import com.cntt.academicdocs.dto.RateRequest;
+import com.cntt.academicdocs.service.RatingService;
 import java.util.List;
 
 @RestController
@@ -21,9 +23,11 @@ import java.util.List;
 public class DocumentController {
 
     private final DocumentService documentService;
+    private final RatingService ratingService;
 
-    public DocumentController(DocumentService documentService) {
+    public DocumentController(DocumentService documentService, RatingService ratingService) {
         this.documentService = documentService;
+        this.ratingService = ratingService;
     }
 
     @PostMapping
@@ -67,5 +71,26 @@ public class DocumentController {
                 .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
         DocumentResponse response = documentService.getDocumentDetail(id, currentUserId, isAdmin);
         return ResponseEntity.ok(ApiResponse.success("Lấy chi tiết tài liệu thành công", response));
+    }
+
+    @PostMapping("/{id}/rate")
+    @Operation(summary = "Rate an approved document (1 to 5 stars)")
+    public ResponseEntity<ApiResponse<Void>> rateDocument(
+            @PathVariable Long id,
+            @Valid @RequestBody RateRequest request,
+            @AuthenticationPrincipal Long currentUserId
+    ) {
+        ratingService.rateDocument(id, currentUserId, request.getScore());
+        return ResponseEntity.ok(ApiResponse.success("Đánh giá tài liệu thành công", null));
+    }
+
+    @DeleteMapping("/{id}/rate")
+    @Operation(summary = "Remove rating for an approved document")
+    public ResponseEntity<ApiResponse<Void>> deleteRating(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Long currentUserId
+    ) {
+        ratingService.deleteRating(id, currentUserId);
+        return ResponseEntity.ok(ApiResponse.success("Xóa đánh giá tài liệu thành công", null));
     }
 }

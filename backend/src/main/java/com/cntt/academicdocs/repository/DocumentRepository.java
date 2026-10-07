@@ -28,4 +28,14 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     @Modifying
     @Query("UPDATE Document d SET d.viewCount = d.viewCount + 1 WHERE d.id = :id")
     void incrementViewCount(@Param("id") Long id);
+
+    long countByStatus(DocumentStatus status);
+
+    List<Document> findTop5ByStatusOrderByViewCountDesc(DocumentStatus status);
+
+    List<Document> findTop5ByStatusOrderByCreatedAtDesc(DocumentStatus status);
+
+    @Query("SELECT d.status, COUNT(d) FROM Document d GROUP BY d.status")
+    List<Object[]> countByStatusGroup();
 }
+
