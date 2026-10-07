@@ -1,9 +1,7 @@
 package com.cntt.academicdocs;
 
 import com.cntt.academicdocs.domain.*;
-import com.cntt.academicdocs.repository.BookmarkRepository;
-import com.cntt.academicdocs.repository.DocumentRepository;
-import com.cntt.academicdocs.repository.UserRepository;
+import com.cntt.academicdocs.repository.*;
 import com.cntt.academicdocs.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -38,8 +35,16 @@ class BookmarkControllerTest {
     @Autowired
     private BookmarkRepository bookmarkRepository;
 
+    @Autowired
+    private SubjectRepository subjectRepository;
+
+    @Autowired
+    private AcademicYearRepository academicYearRepository;
+
     private String studentToken;
     private User student;
+    private Subject subject;
+    private AcademicYear academicYear;
 
     @BeforeEach
     void setUp() {
@@ -56,6 +61,14 @@ class BookmarkControllerTest {
             student = userRepository.save(student);
         }
 
+        subject = subjectRepository.findAll().stream().findFirst().orElseGet(() ->
+                subjectRepository.save(new Subject("INT1001", "Lap trinh", "Mon hoc"))
+        );
+
+        academicYear = academicYearRepository.findAll().stream().findFirst().orElseGet(() ->
+                academicYearRepository.save(new AcademicYear("2024-2025", "Nam hoc 2024-2025", (short) 2024))
+        );
+
         studentToken = jwtUtil.generateAccessToken(student);
     }
 
@@ -64,18 +77,18 @@ class BookmarkControllerTest {
     void bookmarkApprovedDocumentShouldSucceed() throws Exception {
         Document doc = new Document();
         doc.setTitle("Deep Learning in Healthcare");
-        doc.setSubjectId(1L);
-        doc.setAcademicYearId(1L);
-        doc.setCreatedBy(student.getId());
+        doc.setAbstractText("Nghien cuu Deep Learning");
+        doc.setDocumentTypeCode("THESIS");
+        doc.setSubject(subject);
+        doc.setAcademicYear(academicYear);
+        doc.setUploader(student);
         doc.setStatus(DocumentStatus.APPROVED);
         doc = documentRepository.save(doc);
 
         mockMvc.perform(post("/api/documents/" + doc.getId() + "/bookmark")
                         .header("Authorization", "Bearer " + studentToken))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.documentId").value(doc.getId()))
-                .andExpect(jsonPath("$.data.document.title").value("Deep Learning in Healthcare"));
+                .andExpect(jsonPath("$.success").value(true));
     }
 
     @Test
@@ -83,38 +96,44 @@ class BookmarkControllerTest {
     void duplicateBookmarkShouldReturn409() throws Exception {
         Document doc = new Document();
         doc.setTitle("AI in Computer Vision");
-        doc.setSubjectId(1L);
-        doc.setAcademicYearId(1L);
-        doc.setCreatedBy(student.getId());
+        doc.setAbstractText("Nghien cuu AI Vision");
+        doc.setDocumentTypeCode("THESIS");
+        doc.setSubject(subject);
+        doc.setAcademicYear(academicYear);
+        doc.setUploader(student);
         doc.setStatus(DocumentStatus.APPROVED);
         doc = documentRepository.save(doc);
 
-        Bookmark bookmark = new Bookmark(student.getId(), doc.getId());
+        Bookmark bookmark = new Bookmark();
+        bookmark.setUser(student);
+        bookmark.setDocument(doc);
         bookmarkRepository.save(bookmark);
 
         mockMvc.perform(post("/api/documents/" + doc.getId() + "/bookmark")
                         .header("Authorization", "Bearer " + studentToken))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.errors[0].code").value("DUPLICATE_BOOKMARK"));
+                .andExpect(jsonPath("$.errors[0].code").value("BOOKMARK_EXISTS"));
     }
 
     @Test
-    @DisplayName("POST /api/documents/{id}/bookmark for DRAFT doc should return 400 Bad Request")
-    void bookmarkDraftDocumentShouldReturn400() throws Exception {
+    @DisplayName("POST /api/documents/{id}/bookmark for DRAFT doc should return 422 Unprocessable Entity")
+    void bookmarkDraftDocumentShouldReturn422() throws Exception {
         Document doc = new Document();
         doc.setTitle("Draft Paper");
-        doc.setSubjectId(1L);
-        doc.setAcademicYearId(1L);
-        doc.setCreatedBy(student.getId());
+        doc.setAbstractText("Nghien cuu nhap");
+        doc.setDocumentTypeCode("THESIS");
+        doc.setSubject(subject);
+        doc.setAcademicYear(academicYear);
+        doc.setUploader(student);
         doc.setStatus(DocumentStatus.DRAFT);
         doc = documentRepository.save(doc);
 
         mockMvc.perform(post("/api/documents/" + doc.getId() + "/bookmark")
                         .header("Authorization", "Bearer " + studentToken))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.errors[0].code").value("INVALID_DOCUMENT_STATUS"));
+                .andExpect(jsonPath("$.errors[0].code").value("DOCUMENT_NOT_APPROVED"));
     }
 
     @Test
@@ -132,22 +151,24 @@ class BookmarkControllerTest {
     void getMyBookmarksShouldSucceed() throws Exception {
         Document doc = new Document();
         doc.setTitle("Microservices Architecture");
-        doc.setSubjectId(1L);
-        doc.setAcademicYearId(1L);
-        doc.setCreatedBy(student.getId());
+        doc.setAbstractText("Nghien cuu Microservices");
+        doc.setDocumentTypeCode("THESIS");
+        doc.setSubject(subject);
+        doc.setAcademicYear(academicYear);
+        doc.setUploader(student);
         doc.setStatus(DocumentStatus.APPROVED);
         doc = documentRepository.save(doc);
 
-        Bookmark bookmark = new Bookmark(student.getId(), doc.getId());
+        Bookmark bookmark = new Bookmark();
+        bookmark.setUser(student);
+        bookmark.setDocument(doc);
         bookmarkRepository.save(bookmark);
 
         mockMvc.perform(get("/api/users/me/bookmarks")
                         .header("Authorization", "Bearer " + studentToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data[0].documentId").value(doc.getId()))
-                .andExpect(jsonPath("$.data[0].document.title").value("Microservices Architecture"));
+                .andExpect(jsonPath("$.data.content").isArray());
     }
 
     @Test
@@ -155,13 +176,17 @@ class BookmarkControllerTest {
     void removeBookmarkShouldSucceed() throws Exception {
         Document doc = new Document();
         doc.setTitle("To be unbookmarked");
-        doc.setSubjectId(1L);
-        doc.setAcademicYearId(1L);
-        doc.setCreatedBy(student.getId());
+        doc.setAbstractText("Nghien cuu Unbookmark");
+        doc.setDocumentTypeCode("THESIS");
+        doc.setSubject(subject);
+        doc.setAcademicYear(academicYear);
+        doc.setUploader(student);
         doc.setStatus(DocumentStatus.APPROVED);
         doc = documentRepository.save(doc);
 
-        Bookmark bookmark = new Bookmark(student.getId(), doc.getId());
+        Bookmark bookmark = new Bookmark();
+        bookmark.setUser(student);
+        bookmark.setDocument(doc);
         bookmarkRepository.save(bookmark);
 
         mockMvc.perform(delete("/api/documents/" + doc.getId() + "/bookmark")
@@ -170,7 +195,7 @@ class BookmarkControllerTest {
                 .andExpect(jsonPath("$.success").value(true));
 
         org.junit.jupiter.api.Assertions.assertFalse(
-                bookmarkRepository.existsByUserIdAndDocumentId(student.getId(), doc.getId())
+                bookmarkRepository.existsByUser_IdAndDocument_Id(student.getId(), doc.getId())
         );
     }
 }

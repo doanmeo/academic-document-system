@@ -63,6 +63,19 @@ public class BackendRemediationIntegrationTest {
 
     @BeforeEach
     void setUp() throws Exception {
+        userRepository.findByEmail("admin@cntt.local").ifPresent(u -> {
+            u.setActive(true);
+            userRepository.save(u);
+        });
+        userRepository.findByEmail("sv01@cntt.local").ifPresent(u -> {
+            u.setActive(true);
+            userRepository.save(u);
+        });
+        userRepository.findByEmail("sv02@cntt.local").ifPresent(u -> {
+            u.setActive(true);
+            userRepository.save(u);
+        });
+
         if (adminToken == null) {
             String adminLoginJson = "{\"email\":\"admin@cntt.local\",\"password\":\"Admin@123\"}";
             MvcResult adminRes = mockMvc.perform(post("/api/auth/login")
@@ -122,7 +135,10 @@ public class BackendRemediationIntegrationTest {
     @Test
     void testAdminCatalogPutEndpoints() throws Exception {
         var years = academicYearRepository.findAll();
-        assertThat(years).isNotEmpty();
+        if (years.isEmpty()) {
+            academicYearRepository.save(new com.cntt.academicdocs.domain.AcademicYear("2024-2025", "Năm học 2024-2025", (short) 2024));
+            years = academicYearRepository.findAll();
+        }
         Long yearId = years.get(0).getId();
 
         String yearUpdate = "{\"name\":\"Năm học đã cập nhật\",\"startYear\":2025}";
@@ -135,7 +151,9 @@ public class BackendRemediationIntegrationTest {
                 .andExpect(jsonPath("$.data.name").value("Năm học đã cập nhật"));
 
         var techs = technologyRepository.findAll();
-        assertThat(techs).isNotEmpty();
+        if (techs.isEmpty()) {
+            techs = java.util.List.of(technologyRepository.save(new com.cntt.academicdocs.domain.Technology("React", "react")));
+        }
         Long techId = techs.get(0).getId();
 
         String techUpdate = "{\"name\":\"React Remediated\",\"slug\":\"react-remediated\"}";
@@ -213,8 +231,35 @@ public class BackendRemediationIntegrationTest {
     @Test
     void testFileAccessControlAndDownloadCountIncrement() throws Exception {
         var files = documentFileRepository.findAll();
-        assertThat(files).isNotEmpty();
-        DocumentFile approvedFile = files.get(0);
+        DocumentFile approvedFile;
+        if (files.isEmpty()) {
+            User student1 = userRepository.findByEmail("sv01@cntt.local").orElseThrow();
+            var subjectList = subjectRepository.findAll();
+            var yearList = academicYearRepository.findAll();
+            var subj = subjectList.isEmpty() ? subjectRepository.save(new com.cntt.academicdocs.domain.Subject("INT1001", "Lap trinh", "Mon hoc")) : subjectList.get(0);
+            var yr = yearList.isEmpty() ? academicYearRepository.save(new com.cntt.academicdocs.domain.AcademicYear("2024-2025", "Nam hoc 2024-2025", (short) 2024)) : yearList.get(0);
+
+            Document appDoc = new Document();
+            appDoc.setTitle("Tài liệu đã duyệt mẫu");
+            appDoc.setAbstractText("Đã được phê duyệt");
+            appDoc.setDocumentTypeCode("THESIS");
+            appDoc.setStatus(DocumentStatus.APPROVED);
+            appDoc.setUploader(student1);
+            appDoc.setAcademicYear(yr);
+            appDoc.setSubject(subj);
+            appDoc = documentRepository.save(appDoc);
+
+            approvedFile = new DocumentFile();
+            approvedFile.setDocument(appDoc);
+            approvedFile.setFileName("sample.pdf");
+            approvedFile.setStorageKey("docs/sample/sample.pdf");
+            approvedFile.setMimeType("application/pdf");
+            approvedFile.setFileSize(2000L);
+            approvedFile.setIsPrimary(true);
+            approvedFile = documentFileRepository.save(approvedFile);
+        } else {
+            approvedFile = files.get(0);
+        }
         Long docId = approvedFile.getDocument().getId();
         int initialDownloads = documentRepository.findById(docId).orElseThrow().getDownloadCount();
 

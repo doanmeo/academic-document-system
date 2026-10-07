@@ -100,7 +100,7 @@ export default function UploadDocument() {
     setUploading(true)
     setUploadProgress(20)
     try {
-      const uploaded = await uploadFile(documentId, file, (progress) => {
+      const uploaded = await uploadFile(file, documentId, true, (progress) => {
         setUploadProgress(progress)
       })
       setFiles((prev) => [...prev, uploaded])
