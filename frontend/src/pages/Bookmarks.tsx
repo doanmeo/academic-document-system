@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { getMyBookmarks, removeBookmark } from '../api/interactionApi';
 import { DocumentSummary, PageResponse } from '../types/document';
 import { getErrorMessage } from '../utils/errorMessages';
+import { useToast } from '../contexts/ToastContext';
 import Spinner from '../components/ui/Spinner';
 import Pagination from '../components/ui/Pagination';
 import EmptyState from '../components/ui/EmptyState';
@@ -18,6 +19,7 @@ const GRADIENTS = [
 ];
 
 export default function Bookmarks() {
+  const toast = useToast();
   const [page, setPage] = useState(0);
   const [data, setData] = useState<PageResponse<DocumentSummary> | null>(null);
   const [loading, setLoading] = useState(false);
@@ -56,8 +58,9 @@ export default function Bookmarks() {
             }
           : null
       );
+      toast.info('Đã xóa khỏi Tủ tài liệu');
     } catch (error) {
-      alert(getErrorMessage(error));
+      toast.error('Lỗi thao tác', getErrorMessage(error));
     } finally {
       setRemovingId(null);
     }

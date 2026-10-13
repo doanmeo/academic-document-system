@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import type { DocumentSummary } from '../../types'
 import { adminApi } from '../../api/adminApi'
-import { toast } from 'sonner'
+import { useToast } from '../../contexts/ToastContext'
 
 export default function PendingDocuments() {
+  const toast = useToast()
   const [documents, setDocuments] = useState<DocumentSummary[]>([])
   const [loading, setLoading] = useState(false)
   const [keyword, setKeyword] = useState('')

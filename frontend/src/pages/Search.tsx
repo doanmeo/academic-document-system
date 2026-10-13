@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { toast } from 'sonner'
+import { useToast } from '../contexts/ToastContext'
+import Navbar from '../components/layout/Navbar'
+import Footer from '../components/layout/Footer'
 import type { DocumentSummary, Subject, AcademicYear, Technology } from '../types'
 import { documentApi } from '../api/documentApi'
 import { catalogApi } from '../api/catalogApi'
@@ -12,6 +14,7 @@ import ReportModal from '../components/ReportModal'
 import CustomSelect from '../components/ui/CustomSelect'
 
 export default function Search() {
+  const toast = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const initialQ = searchParams.get('q') || ''
 
@@ -52,9 +55,9 @@ export default function Search() {
 
   // Load catalogs on mount
   useEffect(() => {
-    catalogApi.getSubjects().then((res) => res.success && setSubjects(res.data)).catch(() => {})
-    catalogApi.getAcademicYears().then((res) => res.success && setAcademicYears(res.data)).catch(() => {})
-    catalogApi.getTechnologies().then((res) => res.success && setTechnologies(res.data)).catch(() => {})
+    catalogApi.getSubjects().then((res: any) => setSubjects(Array.isArray(res) ? res : res?.data || [])).catch(() => {})
+    catalogApi.getAcademicYears().then((res: any) => setAcademicYears(Array.isArray(res) ? res : res?.data || [])).catch(() => {})
+    catalogApi.getTechnologies().then((res: any) => setTechnologies(Array.isArray(res) ? res : res?.data || [])).catch(() => {})
   }, [])
 
   // Search documents
@@ -117,9 +120,12 @@ export default function Search() {
   }
 
   return (
-    <div className="flex-1 flex overflow-hidden min-h-[calc(100vh-65px)]">
-      {/* LEFT CONTENT: Search Filters Header + 4-column Results Grid */}
-      <section className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+    <div className="min-h-screen flex flex-col bg-surface antialiased">
+      <Navbar />
+
+      <main className="w-full pt-20 pb-16 flex-grow flex overflow-hidden min-h-[calc(100vh-65px)]">
+        {/* LEFT CONTENT: Search Filters Header + 4-column Results Grid */}
+        <section className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
         {/* Search & Filter Bar */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs mb-6">
           <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
@@ -239,9 +245,6 @@ export default function Search() {
                 className="w-full"
               />
             </div>
-                <option value="downloads">Tải nhiều nhất</option>
-              </select>
-            </div>
           </div>
         </div>
 
@@ -328,9 +331,12 @@ export default function Search() {
           onClose={() => setReportModal({ isOpen: false, doc: null })}
           documentId={reportModal.doc.id}
           documentTitle={reportModal.doc.title}
-          onSuccess={() => alert('Đã gửi báo cáo vi phạm thành công tới Ban Quản trị!')}
+          onSuccess={() => toast.success('Đã gửi báo cáo vi phạm thành công tới Ban Quản trị!')}
         />
       )}
+      </main>
+
+      <Footer />
     </div>
   )
 }

@@ -87,7 +87,7 @@ public class DocumentController {
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
-    @GetMapping("/search")
+    @GetMapping({"", "/search"})
     @Operation(summary = "Tra cứu và tìm kiếm tài liệu có bộ lọc")
     public ResponseEntity<ApiResponse<PageResponse<DocumentSummaryDTO>>> searchDocuments(
             @RequestParam(required = false) String keyword,
@@ -95,6 +95,7 @@ public class DocumentController {
             @RequestParam(required = false) Long majorId,
             @RequestParam(required = false) Long academicYearId,
             @RequestParam(required = false) String documentTypeCode,
+            @RequestParam(required = false) String type,
             @RequestParam(required = false) Long technologyId,
             @RequestParam(required = false) DocumentStatus status,
             @RequestParam(defaultValue = "0") int page,
@@ -117,12 +118,14 @@ public class DocumentController {
             sortObj = Sort.by(Sort.Direction.DESC, sort.trim());
         }
 
+        String resolvedType = (documentTypeCode != null && !documentTypeCode.isBlank()) ? documentTypeCode : type;
+
         SearchCriteria criteria = SearchCriteria.builder()
                 .keyword(keyword)
                 .subjectId(subjectId)
                 .majorId(majorId)
                 .academicYearId(academicYearId)
-                .documentTypeCode(documentTypeCode)
+                .documentTypeCode(resolvedType)
                 .technologyId(technologyId)
                 .status(status)
                 .build();

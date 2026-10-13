@@ -41,3 +41,13 @@ export const getLov = async (groupCode: LovGroupCode): Promise<LovItem[]> => {
   const res = await api.get(`/catalog/lov/${groupCode}`)
   return unwrap(res)
 }
+
+export const catalogApi = {
+  getSubjects,
+  getMajors,
+  getAcademicYears,
+  getTechnologies,
+  getLov,
+}
+
+export default catalogApi

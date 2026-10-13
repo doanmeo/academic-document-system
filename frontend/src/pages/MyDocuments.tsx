@@ -4,6 +4,7 @@ import { getMyDocuments, deleteDocument, submitDocument } from '../api/documentA
 import { DocumentSummary, DocumentStatus, PageResponse } from '../types/document';
 import { getErrorMessage } from '../utils/errorMessages';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import Spinner from '../components/ui/Spinner';
 import Pagination from '../components/ui/Pagination';
 import EmptyState from '../components/ui/EmptyState';
@@ -21,6 +22,7 @@ const STATUS_CONFIG: Record<DocumentStatus, { label: string; badgeClass: string;
 
 export default function MyDocuments() {
   const { user } = useAuth();
+  const toast = useToast();
   const [status, setStatus] = useState<DocumentStatus | ''>('');
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(0);
@@ -50,9 +52,10 @@ export default function MyDocuments() {
     setActionLoading(id);
     try {
       await deleteDocument(id);
+      toast.info('Đã xóa tài liệu khỏi danh sách');
       fetchDocuments();
     } catch (error) {
-      alert(getErrorMessage(error));
+      toast.error('Lỗi khi xóa tài liệu', getErrorMessage(error));
     } finally {
       setActionLoading(null);
     }
@@ -62,9 +65,10 @@ export default function MyDocuments() {
     setActionLoading(id);
     try {
       await submitDocument(id);
+      toast.success('Đã gửi tài liệu đi kiểm duyệt thành công!');
       fetchDocuments();
     } catch (error) {
-      alert(getErrorMessage(error));
+      toast.error('Lỗi khi nộp tài liệu', getErrorMessage(error));
     } finally {
       setActionLoading(null);
     }
@@ -309,6 +313,15 @@ export default function MyDocuments() {
 
                         {/* Action buttons */}
                         <div className="flex items-center gap-2 self-end md:self-center shrink-0">
+                          {doc.status === 'REVISION_REQUIRED' && (
+                            <Link
+                              to={`/documents/${doc.id}/edit`}
+                              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-caption transition-colors flex items-center gap-1 cursor-pointer shadow-xs"
+                            >
+                              <span className="material-symbols-outlined text-[15px]">edit_note</span>
+                              <span>Sửa &amp; Nộp lại</span>
+                            </Link>
+                          )}
                           {doc.status === 'DRAFT' && (
                             <button
                               onClick={() => handleSubmit(doc.id)}

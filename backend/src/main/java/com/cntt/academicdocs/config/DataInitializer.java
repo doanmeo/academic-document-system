@@ -66,15 +66,24 @@ public class DataInitializer implements CommandLineRunner {
             majorRepository.save(new Major("SE", "Kỹ thuật phần mềm"));
             majorRepository.save(new Major("IS", "Hệ thống thông tin"));
             majorRepository.save(new Major("CS", "Khoa học máy tính"));
+            majorRepository.save(new Major("CN", "Mạng máy tính & Truyền thông"));
             log.info("Initialized default majors.");
+        } else if (majorRepository.findByCode("CN").isEmpty()) {
+            majorRepository.save(new Major("CN", "Mạng máy tính & Truyền thông"));
         }
     }
 
     private void initSubjects() {
         if (subjectRepository.count() == 0) {
             subjectRepository.save(new Subject("INT1001", "Nhập môn lập trình", "Kiến thức cơ sở lập trình"));
-            subjectRepository.save(new Subject("INT2001", "Cơ sở dữ liệu", "Hệ quản trị CSDL quan hệ"));
+            subjectRepository.save(new Subject("INT2001", "Cơ sở dữ liệu phân tán", "Hệ quản trị CSDL quan hệ và phân tán"));
+            subjectRepository.save(new Subject("INT2002", "Cấu trúc dữ liệu & GT", "Thuật toán và cấu trúc dữ liệu nâng cao"));
+            subjectRepository.save(new Subject("INT2003", "Lập trình Hướng đối tượng", "OOP với Java và C++"));
+            subjectRepository.save(new Subject("INT2004", "Mạng máy tính", "Kiến trúc mạng máy tính và truyền thông"));
             subjectRepository.save(new Subject("INT3001", "Phát triển phần mềm mã nguồn mở", "Mã nguồn mở và quy trình phát triển"));
+            subjectRepository.save(new Subject("INT3002", "Deep Learning & AI", "Trí tuệ nhân tạo và học sâu"));
+            subjectRepository.save(new Subject("INT3003", "An toàn thông tin", "Bảo mật hệ thống và an ninh mạng"));
+            subjectRepository.save(new Subject("INT3004", "Hệ thống thông tin", "Phân tích và thiết kế hệ thống thông tin"));
             log.info("Initialized default subjects.");
         }
     }
@@ -106,12 +115,18 @@ public class DataInitializer implements CommandLineRunner {
             LovGroup reportReason = lovGroupRepository.save(new LovGroup("REPORT_REASON", "Lý do báo cáo", "Lý do sinh viên báo cáo vi phạm"));
             LovGroup reportStatus = lovGroupRepository.save(new LovGroup("REPORT_STATUS", "Trạng thái báo cáo", "Tiến độ xử lý báo cáo"));
 
-            createLovValue(docType, "THESIS", "Đồ án / Khóa luận", 1);
-            createLovValue(docType, "SLIDE", "Slide bài giảng", 2);
-            createLovValue(docType, "NOTE", "Ghi chú ôn tập", 3);
-            createLovValue(docType, "ASSIGNMENT", "Bài tập lớn", 4);
-            createLovValue(docType, "REFERENCE", "Tài liệu tham khảo", 5);
-            createLovValue(docType, "OTHER", "Khác", 6);
+            createLovValue(docType, "THESIS", "Khóa luận tốt nghiệp", 1);
+            createLovValue(docType, "CAPSTONE", "Đồ án chuyên ngành", 2);
+            createLovValue(docType, "PROJECT", "Bài tập lớn", 3);
+            createLovValue(docType, "LECTURE", "Bài giảng & Slide", 4);
+            createLovValue(docType, "EXAM", "Đề thi & Lời giải", 5);
+            createLovValue(docType, "EXERCISE", "Bài tập & Thực hành", 6);
+            createLovValue(docType, "LAB", "Hướng dẫn Lab", 7);
+            createLovValue(docType, "SLIDE", "Slide bài giảng", 8);
+            createLovValue(docType, "NOTE", "Ghi chú ôn tập", 9);
+            createLovValue(docType, "ASSIGNMENT", "Bài tập lớn", 10);
+            createLovValue(docType, "REFERENCE", "Tài liệu tham khảo", 11);
+            createLovValue(docType, "OTHER", "Khác", 12);
 
             createLovValue(fileType, "PDF", "PDF", 1);
             createLovValue(fileType, "DOCX", "DOCX", 2);
@@ -188,165 +203,215 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void initDocuments() {
-        if (documentRepository.count() == 0) {
+        if (documentRepository.count() < 18) {
+            if (documentRepository.count() > 0) {
+                documentRepository.deleteAll();
+            }
             User student1 = userRepository.findByEmail("sv01@cntt.local").orElse(null);
             User admin = userRepository.findByEmail("admin@cntt.local").orElse(null);
-            Subject s1 = subjectRepository.findByCode("INT1001").orElse(null);
-            Subject s2 = subjectRepository.findByCode("INT2001").orElse(null);
-            Subject s3 = subjectRepository.findByCode("INT3001").orElse(null);
             AcademicYear y1 = academicYearRepository.findByCode("2024-2025").orElse(null);
             Major se = majorRepository.findByCode("SE").orElse(null);
+            Major is = majorRepository.findByCode("IS").orElse(null);
+            Major cs = majorRepository.findByCode("CS").orElse(null);
+            Major cn = majorRepository.findByCode("CN").orElse(null);
 
-            if (student1 != null && s1 != null && y1 != null) {
-                Document doc1 = new Document();
-                doc1.setTitle("Graph Algorithms: Tối ưu Phân cụm");
-                doc1.setAbstractText("Nghiên cứu tập trung giải quyết bài toán phân cụm đồ thị quy mô lớn với độ phức tạp tính toán tối ưu O(V log V). Ứng dụng kỹ thuật phân rã phổ kết hợp thuật toán tối ưu Louvain, giúp giảm 42% độ trễ xử lý các tập dữ liệu mạng lưới giao thông thông minh thời gian thực.");
-                doc1.setDescription("Tài liệu đồ án tốt nghiệp xuất sắc ngành Kỹ thuật Phần mềm UTC.");
-                doc1.setDocumentTypeCode("THESIS");
-                doc1.setStatus(DocumentStatus.APPROVED);
-                doc1.setUploader(student1);
-                doc1.setSubject(s1);
-                doc1.setAcademicYear(y1);
-                doc1.setMajor(se);
-                doc1.setAdvisorName("PGS. TS. Đào Thị Lệ Thủy");
-                doc1.setGithubUrl("https://github.com/utc-fit/graph-louvain-opt");
-                doc1.setViewCount(1280);
-                doc1.setDownloadCount(320);
-                doc1.setAvgRating(4.9);
-                doc1.setRatingCount(48);
-                doc1.setApprovedBy(admin);
-                doc1.setApprovedAt(java.time.LocalDateTime.now());
-                Document savedDoc1 = documentRepository.save(doc1);
+            Subject subDSA = subjectRepository.findByCode("INT2002").orElse(null); // Cấu trúc dữ liệu & GT
+            Subject subOOP = subjectRepository.findByCode("INT2003").orElse(null); // Lập trình Hướng đối tượng
+            Subject subDB = subjectRepository.findByCode("INT2001").orElse(null);  // Cơ sở dữ liệu phân tán
+            Subject subNet = subjectRepository.findByCode("INT2004").orElse(null); // Mạng máy tính
+            Subject subOSS = subjectRepository.findByCode("INT3001").orElse(null); // Phát triển PM mã nguồn mở
+            Subject subAI = subjectRepository.findByCode("INT3002").orElse(null);  // Deep Learning & AI
+            Subject subSec = subjectRepository.findByCode("INT3003").orElse(null); // An toàn thông tin
+            Subject subIS = subjectRepository.findByCode("INT3004").orElse(null);  // Hệ thống thông tin
 
-                DocumentFile file1 = new DocumentFile();
-                file1.setDocument(savedDoc1);
-                file1.setFileName("KLTN_GraphAlgorithms_AliceWang.pdf");
-                file1.setStorageKey("docs/1/graph-algorithms.pdf");
-                file1.setMimeType("application/pdf");
-                file1.setFileSize(15400000L);
-                file1.setIsPrimary(true);
-                documentFileRepository.save(file1);
+            if (student1 != null && y1 != null) {
+                // 1. [KLTN] Cấu trúc dữ liệu & GT -> Khoa học máy tính (CS / Purple)
+                seedDoc("Graph Algorithms: Tối ưu Phân cụm",
+                        "Nghiên cứu tập trung giải quyết bài toán phân cụm đồ thị quy mô lớn với độ phức tạp tính toán tối ưu O(V log V). Ứng dụng kỹ thuật phân rã phổ kết hợp thuật toán tối ưu Louvain, giúp giảm 42% độ trễ xử lý các tập dữ liệu mạng lưới giao thông thông minh thời gian thực.",
+                        "Tài liệu đồ án tốt nghiệp xuất sắc ngành Kỹ thuật Phần mềm UTC.",
+                        "THESIS", DocumentStatus.APPROVED, student1, subDSA, y1, cs != null ? cs : se,
+                        "PGS. TS. Đào Thị Lệ Thủy", "https://github.com/utc-fit/graph-louvain-opt",
+                        1280, 320, 4.9, 48, admin, "KLTN_GraphAlgorithms_AliceWang.pdf", "docs/1/graph-algorithms.pdf", 15400000L);
 
-                if (s2 != null) {
-                    Document doc2 = new Document();
-                    doc2.setTitle("Mô hình Học sâu trong Thị giác máy");
-                    doc2.setAbstractText("Xây dựng kiến trúc mạng nơ-ron tích chập (CNN) phát hiện chướng ngại vật và biển báo giao thông trong điều kiện thời tiết sương mù và ánh sáng yếu.");
-                    doc2.setDescription("Đồ án chuyên ngành Thị giác máy tính.");
-                    doc2.setDocumentTypeCode("CAPSTONE");
-                    doc2.setStatus(DocumentStatus.APPROVED);
-                    doc2.setUploader(student1);
-                    doc2.setSubject(s2);
-                    doc2.setAcademicYear(y1);
-                    doc2.setMajor(se);
-                    doc2.setAdvisorName("TS. Nguyễn Thị Mai");
-                    doc2.setGithubUrl("https://github.com/utc-fit/deeplearning-medical-vision");
-                    doc2.setViewCount(1540);
-                    doc2.setDownloadCount(410);
-                    doc2.setAvgRating(4.8);
-                    doc2.setRatingCount(36);
-                    doc2.setApprovedBy(admin);
-                    doc2.setApprovedAt(java.time.LocalDateTime.now());
-                    Document savedDoc2 = documentRepository.save(doc2);
+                // 2. [BTL] Deep Learning & AI -> Khoa học máy tính (CS / Purple)
+                seedDoc("Mô hình Học sâu trong Thị giác máy",
+                        "Xây dựng kiến trúc mạng nơ-ron tích chập (CNN) phát hiện chướng ngại vật và biển báo giao thông trong điều kiện thời tiết sương mù và ánh sáng yếu.",
+                        "Đồ án chuyên ngành Thị giác máy tính.",
+                        "CAPSTONE", DocumentStatus.APPROVED, student1, subAI, y1, cs != null ? cs : se,
+                        "TS. Nguyễn Thị Mai", "https://github.com/utc-fit/deeplearning-medical-vision",
+                        1540, 410, 4.8, 36, admin, "DoAn_DeepLearning_Vision.pdf", "docs/2/deeplearning-vision.pdf", 22100000L);
 
-                    DocumentFile file2 = new DocumentFile();
-                    file2.setDocument(savedDoc2);
-                    file2.setFileName("DoAn_DeepLearning_Vision.pdf");
-                    file2.setStorageKey("docs/2/deeplearning-vision.pdf");
-                    file2.setMimeType("application/pdf");
-                    file2.setFileSize(22100000L);
-                    file2.setIsPrimary(true);
-                    documentFileRepository.save(file2);
-                }
+                // 3. [KLTN] Mạng máy tính -> Mạng máy tính & TT (CN / Amber)
+                seedDoc("Tính toán Biên trong IoT Công nghiệp với K3s & MQTT",
+                        "Kiến trúc điện toán biên phân tán (Edge Computing) xử lý dữ liệu cảm biến thời gian thực, giảm áp lực băng thông lên Cloud và đảm bảo tính sẵn sàng cao.",
+                        "Đồ án tốt nghiệp ứng dụng Kubernetes tại biên.",
+                        "THESIS", DocumentStatus.APPROVED, student1, subNet, y1, cn != null ? cn : se,
+                        "PGS. TS. Trần Văn Hùng", "https://github.com/utc-fit/edge-iot-mesh",
+                        980, 210, 4.7, 19, admin, "KLTN_EdgeComputing_K3s.pdf", "docs/3/edge-iot.pdf", 8400000L);
 
-                if (s3 != null) {
-                    Document doc3 = new Document();
-                    doc3.setTitle("Kiến trúc Micro-Frontend hiện đại");
-                    doc3.setAbstractText("Phát triển kiến trúc Web phân tán ứng dụng Module Federation, kết hợp React 19 và Tailwind CSS.");
-                    doc3.setDescription("Đồ án môn học Phát triển PM Mã nguồn mở.");
-                    doc3.setDocumentTypeCode("PROJECT");
-                    doc3.setStatus(DocumentStatus.APPROVED);
-                    doc3.setUploader(student1);
-                    doc3.setSubject(s3);
-                    doc3.setAcademicYear(y1);
-                    doc3.setMajor(se);
-                    doc3.setAdvisorName("ThS. Nguyễn Duy Hưng");
-                    doc3.setGithubUrl("https://github.com/utc-fit/micro-frontends-react");
-                    doc3.setViewCount(2340);
-                    doc3.setDownloadCount(620);
-                    doc3.setAvgRating(4.9);
-                    doc3.setRatingCount(52);
-                    doc3.setApprovedBy(admin);
-                    doc3.setApprovedAt(java.time.LocalDateTime.now());
-                    Document savedDoc3 = documentRepository.save(doc3);
+                // 4. [Slide] Cơ sở dữ liệu phân tán -> Hệ thống thông tin (IS / Emerald)
+                seedDoc("Slide Bài giảng: Thiết kế & Tối ưu Cơ sở Dữ liệu Phân tán",
+                        "Phân tích kế hoạch thực thi (Execution Plan), đánh chỉ mục chuyên sâu và thiết kế bộ đệm đa tầng cho hệ thống cơ sở dữ liệu giao dịch tần suất cao.",
+                        "Slide bài giảng chính quy dành cho sinh viên năm 3 Khoa CNTT UTC.",
+                        "LECTURE", DocumentStatus.APPROVED, student1, subDB, y1, is != null ? is : se,
+                        "ThS. Lê Hoàng Nam", "https://github.com/utc-fit/sql-distributed-opt",
+                        2450, 580, 4.9, 58, admin, "Slide_CSDL_PhanTan.pdf", "docs/4/sql-opt.pdf", 14200000L);
 
-                    DocumentFile file3 = new DocumentFile();
-                    file3.setDocument(savedDoc3);
-                    file3.setFileName("BTL_MicroFrontend_React19.pdf");
-                    file3.setStorageKey("docs/3/microfrontends.pdf");
-                    file3.setMimeType("application/pdf");
-                    file3.setFileSize(8400000L);
-                    file3.setIsPrimary(true);
-                    documentFileRepository.save(file3);
-                }
+                // 5. [Đề thi] Lập trình Hướng đối tượng -> Kỹ thuật phần mềm (SE / Navy)
+                seedDoc("Bộ Đề thi & Lời giải mẫu Môn Lập trình Hướng đối tượng Java",
+                        "Tuyển tập 10 bộ đề thi học kỳ kèm lời giải chi tiết, sơ đồ lớp UML và phân tích tính đa hình, trừu tượng hóa, kế thừa và đóng gói trong Java.",
+                        "Tài liệu ôn thi chính thức lưu hành nội bộ Khoa CNTT.",
+                        "EXAM", DocumentStatus.APPROVED, student1, subOOP, y1, se,
+                        "TS. Đào Thị Lệ Thủy", "https://github.com/utc-fit/java-oop-exams",
+                        3120, 890, 5.0, 92, admin, "DeThi_LoiGiai_OOP_Java.pdf", "docs/5/oop-exams.pdf", 9800000L);
 
-                // Sample Pending Documents for Review Queue
-                if (s1 != null) {
-                    Document doc4 = new Document();
-                    doc4.setTitle("Nghiên cứu ứng dụng Blockchain trong xác thực văn bằng đại học");
-                    doc4.setAbstractText("Đề tài tập trung xây dựng hệ thống quản lý và xác thực văn bằng chứng chỉ ứng dụng mạng Ethereum và smart contracts, nhằm ngăn chặn triệt để tình trạng làm giả chứng chỉ và tối ưu hóa thời gian thẩm định văn bằng cho nhà tuyển dụng.");
-                    doc4.setDescription("Báo cáo Đồ án tốt nghiệp chuyên ngành Hệ thống thông tin.");
-                    doc4.setDocumentTypeCode("THESIS");
-                    doc4.setStatus(DocumentStatus.PENDING);
-                    doc4.setUploader(student1);
-                    doc4.setSubject(s1);
-                    doc4.setAcademicYear(y1);
-                    doc4.setMajor(se);
-                    doc4.setAdvisorName("TS. Trần Văn Nam");
-                    doc4.setGithubUrl("https://github.com/utc-fit/edu-blockchain-certs");
-                    doc4.setViewCount(35);
-                    doc4.setDownloadCount(5);
-                    Document savedDoc4 = documentRepository.save(doc4);
+                // 6. [Lab] An toàn thông tin -> Mạng máy tính & TT (CN / Amber)
+                seedDoc("Tài liệu Thực hành Lab: Kiểm thử An toàn Thông tin OWASP Top 10",
+                        "Phân tích các lỗ hổng bảo mật phổ biến (SQL Injection, XSS, CSRF, SSRF) và xây dựng hệ thống phòng thủ đa lớp kết hợp Web Application Firewall (WAF).",
+                        "Hướng dẫn thực hành phòng lab an toàn bảo mật thông tin.",
+                        "LAB", DocumentStatus.APPROVED, student1, subSec, y1, cn != null ? cn : se,
+                        "ThS. Nguyễn Duy Hưng", "https://github.com/utc-fit/owasp-security-lab",
+                        2150, 620, 4.9, 64, admin, "Lab_AnToanThongTin_OWASP.pdf", "docs/6/owasp-lab.pdf", 11600000L);
 
-                    DocumentFile file4 = new DocumentFile();
-                    file4.setDocument(savedDoc4);
-                    file4.setFileName("DoAn_Blockchain_XacThucVanBang.pdf");
-                    file4.setStorageKey("docs/4/blockchain-certs.pdf");
-                    file4.setMimeType("application/pdf");
-                    file4.setFileSize(12600000L);
-                    file4.setIsPrimary(true);
-                    documentFileRepository.save(file4);
-                }
+                // 7. [BTL] Phát triển PM mã nguồn mở -> Kỹ thuật phần mềm (SE / Navy)
+                seedDoc("Kiến trúc Micro-Frontend hiện đại",
+                        "Phát triển kiến trúc Web phân tán ứng dụng Module Federation, kết hợp React 19 và Tailwind CSS.",
+                        "Đồ án môn học Phát triển PM Mã nguồn mở.",
+                        "PROJECT", DocumentStatus.APPROVED, student1, subOSS, y1, se,
+                        "ThS. Nguyễn Duy Hưng", "https://github.com/utc-fit/micro-frontends-react",
+                        2340, 620, 4.9, 52, admin, "BTL_MicroFrontend_React19.pdf", "docs/7/microfrontends.pdf", 8400000L);
 
-                if (s2 != null) {
-                    Document doc5 = new Document();
-                    doc5.setTitle("Hệ thống khuyến nghị học liệu thông minh dựa trên đồ thị tri thức (Knowledge Graph)");
-                    doc5.setAbstractText("Xây dựng mô hình đồ thị tri thức cho chương trình đào tạo ngành CNTT, kết hợp thuật toán lan truyền đồ thị GCN để gợi ý lộ trình môn học và tài liệu chuyên sâu phù hợp cho từng sinh viên.");
-                    doc5.setDescription("Đồ án chuyên ngành Kỹ thuật phần mềm.");
-                    doc5.setDocumentTypeCode("CAPSTONE");
-                    doc5.setStatus(DocumentStatus.PENDING);
-                    doc5.setUploader(student1);
-                    doc5.setSubject(s2);
-                    doc5.setAcademicYear(y1);
-                    doc5.setMajor(se);
-                    doc5.setAdvisorName("PGS. TS. Đào Thị Lệ Thủy");
-                    doc5.setGithubUrl("https://github.com/utc-fit/kg-recommender");
-                    doc5.setViewCount(18);
-                    doc5.setDownloadCount(2);
-                    Document savedDoc5 = documentRepository.save(doc5);
+                // 8. [Bài tập] Cấu trúc dữ liệu & GT -> Khoa học máy tính (CS / Purple)
+                seedDoc("Bài tập & Lời giải Thuật toán Quy hoạch động & Đồ thị",
+                        "Tổng hợp 120 bài tập thuật toán kinh điển từ cơ bản đến nâng cao: Floyd-Warshall, Dijkstra, Knapsack, Longest Common Subsequence kèm mã nguồn mẫu C++.",
+                        "Tài liệu bài tập thực hành thuật toán chuẩn UTC.",
+                        "EXERCISE", DocumentStatus.APPROVED, student1, subDSA, y1, cs != null ? cs : se,
+                        "TS. Vũ Trọng Khang", "https://github.com/utc-fit/dsa-dynamic-programming",
+                        1430, 460, 4.8, 41, admin, "BaiTap_QuyHoachDong_DoThi.pdf", "docs/8/dsa-exercises.pdf", 7900000L);
 
-                    DocumentFile file5 = new DocumentFile();
-                    file5.setDocument(savedDoc5);
-                    file5.setFileName("DoAn_KnowledgeGraph_Recommender.pdf");
-                    file5.setStorageKey("docs/5/kg-recommender.pdf");
-                    file5.setMimeType("application/pdf");
-                    file5.setFileSize(18400000L);
-                    file5.setIsPrimary(true);
-                    documentFileRepository.save(file5);
-                }
+                // 9. [Slide] Hệ thống thông tin -> Hệ thống thông tin (IS / Emerald)
+                seedDoc("Slide Bài giảng: Phân tích & Thiết kế Hệ thống Thông tin UML",
+                        "Hệ thống hóa toàn bộ phương pháp mô hình hóa hướng đối tượng bằng UML 2.5: Use Case, Sequence Diagram, Class Diagram và thiết kế kiến trúc kiến trúc 3 lớp.",
+                        "Bài giảng đào tạo chính quy chuyên ngành HTTT.",
+                        "LECTURE", DocumentStatus.APPROVED, student1, subIS, y1, is != null ? is : se,
+                        "TS. Nguyễn Mạnh Hùng", "https://github.com/utc-fit/is-uml-design",
+                        1620, 390, 4.7, 33, admin, "Slide_PhanTichThietKe_HTTT.pdf", "docs/9/uml-lecture.pdf", 12500000L);
 
-                log.info("Initialized default approved and pending demo documents and files.");
+                // 10. [Đề thi] Mạng máy tính -> Mạng máy tính & TT (CN / Amber)
+                seedDoc("Đề thi Cuối kỳ & Đáp án Môn Mạng máy tính (2022-2025)",
+                        "Tổng hợp đề thi chính thức các kỳ học qua các năm kèm bảng phân chia subnetting IPv4/IPv6, phân tích bắt gói tin Wireshark TCP/IP.",
+                        "Bộ đề ôn tập kỳ thi kết thúc học phần.",
+                        "EXAM", DocumentStatus.APPROVED, student1, subNet, y1, cn != null ? cn : se,
+                        "PGS. TS. Trần Văn Hùng", "https://github.com/utc-fit/network-final-exams",
+                        2890, 750, 4.9, 75, admin, "DeThi_MangMayTinh_UTC.pdf", "docs/10/network-exams.pdf", 6800000L);
+
+                // 11. [Lab] Mạng máy tính -> Mạng máy tính & TT (CN / Amber)
+                seedDoc("Tài liệu Hướng dẫn Cài đặt & Triển khai Docker, Kubernetes Lab",
+                        "Từng bước hướng dẫn cấu hình cụm Kubernetes đa node trên máy ảo Linux, triển khai Ingress Controller và giám sát hệ thống với Prometheus & Grafana.",
+                        "Tài liệu thực hành thực tế cho sinh viên.",
+                        "LAB", DocumentStatus.APPROVED, student1, subNet, y1, cn != null ? cn : se,
+                        "ThS. Lê Hoàng Nam", "https://github.com/utc-fit/k8s-lab-guide",
+                        1760, 480, 4.8, 38, admin, "HuongDan_Lab_Docker_Kubernetes.pdf", "docs/11/k8s-lab.pdf", 13200000L);
+
+                // 12. [BTL] Phát triển PM mã nguồn mở -> Kỹ thuật phần mềm (SE / Navy)
+                seedDoc("Đồ án Xây dựng Website Bán sách Spring Boot & React",
+                        "Xây dựng ứng dụng web thương mại điện tử với kiến trúc Microservices, thanh toán VNPay và xác thực JWT an toàn.",
+                        "Đồ án tốt nghiệp môn học mã nguồn mở.",
+                        "PROJECT", DocumentStatus.APPROVED, student1, subOSS, y1, se,
+                        "ThS. Nguyễn Duy Hưng", "https://github.com/utc-fit/bookstore-fullstack",
+                        1870, 510, 4.6, 44, admin, "DoAn_Website_BanSach_SpringBoot.pdf", "docs/12/bookstore.pdf", 16500000L);
+
+                // 13. [KLTN - PENDING] Hệ thống thông tin -> Hệ thống thông tin (IS / Emerald)
+                seedDoc("Nghiên cứu ứng dụng Blockchain trong xác thực văn bằng đại học",
+                        "Đề tài tập trung xây dựng hệ thống quản lý và xác thực văn bằng chứng chỉ ứng dụng mạng Ethereum và smart contracts, nhằm ngăn chặn triệt để tình trạng làm giả chứng chỉ và tối ưu hóa thời gian thẩm định văn bằng cho nhà tuyển dụng.",
+                        "Báo cáo Đồ án tốt nghiệp chuyên ngành Hệ thống thông tin.",
+                        "THESIS", DocumentStatus.PENDING, student1, subIS, y1, is != null ? is : se,
+                        "TS. Trần Văn Nam", "https://github.com/utc-fit/edu-blockchain-certs",
+                        35, 5, 0.0, 0, null, "DoAn_Blockchain_XacThucVanBang.pdf", "docs/13/blockchain-certs.pdf", 12600000L);
+
+                // 14. [BTL - PENDING] Cấu trúc dữ liệu & GT -> Khoa học máy tính (CS / Purple)
+                seedDoc("Hệ thống khuyến nghị học liệu thông minh dựa trên đồ thị tri thức (Knowledge Graph)",
+                        "Xây dựng mô hình đồ thị tri thức cho chương trình đào tạo ngành CNTT, kết hợp thuật toán lan truyền đồ thị GCN để gợi ý lộ trình môn học và tài liệu chuyên sâu phù hợp cho từng sinh viên.",
+                        "Đồ án chuyên ngành Kỹ thuật phần mềm.",
+                        "CAPSTONE", DocumentStatus.PENDING, student1, subDSA, y1, cs != null ? cs : se,
+                        "PGS. TS. Đào Thị Lệ Thủy", "https://github.com/utc-fit/kg-recommender",
+                        18, 2, 0.0, 0, null, "DoAn_KnowledgeGraph_Recommender.pdf", "docs/14/kg-recommender.pdf", 18400000L);
+
+                // 15. [BTL - REVISION_REQUIRED] Cơ sở dữ liệu phân tán -> Kỹ thuật phần mềm (SE / Navy)
+                seedDoc("Hệ thống Quản lý Thư viện Số UTC kiến trúc Microservices",
+                        "Thiết kế hệ thống mượn trả tài liệu học thuật theo mô hình hướng dịch vụ Spring Boot 3 & Next.js.",
+                        "Cần bổ sung: Sơ đồ ERD độ phân giải cao và cam kết bản quyền mã nguồn theo yêu cầu của hội đồng thẩm định.",
+                        "CAPSTONE", DocumentStatus.REVISION_REQUIRED, student1, subDB, y1, se,
+                        "PGS. TS. Trần Văn Hùng", "https://github.com/utc-fit/clean-library-sys",
+                        120, 5, 0.0, 0, null, "DoAn_Clean_Library_V1.pdf", "docs/15/clean-library-v1.pdf", 12300000L);
+
+                // 16. [Lab] Mạng máy tính -> Mạng máy tính & TT (CN / Amber)
+                seedDoc("Tài liệu Hướng dẫn Thực hành Lab: Cấu hình VLAN & Định tuyến Router Cisco",
+                        "Tài liệu thực hành chuyên sâu môn Mạng máy tính: Thiết kế topology mạng doanh nghiệp, cấu hình Trunking 802.1Q, Inter-VLAN routing và Access Control List (ACL) trên Cisco Packet Tracer.",
+                        "Bài lab thực hành phòng máy bộ môn Mạng máy tính & TT.",
+                        "LAB", DocumentStatus.APPROVED, student1, subNet, y1, cn != null ? cn : se,
+                        "PGS. TS. Trần Văn Hùng", "https://github.com/utc-fit/cisco-packet-tracer-vlan",
+                        2140, 680, 4.9, 67, admin, "Lab_Cisco_PacketTracer_VLAN.pdf", "docs/16/cisco-lab.pdf", 9600000L);
+
+                // 17. [Lab] Lập trình Hướng đối tượng -> Kỹ thuật phần mềm (SE / Navy)
+                seedDoc("Tài liệu Hướng dẫn Thực hành Lab: Thiết kế RESTful API Chuẩn OpenAPI với Spring Boot",
+                        "Hướng dẫn từng bước xây dựng API dịch vụ phân tán, xác thực token JWT, tích hợp Swagger UI tài liệu hóa tự động và kiểm thử tự động với MockMvc & Postman.",
+                        "Tài liệu bài tập lớn phòng Lab môn Kỹ thuật phần mềm.",
+                        "LAB", DocumentStatus.APPROVED, student1, subOOP, y1, se,
+                        "TS. Đào Thị Lệ Thủy", "https://github.com/utc-fit/springboot-rest-lab",
+                        1890, 520, 4.8, 55, admin, "Lab_SpringBoot_Rest_OpenAPI.pdf", "docs/17/rest-api-lab.pdf", 8900000L);
+
+                // 18. [Lab] Deep Learning & AI -> Khoa học máy tính (CS / Purple)
+                seedDoc("Tài liệu Hướng dẫn Thực hành Lab: Huấn luyện Mạng Nơ-ron PyTorch trên Google Colab",
+                        "Thực hành xây dựng mô hình phân loại ảnh Convolutional Neural Network (CNN) với PyTorch, xử lý tiền dữ liệu augmentation và tối ưu hàm mất mát với GPU T4.",
+                        "Tài liệu thực hành chuyên ngành Khoa học máy tính & Trí tuệ nhân tạo.",
+                        "LAB", DocumentStatus.APPROVED, student1, subAI, y1, cs != null ? cs : se,
+                        "TS. Nguyễn Thị Mai", "https://github.com/utc-fit/pytorch-colab-vision-lab",
+                        2540, 810, 5.0, 82, admin, "Lab_PyTorch_DeepLearning_Colab.pdf", "docs/18/pytorch-lab.pdf", 14500000L);
+
+                log.info("Initialized 18 real academic demo documents across all hot subjects and document types (including 5 Lab guides).");
             }
         }
+    }
+
+    private Document seedDoc(
+            String title, String abstractText, String desc, String typeCode, DocumentStatus status,
+            User uploader, Subject subject, AcademicYear year, Major major, String advisor,
+            String githubUrl, int views, int downloads, double rating, int ratingCount,
+            User approvedBy, String fileName, String storageKey, long fileSize
+    ) {
+        Document doc = new Document();
+        doc.setTitle(title);
+        doc.setAbstractText(abstractText);
+        doc.setDescription(desc);
+        doc.setDocumentTypeCode(typeCode);
+        doc.setStatus(status);
+        doc.setUploader(uploader);
+        doc.setSubject(subject);
+        doc.setAcademicYear(year);
+        doc.setMajor(major);
+        doc.setAdvisorName(advisor);
+        doc.setGithubUrl(githubUrl);
+        doc.setViewCount(views);
+        doc.setDownloadCount(downloads);
+        doc.setAvgRating(rating);
+        doc.setRatingCount(ratingCount);
+        if (status == DocumentStatus.APPROVED) {
+            doc.setApprovedBy(approvedBy);
+            doc.setApprovedAt(java.time.LocalDateTime.now());
+        }
+        Document saved = documentRepository.save(doc);
+
+        DocumentFile file = new DocumentFile();
+        file.setDocument(saved);
+        file.setFileName(fileName);
+        file.setStorageKey(storageKey);
+        file.setMimeType("application/pdf");
+        file.setFileSize(fileSize);
+        file.setIsPrimary(true);
+        documentFileRepository.save(file);
+
+        return saved;
     }
 }
 

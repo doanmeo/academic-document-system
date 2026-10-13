@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { toast } from 'sonner'
+import { useToast } from '../contexts/ToastContext'
 import type { DocumentSummary } from '../types'
 
 interface DocumentRevisionModalProps {
@@ -21,6 +21,7 @@ export default function DocumentRevisionModal({
   onClose,
   onSubmitRevision,
 }: DocumentRevisionModalProps) {
+  const toast = useToast()
   const [title, setTitle] = useState(doc?.title || '')
   const [abstractText, setAbstractText] = useState(doc?.abstractText || '')
   const [githubUrl, setGithubUrl] = useState('')

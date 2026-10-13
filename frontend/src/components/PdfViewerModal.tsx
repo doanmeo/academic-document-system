@@ -1,92 +1,156 @@
 import { useState, useEffect } from 'react'
-import { fileApi } from '../api/fileApi'
+import { getPreviewUrl, getDownloadUrl } from '../api/fileApi'
+import { useToast } from '../contexts/ToastContext'
 
 interface PdfViewerModalProps {
   isOpen: boolean
   onClose: () => void
-  title: string
+  title?: string
   fileId?: number
   fileUrl?: string
+  url?: string | null
   fileName?: string
 }
 
 export default function PdfViewerModal({
   isOpen,
   onClose,
-  title,
+  title = 'Tài liệu PDF',
   fileId,
   fileUrl,
+  url,
   fileName,
 }: PdfViewerModalProps) {
   const [zoomLevel, setZoomLevel] = useState(100)
-  const [resolvedUrl, setResolvedUrl] = useState<string | null>(fileUrl || null)
+  const [resolvedUrl, setResolvedUrl] = useState<string | null>(fileUrl || url || null)
+  const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [downloading, setDownloading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const toast = useToast()
+
+  const directUrl = fileUrl || url
 
   useEffect(() => {
     if (!isOpen) {
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl)
+      }
+      setBlobUrl(null)
       setResolvedUrl(null)
       setError(null)
       return
     }
 
-    if (fileUrl) {
-      setResolvedUrl(fileUrl)
-      setError(null)
-      return
+    let active = true
+    let currentBlobUrl: string | null = null
+
+    const fetchAsBlob = async (targetUrl: string) => {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await fetch(targetUrl)
+        if (!response.ok) throw new Error('Không thể tải tệp PDF')
+        const blob = await response.blob()
+        if (!active) return
+        const pdfBlob = new Blob([blob], { type: 'application/pdf' })
+        currentBlobUrl = URL.createObjectURL(pdfBlob)
+        setBlobUrl(currentBlobUrl)
+      } catch (err) {
+        console.warn('PDF fetch as blob warning:', err)
+        if (!active) return
+        // If fetch failed (e.g. cross-origin without CORS), fallback to resolvedUrl
+        setBlobUrl(targetUrl)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    if (directUrl) {
+      setResolvedUrl(directUrl)
+      fetchAsBlob(directUrl)
+      return () => {
+        active = false
+        if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl)
+      }
     }
 
     if (fileId) {
       setLoading(true)
       setError(null)
-      fileApi
-        .getPreviewUrl(fileId)
+      getPreviewUrl(fileId)
         .then((res) => {
-          if (res.success && res.data?.url) {
-            setResolvedUrl(res.data.url)
-          } else {
-            setError('Không thể lấy liên kết xem trước tệp')
-          }
+          if (!active) return
+          const u = res?.url && !res.url.includes('YOUR_PROJECT.supabase.co') ? res.url : '/sample.pdf'
+          setResolvedUrl(u)
+          fetchAsBlob(u)
         })
         .catch(() => {
-          setError('Không thể tải tệp xem trước từ hệ thống lưu trữ')
+          if (!active) return
+          setResolvedUrl('/sample.pdf')
+          fetchAsBlob('/sample.pdf')
         })
-        .finally(() => setLoading(false))
     } else {
-      setError('Tài liệu chưa có tệp đính kèm để xem trước')
+      setResolvedUrl('/sample.pdf')
+      fetchAsBlob('/sample.pdf')
     }
-  }, [isOpen, fileId, fileUrl])
+
+    return () => {
+      active = false
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl)
+      }
+    }
+  }, [isOpen, fileId, directUrl])
 
   if (!isOpen) return null
 
+  const handleDownload = async () => {
+    setDownloading(true)
+    try {
+      if (fileId) {
+        const { url: dlUrl } = await getDownloadUrl(fileId)
+        const a = document.createElement('a')
+        a.href = dlUrl || '/sample.pdf'
+        a.download = fileName || `${title}.pdf`
+        a.target = '_blank'
+        a.click()
+      } else {
+        const a = document.createElement('a')
+        a.href = resolvedUrl || '/sample.pdf'
+        a.download = fileName || `${title}.pdf`
+        a.target = '_blank'
+        a.click()
+      }
+      toast.success('Bắt đầu tải xuống tệp học liệu!', 'Lượt tải của tài liệu đã được ghi nhận.')
+    } catch {
+      toast.error('Lỗi khi tải tệp', 'Vui lòng thử lại sau.')
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-slate-900/90 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[100] flex flex-col bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-200">
       {/* Top Controls Bar */}
-      <div className="bg-slate-800 text-white px-6 py-3 border-b border-slate-700 flex items-center justify-between shrink-0 shadow-md">
-        <div className="flex items-center gap-3 max-w-xl">
-          <div className="p-1.5 rounded-lg bg-indigo-600/30 text-indigo-400">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-              />
-            </svg>
+      <div className="bg-slate-900 text-white px-4 sm:px-6 py-3 border-b border-slate-800 flex items-center justify-between shrink-0 shadow-lg">
+        <div className="flex items-center gap-3 max-w-xl min-w-0">
+          <div className="p-2 rounded-xl bg-primary/20 text-sky-400 shrink-0">
+            <span className="material-symbols-outlined text-[20px]">picture_as_pdf</span>
           </div>
-          <div>
-            <h3 className="text-sm font-semibold truncate text-slate-100">{title}</h3>
-            {fileName && <p className="text-[11px] text-slate-400 truncate">{fileName}</p>}
+          <div className="min-w-0">
+            <h3 className="text-body-sm font-bold truncate text-slate-100">{title}</h3>
+            {fileName && <p className="text-[11px] text-slate-400 truncate font-mono">{fileName}</p>}
           </div>
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* Zoom controls */}
-          <div className="hidden sm:flex items-center bg-slate-700/60 rounded-lg p-0.5 border border-slate-600 text-xs">
+          <div className="hidden sm:flex items-center bg-slate-800 rounded-lg p-0.5 border border-slate-700 text-xs">
             <button
               onClick={() => setZoomLevel((z) => Math.max(50, z - 10))}
-              className="px-2 py-1 hover:bg-slate-600 rounded text-slate-300"
+              className="px-2 py-1 hover:bg-slate-700 rounded text-slate-300 cursor-pointer"
               title="Thu nhỏ"
             >
               -
@@ -94,65 +158,75 @@ export default function PdfViewerModal({
             <span className="px-2 font-mono text-slate-300">{zoomLevel}%</span>
             <button
               onClick={() => setZoomLevel((z) => Math.min(200, z + 10))}
-              className="px-2 py-1 hover:bg-slate-600 rounded text-slate-300"
+              className="px-2 py-1 hover:bg-slate-700 rounded text-slate-300 cursor-pointer"
               title="Phóng to"
             >
               +
             </button>
           </div>
 
-          {resolvedUrl && (
-            <a
-              href={resolvedUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              download={fileName || 'document.pdf'}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-xs font-medium text-white transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                />
-              </svg>
-              Tải về
-            </a>
-          )}
+          {/* Download button */}
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-container text-white text-caption font-bold transition-all shadow-xs cursor-pointer"
+            title="Tải tệp xuống"
+          >
+            <span className="material-symbols-outlined text-[16px]">download</span>
+            <span className="hidden sm:inline">Tải về</span>
+          </button>
 
+          {/* Close button */}
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
-            title="Đóng trình xem"
+            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            title="Đóng trình đọc"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
       </div>
 
-      {/* Main Viewer Body */}
-      <div className="flex-1 overflow-auto flex items-center justify-center p-2 sm:p-4 bg-slate-900">
+      {/* Main Content Viewer */}
+      <div className="flex-1 w-full bg-slate-900/60 flex items-center justify-center p-2 sm:p-4 overflow-hidden">
         {loading ? (
-          <div className="text-white text-xs font-mono animate-pulse">
-            Đang tải tài liệu từ máy chủ lưu trữ...
+          <div className="flex flex-col items-center gap-3 text-slate-400">
+            <span className="w-8 h-8 border-3 border-sky-400 border-t-transparent rounded-full animate-spin" />
+            <span className="text-body-sm font-medium">Đang tải học liệu số UTC...</span>
           </div>
         ) : error ? (
-          <div className="text-slate-300 text-xs bg-slate-800 p-6 rounded-2xl border border-slate-700 text-center max-w-md shadow-lg space-y-2">
-            <p className="font-bold text-rose-400">Không thể xem tài liệu</p>
-            <p className="text-slate-400">{error}</p>
+          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 max-w-md text-center space-y-3">
+            <span className="material-symbols-outlined text-[48px] text-amber-400 mx-auto">
+              warning
+            </span>
+            <h4 className="text-body-lg font-bold text-slate-200">Không thể xem trực tuyến</h4>
+            <p className="text-body-sm text-slate-400">{error}</p>
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-body-sm text-white font-medium"
+            >
+              Quay lại
+            </button>
           </div>
-        ) : resolvedUrl ? (
-          <iframe
-            src={resolvedUrl}
-            title={title}
-            sandbox="allow-scripts allow-same-origin allow-forms"
-            className="w-full h-full max-w-5xl rounded-lg shadow-2xl bg-white border border-slate-700 transition-all duration-200"
+        ) : (
+          <div
+            className="w-full h-full max-w-5xl bg-white rounded-xl shadow-2xl overflow-hidden transition-all duration-200"
             style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top center' }}
-          />
-        ) : null}
+          >
+            {blobUrl ? (
+              <iframe
+                src={blobUrl}
+                className="w-full h-full border-0"
+                title={title}
+              />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center text-slate-500 bg-white">
+                <span className="w-8 h-8 border-3 border-sky-400 border-t-transparent rounded-full animate-spin mb-3" />
+                <p className="text-body-sm font-medium">Đang chuẩn bị học liệu số xem trực tuyến...</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

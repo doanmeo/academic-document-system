@@ -1,15 +1,19 @@
 import { useEffect, useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import Navbar from '../components/layout/Navbar'
 import Footer from '../components/layout/Footer'
 import Spinner from '../components/ui/Spinner'
 import StarRating from '../components/ui/StarRating'
+import CitationModal from '../components/CitationModal'
+import DynamicBookCover from '../components/DynamicBookCover'
 import { getDocument } from '../api/documentApi'
 import { getPreviewUrl, getDownloadUrl } from '../api/fileApi'
 import { addBookmark, removeBookmark, rateDocument, reportDocument } from '../api/interactionApi'
 import { getLov } from '../api/catalogApi'
 import { getErrorMessage } from '../utils/errorMessages'
 import { useAuth } from '../contexts/AuthContext'
+import { useToast } from '../contexts/ToastContext'
 import type { DocumentDetail as DocDetail } from '../types/document'
 import type { LovItem } from '../types/catalog'
 
@@ -22,14 +26,17 @@ export default function DocumentDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
+  const toast = useToast()
   const viewerContainerRef = useRef<HTMLDivElement>(null)
 
   const [doc, setDoc] = useState<DocDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showCitation, setShowCitation] = useState(false)
 
   // PDF Viewer State
   const [pdfUrl, setPdfUrl] = useState<string>('/sample.pdf')
+  const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const [activeFileId, setActiveFileId] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<'pdf' | 'cover'>('pdf')
   const [currentPage, setCurrentPage] = useState(1)
@@ -90,6 +97,37 @@ export default function DocumentDetail() {
     }
     fetchDoc()
   }, [id])
+
+  // Convert pdfUrl to Blob URL to prevent IDM auto-intercepting on preview
+  useEffect(() => {
+    let active = true
+    let currentBlobUrl: string | null = null
+
+    if (pdfUrl) {
+      fetch(pdfUrl)
+        .then((res) => {
+          if (!res.ok) throw new Error('Không thể tải file PDF preview')
+          return res.blob()
+        })
+        .then((blob) => {
+          if (!active) return
+          const pdfBlob = new Blob([blob], { type: 'application/pdf' })
+          currentBlobUrl = URL.createObjectURL(pdfBlob)
+          setBlobUrl(currentBlobUrl)
+        })
+        .catch((err) => {
+          console.warn('PDF preview blob conversion fallback:', err)
+          if (active) setBlobUrl(pdfUrl)
+        })
+    }
+
+    return () => {
+      active = false
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl)
+      }
+    }
+  }, [pdfUrl])
 
   // Load report reasons
   useEffect(() => {
@@ -175,12 +213,14 @@ export default function DocumentDetail() {
       if (bookmarked) {
         await removeBookmark(doc.id)
         setBookmarked(false)
+        toast.info('Đã xóa khỏi Tủ tài liệu cá nhân')
       } else {
         await addBookmark(doc.id)
         setBookmarked(true)
+        toast.success('Đã lưu vào Tủ tài liệu thành công!')
       }
     } catch (err) {
-      alert(getErrorMessage(err))
+      toast.error('Lỗi thao tác', getErrorMessage(err))
     } finally {
       setBmLoading(false)
     }
@@ -198,9 +238,9 @@ export default function DocumentDetail() {
       await rateDocument(doc.id, rateScore)
       setUserRating(rateScore)
       setShowRateModal(false)
-      alert(`Đã gửi đánh giá ${rateScore} sao thành công! Cảm ơn bạn.`)
+      toast.success(`Đã gửi đánh giá ${rateScore} sao thành công!`, 'Cảm ơn phản hồi học thuật của bạn.')
     } catch (err) {
-      alert(getErrorMessage(err))
+      toast.error('Lỗi khi gửi đánh giá', getErrorMessage(err))
     } finally {
       setRateLoading(false)
     }
@@ -209,15 +249,26 @@ export default function DocumentDetail() {
   // Handle Report Submit
   const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!doc || !reportReason) return
+    if (!doc) return
+    if (!isAuthenticated) {
+      toast.info('Yêu cầu đăng nhập', 'Bạn cần đăng nhập tài khoản sinh viên/giảng viên để gửi báo cáo vi phạm.')
+      setShowReport(false)
+      navigate('/login')
+      return
+    }
+    const reason = reportReason || (reportReasons.length > 0 ? reportReasons[0].code : 'COPYRIGHT')
+    if (!reportDesc.trim() || reportDesc.trim().length < 10) {
+      toast.error('Thiếu thông tin chi tiết', 'Mô tả vi phạm phải có tối thiểu 10 ký tự để Ban Kiểm duyệt xác minh.')
+      return
+    }
     setReportLoading(true)
     try {
-      await reportDocument(doc.id, { reasonCode: reportReason, description: reportDesc })
-      alert('Đã gửi báo cáo vi phạm tới Ban Thanh tra Học thuật Khoa CNTT UTC. Cảm ơn bạn!')
+      await reportDocument(doc.id, { reasonCode: reason, description: reportDesc })
+      toast.success('Đã gửi báo cáo vi phạm!', 'Ban Thanh tra Học thuật Khoa CNTT UTC sẽ thụ lý giải quyết.')
       setShowReport(false)
       setReportDesc('')
     } catch (err) {
-      alert(getErrorMessage(err))
+      toast.error('Không thể gửi báo cáo', getErrorMessage(err))
     } finally {
       setReportLoading(false)
     }
@@ -430,6 +481,19 @@ export default function DocumentDetail() {
                       </p>
                     )}
                   </div>
+
+                  {/* REVISION NOTE / ADMIN FEEDBACK */}
+                  {(doc.revisionNote || doc.rejectionNote) && (
+                    <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                      <div className="flex items-center gap-2 text-amber-800 font-bold font-label-code text-caption uppercase tracking-wider mb-1">
+                        <span className="material-symbols-outlined text-[18px] text-amber-600">rate_review</span>
+                        <span>Ý kiến phản biện &amp; Nhận xét của Ban Quản trị:</span>
+                      </div>
+                      <p className="text-body-sm text-on-surface font-medium leading-relaxed">
+                        {doc.revisionNote || doc.rejectionNote}
+                      </p>
+                    </div>
+                  )}
 
                   {/* TECH STACK */}
                   <div className="flex flex-col gap-2.5">
@@ -655,11 +719,18 @@ export default function DocumentDetail() {
                           transition: 'transform 0.15s ease-out',
                         }}
                       >
-                        <iframe
-                          src={`${pdfUrl}#page=${currentPage}&zoom=${zoomLevel}`}
-                          className="w-full h-[680px] sm:h-[760px] border-0 block"
-                          title={doc.title}
-                        />
+                        {blobUrl ? (
+                          <iframe
+                            src={`${blobUrl}#page=${currentPage}&zoom=${zoomLevel}`}
+                            className="w-full h-[680px] sm:h-[760px] border-0 block"
+                            title={doc.title}
+                          />
+                        ) : (
+                          <div className="w-full h-[680px] sm:h-[760px] flex flex-col items-center justify-center p-8 text-center text-on-surface-variant bg-surface-container-lowest">
+                            <span className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mb-3" />
+                            <p className="text-body-sm font-medium">Đang chuẩn bị học liệu số xem trực tuyến...</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -1053,6 +1124,26 @@ export default function DocumentDetail() {
 
               {/* RIGHT COLUMN: ~32% (4 cols) Sticky Sidebar */}
               <div className="lg:col-span-4 flex flex-col gap-6 sticky top-20">
+                {/* BÌA HỌC LIỆU SỐ CHUẨN KHOA CNTT */}
+                <div className="bg-surface-container-lowest p-5 shadow-sm flex flex-col items-center justify-center border border-surface-container rounded-xl">
+                  <DynamicBookCover
+                    title={doc.title}
+                    author={doc.uploaderName}
+                    advisor={doc.advisorName}
+                    majorName={doc.majorName}
+                    majorId={doc.majorId}
+                    subjectName={doc.subjectName}
+                    documentTypeCode={doc.documentTypeCode}
+                    documentTypeLabel={doc.documentTypeLabel}
+                    academicYearName={doc.academicYearName}
+                    size="responsive"
+                    className="w-full max-w-[240px]"
+                  />
+                  <span className="font-label-code text-caption font-bold text-on-surface-variant mt-3 uppercase tracking-wider">
+                    Bìa học liệu số chuẩn FIT-UTC
+                  </span>
+                </div>
+
                 {/* CARD 1: HÀNH ĐỘNG CHÍNH */}
                 <div className="bg-surface-container-lowest p-6 shadow-sm flex flex-col gap-4">
                   <div className="flex items-center justify-between pb-3 bg-surface-container-low -mx-6 -mt-6 p-4">
@@ -1090,6 +1181,16 @@ export default function DocumentDetail() {
                     <span className="px-2 py-0.5 bg-surface-container-highest text-on-surface text-xs font-semibold">
                       {formatFileSize(primaryFile?.fileSize || 18400000)}
                     </span>
+                  </button>
+
+                  {/* Nút Trích dẫn học thuật */}
+                  <button
+                    onClick={() => setShowCitation(true)}
+                    className="w-full py-3 px-4 bg-surface-container hover:bg-surface-container-high text-primary font-label-code text-label-code font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer border border-primary/20"
+                    type="button"
+                  >
+                    <span className="material-symbols-outlined text-[20px] text-primary">format_quote</span>
+                    <span>TRÍCH DẪN (IEEE / APA / BIBTEX)</span>
                   </button>
 
                   {/* Bookmark button */}
@@ -1259,126 +1360,133 @@ export default function DocumentDetail() {
       <Footer />
 
       {/* MODAL: BÁO CÁO VI PHẠM */}
-      {showReport && (
-        <div className="fixed inset-0 z-50 bg-inverse-surface/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface max-w-lg w-full p-6 shadow-xl flex flex-col gap-4">
-            <div className="flex items-center justify-between pb-3 bg-surface-container-low -mx-6 -mt-6 p-4">
-              <span className="font-headline-sm text-headline-sm font-bold text-error flex items-center gap-2">
-                <span className="material-symbols-outlined">warning</span>
-                Báo cáo vi phạm tài liệu
-              </span>
-              <button
-                onClick={() => setShowReport(false)}
-                className="text-on-surface-variant hover:text-on-surface cursor-pointer"
-                type="button"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            <p className="font-body-sm text-body-sm text-on-surface">
-              Gửi yêu cầu kiểm tra tới Hội đồng Thẩm định Khoa CNTT - ĐH GTVT nếu phát hiện nội dung có
-              vi phạm:
-            </p>
-
-            <form
-              onSubmit={handleReportSubmit}
-              className="flex flex-col gap-3 font-label-code text-label-code"
-            >
-              {reportReasons.length > 0 ? (
-                reportReasons.map((r) => (
-                  <label
-                    key={r.code}
-                    className="flex items-center gap-2 cursor-pointer p-2 bg-surface-container hover:bg-surface-container-high transition-colors"
-                  >
-                    <input
-                      type="radio"
-                      name="reportReason"
-                      value={r.code}
-                      checked={reportReason === r.code}
-                      onChange={(e) => setReportReason(e.target.value)}
-                      className="accent-primary"
-                    />
-                    <span className="text-on-surface font-semibold">{r.label}</span>
-                  </label>
-                ))
-              ) : (
-                <>
-                  <label className="flex items-center gap-2 cursor-pointer p-2 bg-surface-container hover:bg-surface-container-high transition-colors">
-                    <input
-                      type="radio"
-                      name="reportReason"
-                      value="COPYRIGHT"
-                      checked={reportReason === 'COPYRIGHT'}
-                      onChange={(e) => setReportReason(e.target.value)}
-                      className="accent-primary"
-                    />
-                    <span className="text-on-surface font-semibold">
-                      Trùng lặp ý tưởng / Đạo văn không trích dẫn
-                    </span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer p-2 bg-surface-container hover:bg-surface-container-high transition-colors">
-                    <input
-                      type="radio"
-                      name="reportReason"
-                      value="INAPPROPRIATE"
-                      checked={reportReason === 'INAPPROPRIATE'}
-                      onChange={(e) => setReportReason(e.target.value)}
-                      className="accent-primary"
-                    />
-                    <span className="text-on-surface font-semibold">
-                      Vi phạm quyền sở hữu tài sản doanh nghiệp đối tác
-                    </span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer p-2 bg-surface-container hover:bg-surface-container-high transition-colors">
-                    <input
-                      type="radio"
-                      name="reportReason"
-                      value="WRONG_INFO"
-                      checked={reportReason === 'WRONG_INFO'}
-                      onChange={(e) => setReportReason(e.target.value)}
-                      className="accent-primary"
-                    />
-                    <span className="text-on-surface font-semibold">
-                      Tài liệu giả mạo, nội dung độc hại hoặc sai lệch
-                    </span>
-                  </label>
-                </>
-              )}
-
-              <div className="flex flex-col gap-1 mt-2">
-                <span className="font-bold text-on-surface">
-                  Ghi chú cụ thể (Trang vi phạm, tài liệu đối chứng):
+      {showReport &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+            <div className="bg-surface max-w-lg w-full p-6 shadow-2xl rounded-2xl border border-surface-container flex flex-col gap-4 animate-in zoom-in-95 duration-150">
+              <div className="flex items-center justify-between pb-3 bg-surface-container-low -mx-6 -mt-6 p-4 rounded-t-2xl">
+                <span className="font-headline-sm text-headline-sm font-bold text-error flex items-center gap-2">
+                  <span className="material-symbols-outlined">warning</span>
+                  Báo cáo vi phạm tài liệu
                 </span>
-                <textarea
-                  value={reportDesc}
-                  onChange={(e) => setReportDesc(e.target.value)}
-                  placeholder="Ví dụ: Trang 18 trích nguyên văn mã nguồn từ repository ABC..."
-                  rows={3}
-                  className="w-full p-2 bg-surface-container-lowest text-on-surface font-body-sm text-body-sm outline-none focus:bg-surface-container border border-surface-container"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4">
                 <button
                   onClick={() => setShowReport(false)}
-                  className="px-4 py-2 bg-surface-container text-on-surface font-bold hover:bg-surface-container-high transition-colors cursor-pointer"
+                  className="text-on-surface-variant hover:text-on-surface cursor-pointer p-1 rounded-lg hover:bg-surface-container"
                   type="button"
                 >
-                  HỦY BỎ
-                </button>
-                <button
-                  type="submit"
-                  disabled={reportLoading}
-                  className="px-4 py-2 bg-error text-on-error font-bold hover:bg-on-error-container transition-colors shadow-sm cursor-pointer disabled:opacity-50"
-                >
-                  {reportLoading ? 'ĐANG GỬI...' : 'GỬI BÁO CÁO'}
+                  <span className="material-symbols-outlined">close</span>
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+
+              <p className="font-body-sm text-body-sm text-on-surface">
+                Gửi yêu cầu kiểm tra tới Hội đồng Thẩm định Khoa CNTT - ĐH GTVT nếu phát hiện nội dung có
+                vi phạm:
+              </p>
+
+              <form
+                onSubmit={handleReportSubmit}
+                className="flex flex-col gap-3 font-label-code text-label-code"
+              >
+                {reportReasons.length > 0 ? (
+                  reportReasons.map((r) => (
+                    <label
+                      key={r.code}
+                      className="flex items-center gap-2 cursor-pointer p-2.5 bg-surface-container hover:bg-surface-container-high transition-colors rounded-lg"
+                    >
+                      <input
+                        type="radio"
+                        name="reportReason"
+                        value={r.code}
+                        checked={reportReason === r.code}
+                        onChange={(e) => setReportReason(e.target.value)}
+                        className="accent-primary"
+                      />
+                      <span className="text-on-surface font-semibold">{r.label}</span>
+                    </label>
+                  ))
+                ) : (
+                  <>
+                    <label className="flex items-center gap-2 cursor-pointer p-2.5 bg-surface-container hover:bg-surface-container-high transition-colors rounded-lg">
+                      <input
+                        type="radio"
+                        name="reportReason"
+                        value="COPYRIGHT"
+                        checked={reportReason === 'COPYRIGHT'}
+                        onChange={(e) => setReportReason(e.target.value)}
+                        className="accent-primary"
+                      />
+                      <span className="text-on-surface font-semibold">
+                        Trùng lặp ý tưởng / Đạo văn không trích dẫn
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer p-2.5 bg-surface-container hover:bg-surface-container-high transition-colors rounded-lg">
+                      <input
+                        type="radio"
+                        name="reportReason"
+                        value="INAPPROPRIATE"
+                        checked={reportReason === 'INAPPROPRIATE'}
+                        onChange={(e) => setReportReason(e.target.value)}
+                        className="accent-primary"
+                      />
+                      <span className="text-on-surface font-semibold">
+                        Vi phạm quyền sở hữu tài sản doanh nghiệp đối tác
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer p-2.5 bg-surface-container hover:bg-surface-container-high transition-colors rounded-lg">
+                      <input
+                        type="radio"
+                        name="reportReason"
+                        value="WRONG_INFO"
+                        checked={reportReason === 'WRONG_INFO'}
+                        onChange={(e) => setReportReason(e.target.value)}
+                        className="accent-primary"
+                      />
+                      <span className="text-on-surface font-semibold">
+                        Tài liệu giả mạo, nội dung độc hại hoặc sai lệch
+                      </span>
+                    </label>
+                  </>
+                )}
+
+                <div className="flex flex-col gap-1 mt-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-on-surface">
+                      Ghi chú cụ thể (Trang vi phạm, tài liệu đối chứng) *:
+                    </span>
+                    <span className="text-[11px] text-on-surface-variant font-medium">Tối thiểu 10 ký tự</span>
+                  </div>
+                  <textarea
+                    required
+                    value={reportDesc}
+                    onChange={(e) => setReportDesc(e.target.value)}
+                    placeholder="Ví dụ: Trang 18 trích nguyên văn mã nguồn từ repository ABC..."
+                    rows={3}
+                    className="w-full p-2.5 bg-surface-container-lowest text-on-surface font-body-sm text-body-sm outline-none focus:ring-2 focus:ring-primary border border-surface-container rounded-lg resize-none"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-4">
+                  <button
+                    onClick={() => setShowReport(false)}
+                    className="px-4 py-2 bg-surface-container text-on-surface font-bold hover:bg-surface-container-high transition-colors cursor-pointer rounded-lg"
+                    type="button"
+                  >
+                    HỦY BỎ
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={reportLoading}
+                    className="px-4 py-2 bg-error text-on-error font-bold hover:bg-on-error-container transition-colors shadow-sm cursor-pointer disabled:opacity-50 rounded-lg"
+                  >
+                    {reportLoading ? 'ĐANG GỬI...' : 'GỬI BÁO CÁO'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>,
+          document.body
+        )}
 
       {/* MODAL: ĐÁNH GIÁ TÀI LIỆU */}
       {showRateModal && (
@@ -1429,6 +1537,13 @@ export default function DocumentDetail() {
           </div>
         </div>
       )}
+
+      {/* Citation Modal */}
+      <CitationModal
+        isOpen={showCitation}
+        onClose={() => setShowCitation(false)}
+        doc={doc}
+      />
     </div>
   )
 }
