@@ -3,6 +3,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Home from './pages/Home'
+import Search from './pages/Search'
 import DocumentDetail from './pages/DocumentDetail'
 import UploadDocument from './pages/UploadDocument'
 import EditDocument from './pages/EditDocument'
@@ -26,6 +27,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/" element={<Home />} />
+      <Route path="/search" element={<Search />} />
 
       {/* Chi tiết tài liệu — public với tài liệu APPROVED */}
       <Route path="/documents/:id" element={<DocumentDetail />} />

@@ -52,9 +52,21 @@ export const rateDocument = async (documentId: number, score: number): Promise<v
  */
 export const reportDocument = async (
   documentId: number,
-  payload: { reasonCode: string; description: string }
+  payload: { reasonCode?: string; description?: string; reason?: string } | string,
+  descArg?: string
 ): Promise<void> => {
-  await api.post(`/documents/${documentId}/reports`, payload)
+  let reasonCode = 'COPYRIGHT'
+  let description = ''
+
+  if (typeof payload === 'string') {
+    reasonCode = payload || 'COPYRIGHT'
+    description = descArg || ''
+  } else if (payload && typeof payload === 'object') {
+    reasonCode = payload.reasonCode || 'COPYRIGHT'
+    description = payload.description || payload.reason || ''
+  }
+
+  await api.post(`/documents/${documentId}/reports`, { reasonCode, description })
 }
 
 /**

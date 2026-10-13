@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { toast } from 'sonner'
+import { useToast } from '../contexts/ToastContext'
 import type { DocumentSummary } from '../types'
 import { UTC_BOOK_THEMES } from './BookCard'
 import { documentApi } from '../api/documentApi'
@@ -22,6 +22,7 @@ export default function BookDetailDrawer({
   onReport,
   onBookmarkChanged,
 }: BookDetailDrawerProps) {
+  const toast = useToast()
   const [isBookmarked, setIsBookmarked] = useState<boolean>(doc?.bookmarked || false)
   const [bookmarkLoading, setBookmarkLoading] = useState(false)
 

@@ -8,7 +8,14 @@ export type DocumentStatus =
   | 'HIDDEN'
   | 'REVISION_REQUIRED'
 
-export type DocumentTypeCode = 'THESIS' | 'CAPSTONE' | 'PROJECT' | 'LECTURE'
+export type DocumentTypeCode =
+  | 'THESIS'
+  | 'CAPSTONE'
+  | 'PROJECT'
+  | 'LECTURE'
+  | 'EXAM'
+  | 'EXERCISE'
+  | 'LAB'
 
 // ─── Tóm tắt tài liệu (dùng trong danh sách / grid) ──────────────────────────
 export interface DocumentSummary {
@@ -20,25 +27,34 @@ export interface DocumentSummary {
   documentTypeLabel: string
   subjectId: number
   subjectName: string
+  majorId?: number
+  majorName?: string
   academicYearId: number
   academicYearName: string
+  uploaderId?: number
   uploaderName: string
   advisorName: string
   viewCount: number
   downloadCount: number
-  primaryFileMimeType: string
-  bookmarked: boolean
+  primaryFileMimeType?: string
+  bookmarked?: boolean
+  isBookmarked?: boolean
   avgRating: number
   ratingCount: number
+  userRating?: number | null
   createdAt: string
-  // Trường bổ sung (có thể có hoặc không tùy endpoint)
+  // Trường bổ sung cho luồng kiểm duyệt & phản biện
   rejectionNote?: string | null
-  technologies?: { id: number; name: string }[]
+  revisionNote?: string | null
+  pledgeAccepted?: boolean
+  sharingScope?: string
+  technologies?: { id: number; name: string; usageNote?: string }[]
 }
 
 // ─── Chi tiết đầy đủ tài liệu ─────────────────────────────────────────────────
 export interface DocumentMember {
-  userId: number
+  id?: number
+  userId?: number
   fullName: string
   studentCode: string
   isLeader: boolean
@@ -50,6 +66,7 @@ export interface DocumentFile {
   mimeType: string
   fileSize: number
   isPrimary: boolean
+  storageKey?: string
 }
 
 export interface DocumentDetail extends DocumentSummary {
@@ -58,11 +75,13 @@ export interface DocumentDetail extends DocumentSummary {
   gitlabUrl: string | null
   majorId: number
   majorName: string
-  technologies: { id: number; name: string }[]
+  technologies: { id: number; name: string; usageNote?: string }[]
   members: DocumentMember[]
   files: DocumentFile[]
   rejectionNote: string | null
-  updatedAt: string
+  revisionNote: string | null
+  updatedAt?: string
+  approvedAt?: string | null
 }
 
 // ─── Phân trang ────────────────────────────────────────────────────────────────
@@ -81,13 +100,16 @@ export interface CreateDocumentRequest {
   description?: string
   documentTypeCode: DocumentTypeCode
   subjectId: number
-  majorId: number
+  majorId?: number
   academicYearId: number
   advisorName?: string
   githubUrl?: string
   gitlabUrl?: string
-  technologyIds?: number[]
+  pledgeAccepted?: boolean
+  sharingScope?: string
+  fileIds?: number[]
   memberStudentCodes?: string[]
+  technologyIds?: number[]
 }
 
 export type UpdateDocumentRequest = Partial<CreateDocumentRequest>
@@ -95,12 +117,17 @@ export type UpdateDocumentRequest = Partial<CreateDocumentRequest>
 export interface SearchDocumentParams {
   keyword?: string
   subjectId?: number
+  majorId?: number
   academicYearId?: number
-  documentTypeCode?: DocumentTypeCode
+  type?: string
+  documentTypeCode?: string
   technologyId?: number
+  status?: DocumentStatus
+  sortBy?: 'newest' | 'views' | 'downloads' | 'rating' | string
+  sortDir?: 'asc' | 'desc'
+  sort?: string
   page?: number
   size?: number
-  sort?: string
 }
 
 export interface MyDocumentsParams {
@@ -113,15 +140,24 @@ export interface MyDocumentsParams {
 // ─── File upload response ──────────────────────────────────────────────────────
 export interface UploadedFile {
   id: number
-  documentId: number
+  documentId?: number
   fileName: string
   mimeType: string
   fileSize: number
   isPrimary: boolean
-  createdAt: string
+  createdAt?: string
+  storageKey?: string
 }
 
 export interface SignedUrlResponse {
   url: string
   expiresIn: number
+}
+
+// ─── Citation format ───────────────────────────────────────────────────────────
+export type CitationFormat = 'APA' | 'IEEE' | 'BIBTEX'
+
+export interface CitationResponse {
+  format: CitationFormat
+  citation: string
 }

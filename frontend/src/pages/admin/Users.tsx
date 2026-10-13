@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import type { User } from '../../types'
 import { adminApi } from '../../api/adminApi'
-import { toast } from 'sonner'
+import { useToast } from '../../contexts/ToastContext'
 import CustomSelect from '../../components/ui/CustomSelect'
 
 export default function Users() {
+  const toast = useToast()
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(false)
   const [keyword, setKeyword] = useState('')

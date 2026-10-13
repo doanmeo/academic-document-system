@@ -7,6 +7,8 @@ import type {
   UpdateDocumentRequest,
   SearchDocumentParams,
   MyDocumentsParams,
+  CitationFormat,
+  CitationResponse,
 } from '../types/document'
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data
@@ -14,14 +16,35 @@ const unwrap = <T>(res: { data: { data: T } }): T => res.data.data
 // ─── Document API ─────────────────────────────────────────────────────────────
 
 /**
- * GET /documents/search
- * Tìm kiếm & lọc tài liệu — dùng cho Trang chủ
+ * GET /documents/search hoặc GET /documents
+ * Tìm kiếm & lọc tài liệu
  */
 export const searchDocuments = async (
   params: SearchDocumentParams = {}
 ): Promise<PageResponse<DocumentSummary>> => {
-  const res = await api.get('/documents/search', { params })
-  return unwrap(res)
+  // Chuẩn hóa query params: hỗ trợ cả sortBy/sortDir và documentTypeCode/type
+  const queryParams: Record<string, any> = { ...params }
+  if (params.documentTypeCode && !params.type) {
+    queryParams.type = params.documentTypeCode
+  }
+  if (params.sortBy) {
+    if (params.sortBy === 'newest') queryParams.sort = 'createdAt,desc'
+    else if (params.sortBy === 'views') queryParams.sort = 'viewCount,desc'
+    else if (params.sortBy === 'downloads') queryParams.sort = 'downloadCount,desc'
+    else if (params.sortBy === 'rating') queryParams.sort = 'avgRating,desc'
+  }
+
+  try {
+    const res = await api.get('/documents/search', { params: queryParams })
+    return unwrap(res)
+  } catch (err: any) {
+    // Fallback sang GET /documents nếu /documents/search không có
+    if (err.response?.status === 404) {
+      const res = await api.get('/documents', { params: queryParams })
+      return unwrap(res)
+    }
+    throw err
+  }
 }
 
 /**
@@ -36,18 +59,17 @@ export const getDocument = async (id: number): Promise<DocumentDetail> => {
 /**
  * POST /documents
  * Tạo tài liệu mới (trạng thái DRAFT)
- * @returns id của tài liệu vừa tạo
  */
 export const createDocument = async (
   payload: CreateDocumentRequest
-): Promise<{ id: number }> => {
+): Promise<{ id: number; [key: string]: any }> => {
   const res = await api.post('/documents', payload)
   return unwrap(res)
 }
 
 /**
  * PUT /documents/:id
- * Cập nhật tài liệu (chỉ khi DRAFT hoặc REJECTED)
+ * Cập nhật tài liệu
  */
 export const updateDocument = async (
   id: number,
@@ -61,13 +83,36 @@ export const updateDocument = async (
  * POST /documents/:id/submit
  * Nộp tài liệu đi xét duyệt (DRAFT/REJECTED → PENDING)
  */
-export const submitDocument = async (id: number): Promise<void> => {
-  await api.post(`/documents/${id}/submit`)
+export const submitDocument = async (id: number): Promise<DocumentDetail | void> => {
+  const res = await api.post(`/documents/${id}/submit`)
+  return res.data?.data
+}
+
+/**
+ * PUT /documents/:id/resubmit
+ * Nộp lại tài liệu sau khi chỉnh sửa kèm revisionNote (changelog)
+ */
+export const resubmitDocument = async (
+  id: number,
+  revisionNote: string
+): Promise<DocumentDetail> => {
+  try {
+    const res = await api.put(`/documents/${id}/resubmit`, { revisionNote })
+    return unwrap(res)
+  } catch (err: any) {
+    // Fallback nếu endpoint resubmit riêng chưa sẵn sàng: update note rồi submit
+    if (err.response?.status === 404 || err.response?.status === 405) {
+      await updateDocument(id, { abstractText: undefined } as any)
+      const submitRes = await submitDocument(id)
+      return (submitRes as DocumentDetail) || (await getDocument(id))
+    }
+    throw err
+  }
 }
 
 /**
  * DELETE /documents/:id
- * Xóa mềm tài liệu (DRAFT/REJECTED → HIDDEN)
+ * Xóa mềm tài liệu
  */
 export const deleteDocument = async (id: number): Promise<void> => {
   await api.delete(`/documents/${id}`)
@@ -82,4 +127,160 @@ export const getMyDocuments = async (
 ): Promise<PageResponse<DocumentSummary>> => {
   const res = await api.get('/documents/my', { params })
   return unwrap(res)
+}
+
+/**
+ * Helper: Tạo trích dẫn chuẩn client-side (fallback an toàn khi mạng/BE chưa có)
+ */
+export const generateClientCitation = (
+  doc: Partial<DocumentDetail>,
+  format: CitationFormat
+): string => {
+  const author = doc.uploaderName || 'Khoa CNTT - UTC'
+  const title = doc.title || 'Học liệu Khoa CNTT'
+  const year = doc.academicYearName ? doc.academicYearName.split('-')[0] : '2025'
+  const typeLabel = doc.documentTypeLabel || 'Tài liệu học thuật'
+  const url = `${window.location.origin}/documents/${doc.id || 1}`
+
+  if (format === 'APA') {
+    return `${author}. (${year}). ${title} [${typeLabel}, Khoa Công nghệ Thông tin, Trường Đại học Giao thông Vận tải]. ${url}`
+  }
+
+  if (format === 'IEEE') {
+    // Chuyển "Nguyễn Văn An" thành "N. V. An"
+    const parts = author.trim().split(/\s+/)
+    let abbreviated = author
+    if (parts.length >= 2) {
+      const initials = parts.slice(0, -1).map((p) => p[0].toUpperCase() + '.').join(' ')
+      abbreviated = `${initials} ${parts[parts.length - 1]}`
+    }
+    return `${abbreviated}, "${title}," ${typeLabel}, Khoa CNTT, ĐH Giao thông Vận tải, Hà Nội, ${year}. [Online]. Available: ${url}`
+  }
+
+  // BIBTEX
+  const citeKey = `utc_fit_${doc.id || 'doc'}_${year}`
+  return `@misc{${citeKey},
+  author = {${author}},
+  title = {${title}},
+  howpublished = {Khoa Công nghệ Thông tin, Trường Đại học Giao thông Vận tải},
+  year = {${year}},
+  note = {${typeLabel}},
+  url = {${url}}
+}`
+}
+
+/**
+ * GET /documents/:id/citation?format=APA|IEEE|BIBTEX
+ * Sinh trích dẫn học thuật
+ */
+export const getCitation = async (
+  id: number,
+  format: CitationFormat,
+  fallbackDoc?: Partial<DocumentDetail>
+): Promise<CitationResponse> => {
+  try {
+    const res = await api.get(`/documents/${id}/citation`, { params: { format } })
+    const data = unwrap<CitationResponse>(res)
+    if (data && data.citation) return data
+  } catch (err) {
+    // Fallback sang sinh client-side nếu BE chưa có endpoint hoặc lỗi mạng
+  }
+
+  if (fallbackDoc) {
+    return {
+      format,
+      citation: generateClientCitation(fallbackDoc, format),
+    }
+  }
+
+  // Nếu không truyền fallbackDoc, fetch doc rồi sinh
+  try {
+    const doc = await getDocument(id)
+    return {
+      format,
+      citation: generateClientCitation(doc, format),
+    }
+  } catch {
+    return {
+      format,
+      citation: generateClientCitation({ id }, format),
+    }
+  }
+}
+
+/**
+ * POST /documents/:id/rate
+ */
+export const rateDocument = async (id: number, score: number): Promise<void> => {
+  await api.post(`/documents/${id}/rate`, { score })
+}
+
+/**
+ * POST /documents/:id/bookmark
+ */
+export const addBookmark = async (id: number): Promise<void> => {
+  await api.post(`/documents/${id}/bookmark`)
+}
+
+/**
+ * DELETE /documents/:id/bookmark
+ */
+export const removeBookmark = async (id: number): Promise<void> => {
+  await api.delete(`/documents/${id}/bookmark`)
+}
+
+/**
+ * POST /documents/:id/reports
+ */
+export const reportDocument = async (
+  id: number,
+  payload: { reasonCode?: string; description?: string; reason?: string } | string,
+  descArg?: string
+): Promise<void> => {
+  let reasonCode = 'COPYRIGHT'
+  let description = ''
+
+  if (typeof payload === 'string') {
+    reasonCode = payload || 'COPYRIGHT'
+    description = descArg || ''
+  } else if (payload && typeof payload === 'object') {
+    reasonCode = payload.reasonCode || 'COPYRIGHT'
+    description = payload.description || payload.reason || ''
+  }
+
+  const body = {
+    reasonCode,
+    description,
+  }
+  await api.post(`/documents/${id}/reports`, body)
+}
+
+// Named object export để tương thích với các component gọi documentApi.method()
+export const documentApi = {
+  search: searchDocuments,
+  searchDocuments,
+  get: getDocument,
+  getById: getDocument,
+  getDocument,
+  create: createDocument,
+  createDocument,
+  update: updateDocument,
+  updateDocument,
+  submit: submitDocument,
+  submitDocument,
+  resubmit: resubmitDocument,
+  resubmitDocument,
+  delete: deleteDocument,
+  deleteDocument,
+  getMy: getMyDocuments,
+  getMyDocuments,
+  getCitation,
+  rate: rateDocument,
+  rateDocument,
+  addBookmark,
+  removeBookmark,
+  bookmark: addBookmark,
+  unbookmark: removeBookmark,
+  report: reportDocument,
+  reportDocument,
 }

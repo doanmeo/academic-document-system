@@ -6,6 +6,7 @@ import {
   getDocument,
   updateDocument,
   submitDocument,
+  resubmitDocument,
 } from '../api/documentApi'
 import { uploadFile, deleteFile } from '../api/fileApi'
 import {
@@ -20,6 +21,7 @@ import type { Subject, AcademicYear, Major, Technology } from '../types/catalog'
 import type { ReviewHistory } from '../types/admin'
 import { getErrorMessage } from '../utils/errorMessages'
 import { useAuth } from '../contexts/AuthContext'
+import { useToast } from '../contexts/ToastContext'
 import Badge from '../components/ui/Badge'
 import Spinner from '../components/ui/Spinner'
 import CustomSelect from '../components/ui/CustomSelect'
@@ -28,6 +30,7 @@ export default function EditDocument() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const appToast = useToast()
   
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -41,6 +44,7 @@ export default function EditDocument() {
   
   const [status, setStatus] = useState<string>('')
   const [rejectionNote, setRejectionNote] = useState<string | null>(null)
+  const [revisionNote, setRevisionNote] = useState('')
   
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [majors, setMajors] = useState<Major[]>([])
@@ -186,15 +190,24 @@ export default function EditDocument() {
         technologyIds: selectedTechIds,
       })
 
-      // Submit for review
-      await submitDocument(Number(id))
-      setToast({
-        title: 'Đã gửi thẩm định lại thành công!',
-        subtitle: 'Hồ sơ đã chuyển sang hàng đợi của GVHD và Hội đồng.',
-      })
+      // Submit for review / Re-submit with revisionNote
+      if (revisionNote.trim()) {
+        try {
+          await resubmitDocument(Number(id), revisionNote.trim())
+        } catch {
+          await submitDocument(Number(id))
+        }
+      } else {
+        await submitDocument(Number(id))
+      }
+
+      appToast.success(
+        'Đã nộp lại bản sửa đổi thành công!',
+        'Đề tài đã chuyển sang Hàng đợi kiểm duyệt kèm ghi chú thay đổi (Changelog).'
+      )
       setTimeout(() => {
         navigate('/me/documents')
-      }, 1500)
+      }, 1200)
     } catch (err) {
       setError(getErrorMessage(err))
     } finally {
@@ -673,17 +686,20 @@ export default function EditDocument() {
                     </div>
                   </div>
 
-                  {/* EXPLANATION NOTE TO REVIEWER */}
+                  {/* EXPLANATION NOTE TO REVIEWER / CHANGELOG */}
                   <div className="space-y-1.5 pt-2">
                     <label className="font-headline-sm text-body-sm text-on-surface flex items-center justify-between" htmlFor="rebuttalNotes">
-                      <span>Giải trình các điểm đã điều chỉnh với Giảng viên / Hội đồng</span>
-                      <span className="font-caption text-caption text-secondary">Lời nhắn thẩm định</span>
+                      <span>Ghi chú chỉnh sửa bản thảo (Changelog / Revision Note)</span>
+                      <span className="font-caption text-caption text-secondary font-bold">Nộp lại bản sửa</span>
                     </label>
                     <textarea
                       id="rebuttalNotes"
                       rows={3}
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
+                      value={revisionNote}
+                      onChange={(e) => {
+                        setRevisionNote(e.target.value)
+                        setDescription(e.target.value)
+                      }}
                       placeholder="Mô tả cụ thể: Em đã bổ sung sơ đồ ERD dạng vector tại Chương 3 và cập nhật repository GitHub đính kèm..."
                       className="w-full rounded-lg bg-surface-container-low p-4 text-body-md font-body-md text-on-surface leading-relaxed focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary transition-all"
                     />

@@ -18,10 +18,18 @@ const unwrap = <T>(res: { data: { data: T } }): T => res.data.data
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
-/** GET /admin/dashboard */
+/** GET /admin/dashboard hoặc GET /admin/dashboard/stats */
 export const getDashboard = async (): Promise<DashboardStats> => {
-  const res = await api.get('/admin/dashboard')
-  return unwrap(res)
+  try {
+    const res = await api.get('/admin/dashboard')
+    return unwrap(res)
+  } catch (err: any) {
+    if (err.response?.status === 404) {
+      const res = await api.get('/admin/dashboard/stats')
+      return unwrap(res)
+    }
+    throw err
+  }
 }
 
 // ─── Document management ──────────────────────────────────────────────────────
@@ -52,7 +60,12 @@ export const approveDocument = async (
   id: number,
   payload: ApproveRequest = {}
 ): Promise<void> => {
-  await api.post(`/admin/documents/${id}/approve`, payload)
+  const body = {
+    note: payload.note || '',
+    comment: payload.note || '',
+    reason: payload.note || '',
+  }
+  await api.post(`/admin/documents/${id}/approve`, body)
 }
 
 /** POST /admin/documents/:id/reject */
@@ -60,7 +73,12 @@ export const rejectDocument = async (
   id: number,
   payload: RejectRequest
 ): Promise<void> => {
-  await api.post(`/admin/documents/${id}/reject`, payload)
+  const body = {
+    note: payload.note || '',
+    comment: payload.note || '',
+    reason: payload.note || '',
+  }
+  await api.post(`/admin/documents/${id}/reject`, body)
 }
 
 /** POST /admin/documents/:id/request-revision */
@@ -68,7 +86,12 @@ export const requestRevision = async (
   id: number,
   payload: RevisionRequest
 ): Promise<void> => {
-  await api.post(`/admin/documents/${id}/request-revision`, payload)
+  const body = {
+    note: payload.note || '',
+    comment: payload.note || '',
+    reason: payload.note || '',
+  }
+  await api.post(`/admin/documents/${id}/request-revision`, body)
 }
 
 /** POST /admin/documents/:id/hide */
@@ -76,13 +99,22 @@ export const hideDocument = async (
   id: number,
   payload: HideDocumentRequest
 ): Promise<void> => {
-  await api.post(`/admin/documents/${id}/hide`, payload)
+  const body = {
+    reason: payload.reason || '',
+    note: payload.reason || '',
+    comment: payload.reason || '',
+  }
+  await api.post(`/admin/documents/${id}/hide`, body)
 }
 
 /** GET /admin/documents/:id/reviews */
 export const getDocumentReviews = async (id: number): Promise<ReviewHistory[]> => {
-  const res = await api.get(`/admin/documents/${id}/reviews`)
-  return unwrap(res)
+  try {
+    const res = await api.get(`/admin/documents/${id}/reviews`)
+    return unwrap(res)
+  } catch {
+    return []
+  }
 }
 
 // ─── Reports ──────────────────────────────────────────────────────────────────
@@ -102,7 +134,13 @@ export const handleReport = async (
   id: number,
   payload: HandleReportRequest
 ): Promise<void> => {
-  await api.post(`/admin/reports/${id}/handle`, payload)
+  const body = {
+    decision: payload.decision || 'RESOLVED',
+    note: payload.note || '',
+    resolutionNote: payload.note || '',
+    hideDocument: Boolean(payload.hideDocument),
+  }
+  await api.post(`/admin/reports/${id}/handle`, body)
 }
 
 // ─── User management ──────────────────────────────────────────────────────────
@@ -124,7 +162,10 @@ export const toggleUserActive = async (
   id: number,
   payload: ToggleActiveRequest
 ): Promise<void> => {
-  await api.patch(`/admin/users/${id}/active`, payload)
+  await api.patch(`/admin/users/${id}/active`, {
+    active: payload.active,
+    isActive: payload.active,
+  })
 }
 
 // ─── Catalog CRUD (Admin) ─────────────────────────────────────────────────────
@@ -183,4 +224,19 @@ export const updateTechnology = async (
 }
 export const deleteTechnology = async (id: number): Promise<void> => {
   await api.delete(`/admin/technologies/${id}`)
+}
+
+export const adminApi = {
+  getDashboard,
+  getPendingDocuments,
+  getAllDocuments,
+  approveDocument,
+  rejectDocument,
+  requestRevision,
+  hideDocument,
+  getDocumentReviews,
+  getAdminReports,
+  handleReport,
+  getAdminUsers,
+  toggleUserActive,
 }

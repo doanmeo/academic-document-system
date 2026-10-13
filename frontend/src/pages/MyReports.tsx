@@ -3,6 +3,7 @@ import { getMyReports } from '../api/interactionApi';
 import { Report, ReportStatus } from '../types/admin';
 import { PageResponse } from '../types/document';
 import { getErrorMessage } from '../utils/errorMessages';
+import { useToast } from '../contexts/ToastContext';
 import { Spinner } from '../components/ui/Spinner';
 import { Badge } from '../components/ui/Badge';
 import { Pagination } from '../components/ui/Pagination';
@@ -18,6 +19,7 @@ const REPORT_STATUS_CONFIG: Record<ReportStatus, { label: string; color: string 
 };
 
 export function MyReports() {
+  const toast = useToast();
   const [page, setPage] = useState(0);
   const [data, setData] = useState<PageResponse<Report> | null>(null);
   const [loading, setLoading] = useState(false);
@@ -28,7 +30,7 @@ export function MyReports() {
       const res = await getMyReports({ page, size: 10 });
       setData(res);
     } catch (error) {
-      alert(getErrorMessage(error));
+      toast.error('Lỗi khi tải báo cáo', getErrorMessage(error));
     } finally {
       setLoading(false);
     }

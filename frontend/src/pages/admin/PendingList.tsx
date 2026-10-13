@@ -12,8 +12,10 @@ import type { PageResponse, DocumentSummary, DocumentDetail } from '../../types/
 import type { ReviewHistory } from '../../types/admin'
 import Spinner from '../../components/ui/Spinner'
 import Pagination from '../../components/ui/Pagination'
+import { useToast } from '../../contexts/ToastContext'
 
 export default function PendingList() {
+  const appToast = useToast()
   const [docs, setDocs] = useState<PageResponse<DocumentSummary> | null>(null)
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [selectedDetail, setSelectedDetail] = useState<DocumentDetail | null>(null)
@@ -75,11 +77,11 @@ export default function PendingList() {
   const handleAction = async () => {
     if (!selectedId || !modal) return
     if (modal === 'reject' && modalNote.trim().length < 5) {
-      alert('Vui lòng nhập lý do từ chối (tối thiểu 5 ký tự)')
+      appToast.warning('Vui lòng nhập lý do từ chối (tối thiểu 5 ký tự)')
       return
     }
     if (modal === 'revision' && modalNote.trim().length === 0) {
-      alert('Vui lòng nhập nội dung yêu cầu chỉnh sửa')
+      appToast.warning('Vui lòng nhập nội dung yêu cầu chỉnh sửa')
       return
     }
 
@@ -89,22 +91,20 @@ export default function PendingList() {
       if (modal === 'reject') await rejectDocument(selectedId, { note: modalNote })
       if (modal === 'revision') await requestRevision(selectedId, { note: modalNote })
 
-      setToast({
-        type: 'success',
-        msg:
-          modal === 'approve'
-            ? 'Đã phê duyệt tài liệu thành công!'
-            : modal === 'revision'
-            ? 'Đã gửi yêu cầu chỉnh sửa tới tác giả!'
-            : 'Đã từ chối tài liệu!',
-      })
+      appToast.success(
+        modal === 'approve'
+          ? 'Đã phê duyệt tài liệu thành công!'
+          : modal === 'revision'
+          ? 'Đã gửi yêu cầu chỉnh sửa tới tác giả!'
+          : 'Đã từ chối tài liệu!'
+      )
       setModal(null)
       setModalNote('')
       setSelectedId(null)
       setSelectedDetail(null)
       fetchDocs()
     } catch {
-      setToast({ type: 'error', msg: 'Có lỗi xảy ra khi thực hiện thao tác' })
+      appToast.error('Có lỗi xảy ra khi thực hiện thao tác')
     } finally {
       setActionLoading(false)
     }

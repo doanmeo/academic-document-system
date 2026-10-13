@@ -290,8 +290,19 @@ public class DocumentService {
         documentRepository.save(document);
     }
 
+    public static String removeAccents(String text) {
+        if (text == null) return "";
+        String normalized = java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD);
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        return pattern.matcher(normalized).replaceAll("").replace('đ', 'd').replace('Đ', 'D');
+    }
+
     @Transactional(readOnly = true)
     public PageResponse<DocumentSummaryDTO> search(SearchCriteria criteria, Pageable pageable, String currentRole, Long currentUserId) {
+        final String rawKeyword = criteria.getKeyword() != null ? criteria.getKeyword().trim() : "";
+        final String keywordLower = rawKeyword.toLowerCase();
+        final String keywordNoAccent = removeAccents(keywordLower);
+
         Specification<Document> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -301,15 +312,6 @@ public class DocumentService {
                 predicates.add(cb.equal(root.get("status"), criteria.getStatus()));
             } else {
                 predicates.add(root.get("status").in(DocumentStatus.APPROVED, DocumentStatus.PENDING, DocumentStatus.REVISION_REQUIRED, DocumentStatus.DRAFT, DocumentStatus.REJECTED));
-            }
-
-            if (criteria.getKeyword() != null && !criteria.getKeyword().trim().isEmpty()) {
-                String pattern = "%" + criteria.getKeyword().trim().toLowerCase() + "%";
-                predicates.add(cb.or(
-                        cb.like(cb.lower(root.get("title")), pattern),
-                        cb.like(cb.lower(root.get("abstractText")), pattern),
-                        cb.like(cb.lower(root.get("advisorName")), pattern)
-                ));
             }
 
             if (criteria.getSubjectId() != null) {
@@ -325,7 +327,12 @@ public class DocumentService {
             }
 
             if (criteria.getDocumentTypeCode() != null && !criteria.getDocumentTypeCode().isBlank()) {
-                predicates.add(cb.equal(root.get("documentTypeCode"), criteria.getDocumentTypeCode()));
+                String typeCode = criteria.getDocumentTypeCode().trim().toUpperCase();
+                if ("PROJECT".equalsIgnoreCase(typeCode) || "CAPSTONE".equalsIgnoreCase(typeCode)) {
+                    predicates.add(root.get("documentTypeCode").in("PROJECT", "CAPSTONE"));
+                } else {
+                    predicates.add(cb.equal(cb.upper(root.get("documentTypeCode")), typeCode));
+                }
             }
 
             if (criteria.getTechnologyId() != null) {
@@ -335,7 +342,47 @@ public class DocumentService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-        Page<Document> page = documentRepository.findAll(spec, pageable);
+        if (rawKeyword.isEmpty()) {
+            Page<Document> page = documentRepository.findAll(spec, pageable);
+            List<DocumentSummaryDTO> dtoList = page.getContent().stream()
+                    .map(doc -> toSummaryDTO(doc, currentUserId))
+                    .collect(Collectors.toList());
+            return PageResponse.of(page, dtoList);
+        }
+
+        // When keyword is present: Fetch matching status/filters, then filter in-memory with Vietnamese accent & unaccented support
+        List<Document> allCandidates = documentRepository.findAll(spec, pageable.getSort());
+        List<Document> matched = allCandidates.stream().filter(doc -> {
+            String title = doc.getTitle() != null ? doc.getTitle().toLowerCase() : "";
+            String abs = doc.getAbstractText() != null ? doc.getAbstractText().toLowerCase() : "";
+            String adv = doc.getAdvisorName() != null ? doc.getAdvisorName().toLowerCase() : "";
+            String sub = doc.getSubject() != null && doc.getSubject().getName() != null ? doc.getSubject().getName().toLowerCase() : "";
+            String desc = doc.getDescription() != null ? doc.getDescription().toLowerCase() : "";
+
+            // 1. Direct match with accents
+            if (title.contains(keywordLower) || abs.contains(keywordLower) || adv.contains(keywordLower) || sub.contains(keywordLower) || desc.contains(keywordLower)) {
+                return true;
+            }
+
+            // 2. Unaccented match (e.g. "mo" matches "Mô hình", "cau truc" matches "Cấu trúc")
+            String titleNoAccent = removeAccents(title);
+            String absNoAccent = removeAccents(abs);
+            String advNoAccent = removeAccents(adv);
+            String subNoAccent = removeAccents(sub);
+            String descNoAccent = removeAccents(desc);
+
+            return titleNoAccent.contains(keywordNoAccent)
+                    || absNoAccent.contains(keywordNoAccent)
+                    || advNoAccent.contains(keywordNoAccent)
+                    || subNoAccent.contains(keywordNoAccent)
+                    || descNoAccent.contains(keywordNoAccent);
+        }).collect(Collectors.toList());
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), matched.size());
+        List<Document> pagedList = start < matched.size() ? matched.subList(start, end) : java.util.Collections.emptyList();
+        org.springframework.data.domain.Page<Document> page = new org.springframework.data.domain.PageImpl<>(pagedList, pageable, matched.size());
+
         List<DocumentSummaryDTO> dtoList = page.getContent().stream()
                 .map(doc -> toSummaryDTO(doc, currentUserId))
                 .collect(Collectors.toList());

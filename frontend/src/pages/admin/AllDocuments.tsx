@@ -36,7 +36,7 @@ export default function AllDocuments() {
 
   const handleHide = async () => {
     if (!hideModal || !hideModal.reason.trim()) {
-      alert('Vui lòng nhập lý do ẩn tài liệu')
+      setToast({ type: 'error', msg: 'Vui lòng nhập lý do ẩn tài liệu' })
       return
     }
     setActionLoading(true)
