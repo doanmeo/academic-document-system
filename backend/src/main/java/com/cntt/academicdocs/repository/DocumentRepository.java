@@ -39,6 +39,9 @@ public interface DocumentRepository extends JpaRepository<Document, Long>, JpaSp
     @Query("SELECT d.status, COUNT(d) FROM Document d GROUP BY d.status")
     List<Object[]> countByStatusGroup();
 
+    @Query("SELECT COALESCE(SUM(d.downloadCount), 0) FROM Document d")
+    Long sumDownloadCount();
+
     List<Document> findTop5ByStatusOrderByViewCountDesc(DocumentStatus status);
 
     List<Document> findTop5ByStatusOrderByCreatedAtDesc(DocumentStatus status);

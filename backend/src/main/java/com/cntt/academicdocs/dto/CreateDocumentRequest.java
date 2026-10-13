@@ -34,6 +34,11 @@ public class CreateDocumentRequest {
 
     @Pattern(regexp = "^(https?://.*)?$", message = "Địa chỉ liên kết phải bắt đầu bằng http:// hoặc https://")
     private String gitlabUrl;
+
+    private String sharingScope;
+    private Boolean pledgeAccepted;
+    private List<Long> fileIds;
+
     private List<Long> technologyIds;
     private List<String> memberStudentCodes;
 
@@ -68,6 +73,15 @@ public class CreateDocumentRequest {
 
     public String getGitlabUrl() { return gitlabUrl; }
     public void setGitlabUrl(String gitlabUrl) { this.gitlabUrl = gitlabUrl; }
+
+    public String getSharingScope() { return sharingScope; }
+    public void setSharingScope(String sharingScope) { this.sharingScope = sharingScope; }
+
+    public Boolean getPledgeAccepted() { return pledgeAccepted; }
+    public void setPledgeAccepted(Boolean pledgeAccepted) { this.pledgeAccepted = pledgeAccepted; }
+
+    public List<Long> getFileIds() { return fileIds; }
+    public void setFileIds(List<Long> fileIds) { this.fileIds = fileIds; }
 
     public List<Long> getTechnologyIds() { return technologyIds; }
     public void setTechnologyIds(List<Long> technologyIds) { this.technologyIds = technologyIds; }

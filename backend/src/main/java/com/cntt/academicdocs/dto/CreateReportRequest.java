@@ -5,18 +5,23 @@ import jakarta.validation.constraints.Size;
 
 public class CreateReportRequest {
 
-    @NotBlank(message = "Lý do báo cáo không được để trống")
     private String reasonCode;
-
-    @NotBlank(message = "Mô tả vi phạm không được để trống")
-    @Size(min = 10, message = "Mô tả vi phạm phải có tối thiểu 10 ký tự")
+    private String reason;
     private String description;
 
     public CreateReportRequest() {}
 
-    public String getReasonCode() { return reasonCode; }
+    public String getReasonCode() {
+        return (reasonCode != null && !reasonCode.isBlank()) ? reasonCode : "COPYRIGHT";
+    }
     public void setReasonCode(String reasonCode) { this.reasonCode = reasonCode; }
 
-    public String getDescription() { return description; }
+    public String getReason() { return reason; }
+    public void setReason(String reason) { this.reason = reason; }
+
+    public String getDescription() {
+        if (description != null && !description.isBlank()) return description;
+        return reason != null ? reason : "";
+    }
     public void setDescription(String description) { this.description = description; }
 }

@@ -44,6 +44,8 @@ public class PageResponse<T> {
     public List<T> getContent() { return content; }
     public void setContent(List<T> content) { this.content = content; }
 
+    public List<T> getItems() { return content; }
+
     public int getPage() { return page; }
     public void setPage(int page) { this.page = page; }
 

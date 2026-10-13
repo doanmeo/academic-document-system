@@ -79,6 +79,15 @@ public class Document {
     @Column(name = "rejection_note", columnDefinition = "TEXT")
     private String rejectionNote;
 
+    @Column(name = "sharing_scope", length = 50)
+    private String sharingScope = "FACULTY_INTERNAL";
+
+    @Column(name = "pledge_accepted")
+    private Boolean pledgeAccepted = true;
+
+    @Column(name = "revision_note", columnDefinition = "TEXT")
+    private String revisionNote;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -157,6 +166,15 @@ public class Document {
 
     public String getRejectionNote() { return rejectionNote; }
     public void setRejectionNote(String rejectionNote) { this.rejectionNote = rejectionNote; }
+
+    public String getSharingScope() { return sharingScope; }
+    public void setSharingScope(String sharingScope) { this.sharingScope = sharingScope; }
+
+    public Boolean getPledgeAccepted() { return pledgeAccepted; }
+    public void setPledgeAccepted(Boolean pledgeAccepted) { this.pledgeAccepted = pledgeAccepted; }
+
+    public String getRevisionNote() { return revisionNote; }
+    public void setRevisionNote(String revisionNote) { this.revisionNote = revisionNote; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
