@@ -40,6 +40,11 @@ public class DocumentDetailDTO {
     private LocalDateTime approvedAt;
     private LocalDateTime updatedAt;
 
+    // Academic Integrity & Lineage Seal
+    private String verificationCode;
+    private String facultyUnit = "Khoa Công nghệ Thông tin - Trường Đại học Giao thông Vận tải";
+    private String futureWorkSuggestions;
+
     private List<DocumentFileDTO> files = new ArrayList<>();
     private List<DocumentMemberDTO> members = new ArrayList<>();
     private List<DocumentTechnologyDTO> technologies = new ArrayList<>();
@@ -153,4 +158,13 @@ public class DocumentDetailDTO {
 
     public List<DocumentTechnologyDTO> getTechnologies() { return technologies; }
     public void setTechnologies(List<DocumentTechnologyDTO> technologies) { this.technologies = technologies; }
+
+    public String getVerificationCode() { return verificationCode; }
+    public void setVerificationCode(String verificationCode) { this.verificationCode = verificationCode; }
+
+    public String getFacultyUnit() { return facultyUnit; }
+    public void setFacultyUnit(String facultyUnit) { this.facultyUnit = facultyUnit; }
+
+    public String getFutureWorkSuggestions() { return futureWorkSuggestions; }
+    public void setFutureWorkSuggestions(String futureWorkSuggestions) { this.futureWorkSuggestions = futureWorkSuggestions; }
 }

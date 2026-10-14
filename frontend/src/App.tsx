@@ -26,7 +26,7 @@ function App() {
       {/* ─── Public ──────────────────────────────────────────────────────── */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<Search />} />
       <Route path="/search" element={<Search />} />
 
       {/* Chi tiết tài liệu — public với tài liệu APPROVED */}

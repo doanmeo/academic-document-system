@@ -42,12 +42,19 @@ export const getLov = async (groupCode: LovGroupCode): Promise<LovItem[]> => {
   return unwrap(res)
 }
 
+/** GET /catalog/advisors */
+export const getAdvisors = async (): Promise<string[]> => {
+  const res = await api.get('/catalog/advisors')
+  return unwrap(res)
+}
+
 export const catalogApi = {
   getSubjects,
   getMajors,
   getAcademicYears,
   getTechnologies,
   getLov,
+  getAdvisors,
 }
 
 export default catalogApi

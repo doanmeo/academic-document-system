@@ -16,19 +16,22 @@ public class CatalogService {
     private final AcademicYearRepository academicYearRepository;
     private final TechnologyRepository technologyRepository;
     private final LovValueRepository lovValueRepository;
+    private final DocumentRepository documentRepository;
 
     public CatalogService(
             SubjectRepository subjectRepository,
             MajorRepository majorRepository,
             AcademicYearRepository academicYearRepository,
             TechnologyRepository technologyRepository,
-            LovValueRepository lovValueRepository
+            LovValueRepository lovValueRepository,
+            DocumentRepository documentRepository
     ) {
         this.subjectRepository = subjectRepository;
         this.majorRepository = majorRepository;
         this.academicYearRepository = academicYearRepository;
         this.technologyRepository = technologyRepository;
         this.lovValueRepository = lovValueRepository;
+        this.documentRepository = documentRepository;
     }
 
     public List<SubjectDTO> getSubjects() {
@@ -59,5 +62,9 @@ public class CatalogService {
         return lovValueRepository.findByGroupCodeAndActiveTrue(groupCode).stream()
                 .map(LovValueDTO::fromEntity)
                 .toList();
+    }
+
+    public List<String> getAdvisors() {
+        return documentRepository.findDistinctAdvisors();
     }
 }

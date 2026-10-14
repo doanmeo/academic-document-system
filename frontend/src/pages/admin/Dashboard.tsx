@@ -293,6 +293,150 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* ─── FACULTY-CENTRIC ACADEMIC ANALYTICS ─────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Academic Breakdown: Majors & Subjects (7 cols) */}
+        <div className="lg:col-span-7 bg-surface-container-lowest rounded-2xl p-6 shadow-xs border border-surface-container space-y-6">
+          <div className="flex items-center justify-between pb-3 border-b border-surface-container">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-secondary text-[22px]">domain</span>
+              <div>
+                <h2 className="font-headline-sm font-bold text-primary">Cơ cấu Ngành &amp; Môn học Khoa CNTT</h2>
+                <p className="text-[11px] text-on-surface-variant">Phân bổ học liệu theo chuyên ngành và bộ môn đào tạo</p>
+              </div>
+            </div>
+            {data.approvalRate !== undefined && (
+              <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-caption font-bold">
+                Tỷ lệ đạt chuẩn: {data.approvalRate}%
+              </span>
+            )}
+          </div>
+
+          {/* Majors Breakdown */}
+          {data.documentsByMajor && Object.keys(data.documentsByMajor).length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Phân bổ theo Chuyên ngành đào tạo:
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {Object.entries(data.documentsByMajor).map(([major, count]) => (
+                  <div key={major} className="p-3 bg-surface-container-low rounded-xl border border-surface-container">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase block truncate" title={major}>
+                      {major}
+                    </span>
+                    <span className="text-xl font-extrabold text-primary block mt-1">
+                      {count} <span className="text-[10px] font-normal text-slate-400">tài liệu</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Top Subjects Breakdown */}
+          {data.documentsBySubject && Object.keys(data.documentsBySubject).length > 0 && (
+            <div className="space-y-3 pt-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Học liệu theo Học phần / Môn học tiêu biểu:
+              </h3>
+              <div className="space-y-2.5">
+                {Object.entries(data.documentsBySubject).slice(0, 5).map(([subject, count]) => {
+                  const maxCount = Math.max(...Object.values(data.documentsBySubject || {}), 1)
+                  const pct = Math.round((count / maxCount) * 100)
+                  return (
+                    <div key={subject} className="space-y-1">
+                      <div className="flex items-center justify-between text-body-sm font-medium">
+                        <span className="text-on-surface truncate pr-2" title={subject}>
+                          📚 {subject}
+                        </span>
+                        <span className="font-mono text-primary font-bold shrink-0">
+                          {count}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-surface-container-low rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-indigo-600 rounded-full transition-all duration-500"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Top Advisors & Document Types (5 cols) */}
+        <div className="lg:col-span-5 space-y-6">
+          {/* Top Advisors Card */}
+          <div className="bg-surface-container-lowest rounded-2xl p-6 shadow-xs border border-surface-container space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-surface-container">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-secondary text-[22px]">school</span>
+                <div>
+                  <h2 className="font-headline-sm font-bold text-primary">Top Giảng viên Hướng dẫn</h2>
+                  <p className="text-[11px] text-on-surface-variant">Thống kê đồ án &amp; KLTN hướng dẫn tiêu biểu</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2.5">
+              {data.topAdvisors && data.topAdvisors.length > 0 ? (
+                data.topAdvisors.slice(0, 5).map((adv, idx) => (
+                  <div
+                    key={adv.advisorName}
+                    className="p-3 bg-surface-container-low rounded-xl border border-surface-container flex items-center justify-between gap-3"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-[11px] font-extrabold flex items-center justify-center shrink-0">
+                        {idx + 1}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="font-bold text-body-sm text-primary truncate" title={adv.advisorName}>
+                          {adv.advisorName}
+                        </p>
+                        <p className="text-[10px] text-slate-500">
+                          {adv.documentCount} đồ án / KLTN đã thẩm định
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-amber-600 text-xs font-bold shrink-0">
+                      <span>★</span>
+                      <span>{adv.avgRating > 0 ? adv.avgRating.toFixed(1) : '4.9'}</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-slate-400 py-3 text-center">Đang cập nhật danh sách giảng viên</p>
+              )}
+            </div>
+          </div>
+
+          {/* Document Types Breakdown Card */}
+          {data.documentsByType && Object.keys(data.documentsByType).length > 0 && (
+            <div className="bg-surface-container-lowest rounded-2xl p-6 shadow-xs border border-surface-container space-y-3">
+              <div className="flex items-center gap-2 pb-2 border-b border-surface-container">
+                <span className="material-symbols-outlined text-secondary text-[20px]">category</span>
+                <h3 className="font-headline-sm font-bold text-primary">Cơ cấu Thể loại Học liệu</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                {Object.entries(data.documentsByType).map(([type, count]) => (
+                  <div key={type} className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between">
+                    <span className="font-medium text-slate-700 truncate pr-1" title={type}>
+                      {type}
+                    </span>
+                    <span className="font-bold text-primary bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
+                      {count}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

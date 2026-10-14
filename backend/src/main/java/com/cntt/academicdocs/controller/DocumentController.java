@@ -112,6 +112,7 @@ public class DocumentController {
             @RequestParam(required = false) Long academicYearId,
             @RequestParam(required = false) String documentTypeCode,
             @RequestParam(required = false) String type,
+            @RequestParam(required = false) String advisorName,
             @RequestParam(required = false) Long technologyId,
             @RequestParam(required = false) DocumentStatus status,
             @RequestParam(defaultValue = "0") int page,
@@ -168,6 +169,7 @@ public class DocumentController {
                 .majorId(majorId)
                 .academicYearId(academicYearId)
                 .documentTypeCode(resolvedType)
+                .advisorName(advisorName)
                 .technologyId(technologyId)
                 .status(status)
                 .build();
@@ -183,6 +185,42 @@ public class DocumentController {
         String currentRole = SecurityUtils.getCurrentRole();
         DocumentDetailDTO doc = documentService.getDocumentById(id, currentUserId, currentRole);
         return ResponseEntity.ok(ApiResponse.success(doc));
+    }
+
+    @GetMapping("/{id}/related")
+    @Operation(summary = "Gợi ý các học liệu cùng mạch học thuật (cùng môn, cùng GVHD, cùng ngành)")
+    public ResponseEntity<ApiResponse<java.util.List<RelatedDocumentDTO>>> getRelatedDocuments(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "4") int limit
+    ) {
+        java.util.List<RelatedDocumentDTO> related = documentService.getRelatedDocuments(id, limit);
+        return ResponseEntity.ok(ApiResponse.success(related));
+    }
+
+    @PostMapping("/check-similarity")
+    @Operation(summary = "Kiểm tra độ tương đồng học thuật & phát hiện trùng lặp đề tài khi soạn thảo")
+    public ResponseEntity<ApiResponse<java.util.List<RelatedDocumentDTO>>> checkSimilarity(
+            @RequestBody SimilarityCheckRequest request
+    ) {
+        java.util.List<RelatedDocumentDTO> similar = documentService.checkSimilarity(request);
+        return ResponseEntity.ok(ApiResponse.success(similar));
+    }
+
+    @GetMapping("/course-hub/{subjectId}")
+    @Operation(summary = "Lấy trọn bộ Gói học liệu học phần (Syllabus Knowledge Pack) theo Môn học")
+    public ResponseEntity<ApiResponse<CourseHubDTO>> getCourseHub(@PathVariable Long subjectId) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        CourseHubDTO hub = documentService.getCourseHub(subjectId, currentUserId);
+        return ResponseEntity.ok(ApiResponse.success(hub));
+    }
+
+    @PostMapping("/compare-topics")
+    @Operation(summary = "Công cụ phân tích tính mới & Đánh giá khác biệt đề tài so với các khóa trước")
+    public ResponseEntity<ApiResponse<TopicComparisonResultDTO>> compareTopics(
+            @RequestBody TopicComparisonRequest request
+    ) {
+        TopicComparisonResultDTO analysis = documentService.compareTopics(request);
+        return ResponseEntity.ok(ApiResponse.success(analysis));
     }
 
     @GetMapping("/{id}/citation")

@@ -68,6 +68,30 @@ export default function Navbar() {
             Tra cứu
           </NavLink>
           <NavLink
+            to="/search?tab=hub"
+            className={({ isActive }) =>
+              `px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                isActive
+                  ? 'bg-white text-blue-700 shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+              }`
+            }
+          >
+            Sổ tay Học phần
+          </NavLink>
+          <NavLink
+            to="/search?tab=novelty"
+            className={({ isActive }) =>
+              `px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                isActive
+                  ? 'bg-white text-blue-700 shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+              }`
+            }
+          >
+            Đối soát Đề tài
+          </NavLink>
+          <NavLink
             to="/my-documents"
             className={({ isActive }) =>
               `px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${

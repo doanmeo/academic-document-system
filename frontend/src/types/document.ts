@@ -82,6 +82,56 @@ export interface DocumentDetail extends DocumentSummary {
   revisionNote: string | null
   updatedAt?: string
   approvedAt?: string | null
+  verificationCode?: string | null
+  facultyUnit?: string | null
+  futureWorkSuggestions?: string | null
+}
+
+// ─── Sổ tay học phần & Gói học liệu chuẩn Bộ môn (Course Hub) ─────────────────
+export interface CourseHub {
+  subject: {
+    id: number
+    code: string
+    name: string
+  }
+  totalDocuments: number
+  totalLectures: number
+  totalLabs: number
+  totalProjects: number
+  totalExams: number
+  lectures: DocumentSummary[]
+  labs: DocumentSummary[]
+  projects: DocumentSummary[]
+  exams: DocumentSummary[]
+  instructorAdvisors: string[]
+}
+
+// ─── Đối soát đề tài & Đánh giá tính mới ─────────────────────────────────────
+export interface TopicComparisonRequest {
+  title: string
+  subjectId?: number
+  majorId?: number
+  advisorName?: string
+  expectedMethodology?: string
+}
+
+export interface MatchedDocumentDTO {
+  id: number
+  title: string
+  advisorName?: string
+  academicYearName?: string
+  subjectName?: string
+  similarityScore: number
+  overlappingAspects: string
+  githubUrl?: string
+}
+
+export interface TopicComparisonResult {
+  overallOverlapScore: number
+  riskLevel: 'LOW_DUPLICATION' | 'MEDIUM_SIMILARITY' | 'HIGH_DUPLICATION_RISK' | string
+  verdict: string
+  matchedDocuments: MatchedDocumentDTO[]
+  noveltyRecommendations: string[]
 }
 
 // ─── Phân trang ────────────────────────────────────────────────────────────────
@@ -119,6 +169,7 @@ export interface SearchDocumentParams {
   subjectId?: number
   majorId?: number
   academicYearId?: number
+  advisorName?: string
   type?: string
   documentTypeCode?: string
   technologyId?: number
@@ -128,6 +179,34 @@ export interface SearchDocumentParams {
   sort?: string
   page?: number
   size?: number
+}
+
+export interface RelatedDocument {
+  id: number
+  title: string
+  documentTypeCode: string
+  documentTypeLabel: string
+  subjectId: number
+  subjectName: string
+  majorId?: number
+  majorName?: string
+  advisorName?: string
+  academicYearName?: string
+  avgRating: number
+  viewCount: number
+  downloadCount: number
+  matchReason: string
+  similarityScore: number
+}
+
+export interface SimilarityCheckParams {
+  currentDocumentId?: number
+  title: string
+  subjectId?: number
+  majorId?: number
+  advisorName?: string
+  documentTypeCode?: string
+  abstractText?: string
 }
 
 export interface MyDocumentsParams {

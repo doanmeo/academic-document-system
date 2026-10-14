@@ -66,41 +66,70 @@ public class CitationService {
         }
 
         String typeLabel = documentService.getDocumentTypeLabel(doc.getDocumentTypeCode());
+        String advisor = doc.getAdvisorName() != null && !doc.getAdvisorName().isBlank() ? doc.getAdvisorName().trim() : null;
+        String subject = doc.getSubject() != null && doc.getSubject().getName() != null ? doc.getSubject().getName().trim() : null;
+        String major = doc.getMajor() != null && doc.getMajor().getName() != null ? doc.getMajor().getName().trim() : null;
         String url = frontendUrl + "/documents/" + doc.getId();
 
         String citationText = switch (citationFormat) {
-            case "APA" -> formatApa(author, year, title, typeLabel, url);
-            case "IEEE" -> formatIeee(author, year, title, typeLabel, url);
-            case "BIBTEX" -> formatBibtex(doc.getId(), author, year, title, typeLabel, url);
-            default -> formatIeee(author, year, title, typeLabel, url);
+            case "APA" -> formatApa(author, year, title, typeLabel, advisor, subject, major, url);
+            case "IEEE" -> formatIeee(author, year, title, typeLabel, advisor, subject, url);
+            case "BIBTEX" -> formatBibtex(doc.getId(), author, year, title, typeLabel, advisor, subject, major, url);
+            default -> formatIeee(author, year, title, typeLabel, advisor, subject, url);
         };
 
         return new CitationResponseDTO(citationFormat, citationText);
     }
 
-    private String formatApa(String author, String year, String title, String typeLabel, String url) {
-        return String.format("%s. (%s). %s [%s, Khoa Công nghệ Thông tin, Trường Đại học Giao thông Vận tải]. %s",
-                author, year, title, typeLabel, url);
+    private String formatApa(String author, String year, String title, String typeLabel, String advisor, String subject, String major, String url) {
+        StringBuilder academicContext = new StringBuilder();
+        academicContext.append(typeLabel);
+        if (advisor != null) {
+            academicContext.append(", GVHD: ").append(advisor);
+        }
+        if (subject != null) {
+            academicContext.append(", Môn: ").append(subject);
+        }
+        if (major != null) {
+            academicContext.append(", Ngành ").append(major);
+        }
+        academicContext.append(", Khoa Công nghệ Thông tin, Trường Đại học Giao thông Vận tải");
+
+        return String.format("%s. (%s). %s [%s]. %s",
+                author, year, title, academicContext, url);
     }
 
-    private String formatIeee(String author, String year, String title, String typeLabel, String url) {
+    private String formatIeee(String author, String year, String title, String typeLabel, String advisor, String subject, String url) {
         String abbreviated = abbreviateAuthor(author);
+        StringBuilder typeAndAdvisor = new StringBuilder(typeLabel);
+        if (advisor != null) {
+            typeAndAdvisor.append(" (GVHD: ").append(advisor).append(")");
+        }
+        if (subject != null) {
+            typeAndAdvisor.append(", Môn ").append(subject);
+        }
         return String.format("%s, \"%s,\" %s, Khoa CNTT, ĐH Giao thông Vận tải, Hà Nội, %s. [Online]. Available: %s",
-                abbreviated, title, typeLabel, year, url);
+                abbreviated, title, typeAndAdvisor, year, url);
     }
 
-    private String formatBibtex(Long docId, String author, String year, String title, String typeLabel, String url) {
+    private String formatBibtex(Long docId, String author, String year, String title, String typeLabel, String advisor, String subject, String major, String url) {
         String citeKey = String.format("utc_fit_%d_%s", docId != null ? docId : 1L, year);
+        StringBuilder noteBuilder = new StringBuilder();
+        noteBuilder.append(typeLabel);
+        if (advisor != null) noteBuilder.append(", GVHD: ").append(advisor);
+        if (subject != null) noteBuilder.append(", Môn: ").append(subject);
+        if (major != null) noteBuilder.append(", Ngành: ").append(major);
+
         return String.format(
                 "@misc{%s,\n" +
                 "  author = {%s},\n" +
                 "  title = {%s},\n" +
-                "  howpublished = {Khoa Công nghệ Thông tin, Trường Đại học Giao thông Vận tải},\n" +
+                "  howpublished = {Khoa Công nghệ Thông tin, Trường Đại học Giao thông Vận tải (UTC)},\n" +
                 "  year = {%s},\n" +
                 "  note = {%s},\n" +
                 "  url = {%s}\n" +
                 "}",
-                citeKey, author, title, year, typeLabel, url
+                citeKey, author, title, year, noteBuilder, url
         );
     }
 

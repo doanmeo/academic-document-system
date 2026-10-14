@@ -19,7 +19,13 @@ export default function Navbar() {
   }, []);
 
   const isActive = (path: string) => {
-    if (path === '/') return location.pathname === '/';
+    if (path === '/') {
+      return (
+        (location.pathname === '/' || location.pathname === '/search') &&
+        !location.search.includes('tab=hub') &&
+        !location.search.includes('tab=novelty')
+      );
+    }
     return location.pathname.startsWith(path);
   };
 
@@ -52,6 +58,26 @@ export default function Navbar() {
           <nav className="hidden lg:flex items-center gap-space-xs">
             <Link to="/" className={navLinkClass('/')}>
               Tra cứu
+            </Link>
+            <Link
+              to="/search?tab=hub"
+              className={`px-space-md py-space-xs rounded-lg font-body-sm text-body-sm transition-all ${
+                location.pathname === '/search' && location.search.includes('tab=hub')
+                  ? 'bg-surface-container text-primary font-headline-sm font-semibold'
+                  : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
+              }`}
+            >
+              Sổ tay Học phần
+            </Link>
+            <Link
+              to="/search?tab=novelty"
+              className={`px-space-md py-space-xs rounded-lg font-body-sm text-body-sm transition-all ${
+                location.pathname === '/search' && location.search.includes('tab=novelty')
+                  ? 'bg-surface-container text-primary font-headline-sm font-semibold'
+                  : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
+              }`}
+            >
+              Đối soát Đề tài
             </Link>
             {isAuthenticated && (
               <>

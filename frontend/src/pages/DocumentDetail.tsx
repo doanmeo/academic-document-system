@@ -6,15 +6,14 @@ import Footer from '../components/layout/Footer'
 import Spinner from '../components/ui/Spinner'
 import StarRating from '../components/ui/StarRating'
 import CitationModal from '../components/CitationModal'
-import DynamicBookCover from '../components/DynamicBookCover'
-import { getDocument } from '../api/documentApi'
+import { getDocument, getRelatedDocuments } from '../api/documentApi'
 import { getPreviewUrl, getDownloadUrl } from '../api/fileApi'
 import { addBookmark, removeBookmark, rateDocument, reportDocument } from '../api/interactionApi'
 import { getLov } from '../api/catalogApi'
 import { getErrorMessage } from '../utils/errorMessages'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
-import type { DocumentDetail as DocDetail } from '../types/document'
+import type { DocumentDetail as DocDetail, RelatedDocument } from '../types/document'
 import type { LovItem } from '../types/catalog'
 
 const formatFileSize = (bytes: number) => {
@@ -34,11 +33,14 @@ export default function DocumentDetail() {
   const [error, setError] = useState('')
   const [showCitation, setShowCitation] = useState(false)
 
+  // Academic Related Documents State
+  const [relatedDocs, setRelatedDocs] = useState<RelatedDocument[]>([])
+  const [loadingRelated, setLoadingRelated] = useState(false)
+
   // PDF Viewer State
   const [pdfUrl, setPdfUrl] = useState<string>('/sample.pdf')
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const [activeFileId, setActiveFileId] = useState<number | null>(null)
-  const [viewMode, setViewMode] = useState<'pdf' | 'cover'>('pdf')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages] = useState(48)
   const [zoomLevel, setZoomLevel] = useState(100)
@@ -60,17 +62,23 @@ export default function DocumentDetail() {
   const [reportDesc, setReportDesc] = useState('')
   const [reportLoading, setReportLoading] = useState(false)
 
-  // Fetch document details
+  // Fetch document details & related academic documents
   useEffect(() => {
     if (!id) return
+    const docId = Number(id)
     const fetchDoc = async () => {
       setLoading(true)
       setError('')
       try {
-        const data = await getDocument(Number(id))
+        const data = await getDocument(docId)
         setDoc(data)
         setBookmarked(data.bookmarked)
         if (data.userRating) setUserRating(data.userRating)
+
+        // Fetch related academic documents in parallel
+        getRelatedDocuments(docId, 4)
+          .then((res) => setRelatedDocs(res || []))
+          .catch(() => setRelatedDocs([]))
 
         // Automatically resolve primary PDF for direct viewing
         const primary = data.files.find((f) => f.isPrimary) ?? data.files[0]
@@ -376,19 +384,6 @@ export default function DocumentDetail() {
     }
   }
 
-  // Student members list
-  const memberList =
-    doc.members && doc.members.length > 0
-      ? doc.members
-      : [
-          {
-            userId: doc.uploaderId || 1,
-            fullName: doc.uploaderName || 'Nguyễn Văn A',
-            studentCode: '231230746',
-            isLeader: true,
-          },
-        ]
-
   return (
     <div className="min-h-screen flex flex-col bg-surface font-body-md text-body-md text-on-surface antialiased">
       <Navbar />
@@ -400,23 +395,20 @@ export default function DocumentDetail() {
             <div className="max-w-7xl mx-auto px-6 flex flex-wrap items-center justify-between gap-4 font-label-code text-label-code">
               <div className="flex items-center gap-2 text-on-surface-variant flex-wrap">
                 <Link to="/" className="text-primary font-bold hover:underline">
-                  TRA CỨU TÀI LIỆU
+                  KHO HỌC LIỆU
                 </Link>
                 <span>/</span>
-                <span className="text-on-surface uppercase">
-                  {doc.documentTypeLabel || 'BÁO CÁO HỌC PHẦN'}
+                <span className="text-on-surface uppercase font-semibold">
+                  {doc.documentTypeLabel || 'HỌC LIỆU'}
                 </span>
                 <span>/</span>
                 <span className="text-on-surface-variant truncate max-w-xs sm:max-w-md">
-                  UTC-FIT-REP-2025-{String(doc.id).padStart(4, '0')}
+                  {doc.subjectName || 'Khoa CNTT'}
                 </span>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="px-2 py-0.5 bg-surface text-on-surface font-semibold">
-                  REF: #UTC-{88000 + doc.id}
-                </span>
-                <span className="text-on-surface-variant hidden sm:inline">
-                  SHA256: 4e82b7...d{String(doc.id).padStart(3, '0')}
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 bg-white text-slate-700 font-mono text-xs font-semibold rounded border border-slate-200">
+                  MÃ ĐỀ TÀI: #{88000 + doc.id}
                 </span>
               </div>
             </div>
@@ -440,6 +432,12 @@ export default function DocumentDetail() {
                     <span className="px-3 py-1 bg-secondary-fixed text-on-secondary-fixed font-label-code text-label-code font-bold">
                       {doc.majorName ? `BỘ MÔN ${doc.majorName.toUpperCase()}` : 'BỘ MÔN KTPM'}
                     </span>
+                    {doc.advisorName && (
+                      <span className="px-3 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 font-label-code text-label-code font-bold flex items-center gap-1">
+                        <span>GVHD:</span>
+                        <span>{doc.advisorName}</span>
+                      </span>
+                    )}
                   </div>
 
                   <h1 className="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight uppercase leading-tight">
@@ -482,6 +480,64 @@ export default function DocumentDetail() {
                     )}
                   </div>
 
+                  {/* CON DẤU THẨM ĐỊNH LIÊM CHÍNH & PHẠM VI LƯU HÀNH NỘI BỘ */}
+                  <div className="p-4 bg-gradient-to-r from-blue-950/5 via-indigo-950/5 to-slate-900/5 border border-primary/20 rounded-xl space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-primary/10 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[20px] text-primary">verified_user</span>
+                        <span className="font-label-code text-caption font-bold text-primary tracking-wider uppercase">
+                          CON DẤU THẨM ĐỊNH LIÊM CHÍNH HỌC THUẬT KHOA CNTT
+                        </span>
+                      </div>
+                      <span className="px-2 py-0.5 bg-primary/10 text-primary font-mono text-[11px] font-bold rounded">
+                        MÃ ĐỐI SOÁT: {doc.verificationCode || `#UTC-FIT-${88000 + doc.id}`}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                      <div className="space-y-0.5">
+                        <span className="text-[10px] text-on-surface-variant font-medium block uppercase tracking-wider">
+                          Đơn vị xác thực
+                        </span>
+                        <span className="font-semibold text-on-surface text-[11px] block">
+                          {doc.facultyUnit || 'Khoa Công nghệ Thông tin - UTC'}
+                        </span>
+                      </div>
+                      <div className="space-y-0.5">
+                        <span className="text-[10px] text-on-surface-variant font-medium block uppercase tracking-wider">
+                          Phạm vi lưu hành
+                        </span>
+                        <span className="inline-flex items-center gap-1 font-bold text-primary text-[11px]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                          {doc.sharingScope === 'PUBLIC_REFERENCE'
+                            ? 'THAM KHẢO RỘNG RÃI'
+                            : 'LƯU HÀNH NỘI BỘ KHOA'}
+                        </span>
+                      </div>
+                      <div className="space-y-0.5">
+                        <span className="text-[10px] text-on-surface-variant font-medium block uppercase tracking-wider">
+                          Cam kết quyền tác giả
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-emerald-700 font-bold text-[11px]">
+                          <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                          ĐÃ KÝ CAM KẾT LIÊM CHÍNH
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* MẠCH KẾ THỪA HỌC THUẬT & HƯỚNG PHÁT TRIỂN CHO KHÓA SAU (FUTURE WORK) */}
+                  <div className="p-4 bg-indigo-50/50 border border-indigo-200/60 rounded-xl space-y-2">
+                    <div className="flex items-center gap-2 text-indigo-900 font-bold text-xs uppercase tracking-wider">
+                      <span className="material-symbols-outlined text-[18px] text-indigo-600">account_tree</span>
+                      <span>Mạch kế thừa học thuật &amp; Hướng nghiên cứu cho sinh viên khóa sau:</span>
+                    </div>
+                    <p className="text-xs text-indigo-950 font-normal leading-relaxed pl-6 text-justify">
+                      {doc.futureWorkSuggestions ||
+                        '1. Tích hợp mô hình AI đánh giá tự động chất lượng mã nguồn; 2. Thử nghiệm mở rộng trên hạ tầng đám mây phân tán đa cụm; 3. Kế thừa mã nguồn GitHub để hoàn thiện các module phục vụ trực tiếp cho hoạt động giảng dạy của Khoa.'}
+                    </p>
+                  </div>
+
                   {/* REVISION NOTE / ADMIN FEEDBACK */}
                   {(doc.revisionNote || doc.rejectionNote) && (
                     <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
@@ -495,86 +551,63 @@ export default function DocumentDetail() {
                     </div>
                   )}
 
-                  {/* TECH STACK */}
-                  <div className="flex flex-col gap-2.5">
-                    <div className="font-label-meta text-label-meta uppercase tracking-wider text-on-surface-variant font-bold">
-                      Công nghệ &amp; Kỹ thuật sử dụng
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {doc.technologies && doc.technologies.length > 0 ? (
-                        doc.technologies.map((t) => (
+                  {/* TECH STACK (Only if technologies exist) */}
+                  {doc.technologies && doc.technologies.length > 0 && (
+                    <div className="flex flex-col gap-2">
+                      <div className="font-label-meta text-label-meta uppercase tracking-wider text-on-surface-variant font-bold">
+                        Công nghệ &amp; Kỹ thuật sử dụng
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {doc.technologies.map((t) => (
                           <span
                             key={t.id}
-                            className="px-2.5 py-1 bg-surface-container font-label-code text-label-code text-on-surface font-semibold"
+                            className="px-2.5 py-1 bg-surface-container font-label-code text-label-code text-on-surface font-semibold rounded-md border border-surface-container-high"
                           >
                             {t.name}
                           </span>
-                        ))
-                      ) : (
-                        <>
-                          <span className="px-2.5 py-1 bg-surface-container font-label-code text-label-code text-on-surface font-semibold">
-                            Spring Boot 3
-                          </span>
-                          <span className="px-2.5 py-1 bg-surface-container font-label-code text-label-code text-on-surface font-semibold">
-                            React 18
-                          </span>
-                          <span className="px-2.5 py-1 bg-surface-container font-label-code text-label-code text-on-surface font-semibold">
-                            Supabase Storage
-                          </span>
-                          <span className="px-2.5 py-1 bg-surface-container font-label-code text-label-code text-on-surface font-semibold">
-                            MySQL 8.0
-                          </span>
-                          <span className="px-2.5 py-1 bg-surface-container font-label-code text-label-code text-on-surface font-semibold">
-                            Tailwind CSS
-                          </span>
-                          <span className="px-2.5 py-1 bg-surface-container font-label-code text-label-code text-on-surface font-semibold">
-                            Docker
-                          </span>
-                          <span className="px-2.5 py-1 bg-surface-container font-label-code text-label-code text-on-surface font-semibold">
-                            Vite
-                          </span>
-                          <span className="px-2.5 py-1 bg-surface-container font-label-code text-label-code text-on-surface font-semibold">
-                            JWT / Spring Security
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* MEMBERS & GITHUB */}
-                  <div className="pt-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex flex-col gap-2">
-                      <span className="font-label-meta text-label-meta uppercase tracking-wider text-on-surface-variant font-bold">
-                        Nhóm sinh viên thực hiện (Nhóm 0{doc.id}):
-                      </span>
-                      <div className="flex flex-wrap items-center gap-3">
-                        {memberList.map((m, idx) => {
-                          const bgColors = ['bg-primary', 'bg-secondary', 'bg-tertiary-container']
-                          const textColors = ['text-on-primary', 'text-on-secondary', 'text-on-tertiary-container']
-                          const colorIdx = idx % bgColors.length
-                          return (
-                            <div
-                              key={m.userId || idx}
-                              className="flex items-center gap-2 bg-surface-container px-3 py-1.5 shadow-sm"
-                            >
-                              <div
-                                className={`w-6 h-6 ${bgColors[colorIdx]} ${textColors[colorIdx]} font-label-code text-label-code font-bold flex items-center justify-center`}
-                              >
-                                {m.fullName ? m.fullName.trim().charAt(0) : 'S'}
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="font-body-sm text-body-sm font-bold text-on-surface leading-none">
-                                  {m.fullName}
-                                </span>
-                                <span className="font-label-meta text-label-meta text-on-surface-variant leading-none">
-                                  {m.studentCode || `23123074${idx + 1}`}
-                                </span>
-                              </div>
-                            </div>
-                          )
-                        })}
+                        ))}
                       </div>
                     </div>
+                  )}
+
+                  {/* MEMBERS & GITHUB */}
+                  <div className="pt-2 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    {doc.members && doc.members.length > 0 ? (
+                      <div className="flex flex-col gap-2">
+                        <span className="font-label-meta text-label-meta uppercase tracking-wider text-on-surface-variant font-bold">
+                          Thành viên thực hiện:
+                        </span>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {doc.members.map((m, idx) => (
+                            <div
+                              key={m.userId || idx}
+                              className="flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded-lg border border-slate-200"
+                            >
+                              <span className="font-body-sm text-xs font-bold text-on-surface">
+                                {m.fullName}
+                              </span>
+                              {m.studentCode && (
+                                <span className="font-mono text-[11px] text-slate-500">
+                                  ({m.studentCode})
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-1.5">
+                        <span className="font-label-meta text-label-meta uppercase tracking-wider text-on-surface-variant font-bold">
+                          Người đăng tải học liệu:
+                        </span>
+                        <div className="flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded-lg w-fit border border-slate-200">
+                          <span className="material-symbols-outlined text-[16px] text-primary">person</span>
+                          <span className="font-body-sm text-xs font-semibold text-on-surface">
+                            {doc.uploaderName || 'Sinh viên Khoa CNTT - UTC'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
 
                     {doc.githubUrl && (
                       <a
@@ -633,34 +666,11 @@ export default function DocumentDetail() {
                         </button>
                       </div>
 
-                      {/* View Mode Toggle */}
-                      <div className="hidden sm:flex items-center bg-surface-container-lowest p-0.5 text-xs font-semibold">
-                        <button
-                          onClick={() => setViewMode('pdf')}
-                          className={`px-2.5 py-1 transition-colors cursor-pointer ${
-                            viewMode === 'pdf'
-                              ? 'bg-primary text-on-primary font-bold'
-                              : 'text-on-surface-variant hover:text-on-surface'
-                          }`}
-                        >
-                          Xem PDF trực tiếp
-                        </button>
-                        <button
-                          onClick={() => setViewMode('cover')}
-                          className={`px-2.5 py-1 transition-colors cursor-pointer ${
-                            viewMode === 'cover'
-                              ? 'bg-primary text-on-primary font-bold'
-                              : 'text-on-surface-variant hover:text-on-surface'
-                          }`}
-                        >
-                          Trang bìa UTC
-                        </button>
-                      </div>
                     </div>
 
                     <div className="flex items-center gap-2">
                       {/* Zoom Controls */}
-                      <div className="flex items-center bg-surface-container-lowest px-2 py-1 gap-2">
+                      <div className="flex items-center bg-surface-container-lowest px-2 py-1 gap-2 rounded">
                         <button
                           onClick={handleZoomOut}
                           className="hover:text-primary transition-colors flex items-center cursor-pointer"
@@ -683,14 +693,14 @@ export default function DocumentDetail() {
                       {/* Fullscreen Button */}
                       <button
                         onClick={handleToggleFullscreen}
-                        className="px-3 py-1 bg-surface-container hover:bg-surface-container-high text-on-surface font-bold flex items-center gap-1 transition-colors shadow-sm cursor-pointer"
+                        className="px-3 py-1 bg-surface-container hover:bg-surface-container-high text-on-surface font-bold flex items-center gap-1 transition-colors shadow-xs cursor-pointer rounded"
                         type="button"
                         title={isFullscreen ? 'Thu nhỏ' : 'Toàn màn hình'}
                       >
                         <span className="material-symbols-outlined text-[16px]">
                           {isFullscreen ? 'fullscreen_exit' : 'fullscreen'}
                         </span>
-                        <span className="hidden sm:inline">
+                        <span className="hidden sm:inline text-xs">
                           {isFullscreen ? 'Thu nhỏ' : 'Fullscreen'}
                         </span>
                       </button>
@@ -700,7 +710,7 @@ export default function DocumentDetail() {
                         href={pdfUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-3 py-1 bg-primary text-on-primary font-bold flex items-center gap-1 hover:bg-primary-container transition-colors shadow-sm cursor-pointer"
+                        className="px-3 py-1 bg-primary text-on-primary font-bold flex items-center gap-1 hover:bg-primary/90 transition-colors shadow-xs cursor-pointer rounded text-xs"
                       >
                         <span className="material-symbols-outlined text-[16px]">open_in_new</span>
                         <span>Mở tab mới</span>
@@ -709,161 +719,74 @@ export default function DocumentDetail() {
                   </div>
 
                   {/* DOCUMENT VIEWER BODY */}
-                  {viewMode === 'pdf' ? (
-                    <div className="bg-surface-container p-2 sm:p-4 flex flex-col justify-center items-center min-h-[640px]">
-                      <div
-                        className="w-full bg-surface-container-lowest shadow-md overflow-hidden relative"
-                        style={{
-                          transform: `scale(${zoomLevel / 100})`,
-                          transformOrigin: 'top center',
-                          transition: 'transform 0.15s ease-out',
-                        }}
-                      >
-                        {blobUrl ? (
-                          <iframe
-                            src={`${blobUrl}#page=${currentPage}&zoom=${zoomLevel}`}
-                            className="w-full h-[680px] sm:h-[760px] border-0 block"
-                            title={doc.title}
-                          />
-                        ) : (
-                          <div className="w-full h-[680px] sm:h-[760px] flex flex-col items-center justify-center p-8 text-center text-on-surface-variant bg-surface-container-lowest">
-                            <span className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mb-3" />
-                            <p className="text-body-sm font-medium">Đang chuẩn bị học liệu số xem trực tuyến...</p>
-                          </div>
-                        )}
-                      </div>
+                  <div className="bg-slate-900/5 p-2 sm:p-4 flex flex-col justify-center items-center min-h-[640px]">
+                    <div
+                      className="w-full bg-surface-container-lowest shadow-md overflow-hidden relative rounded"
+                      style={{
+                        transform: `scale(${zoomLevel / 100})`,
+                        transformOrigin: 'top center',
+                        transition: 'transform 0.15s ease-out',
+                      }}
+                    >
+                      {blobUrl ? (
+                        <iframe
+                          src={`${blobUrl}#page=${currentPage}&zoom=${zoomLevel}`}
+                          className="w-full h-[680px] sm:h-[760px] border-0 block"
+                          title={doc.title}
+                        />
+                      ) : (
+                        <div className="w-full h-[680px] sm:h-[760px] flex flex-col items-center justify-center p-8 text-center text-on-surface-variant bg-surface-container-lowest">
+                          <span className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mb-3" />
+                          <p className="text-body-sm font-medium">Đang chuẩn bị học liệu số xem trực tuyến...</p>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    /* DOCUMENT PREVIEW CANVAS (Mô phỏng Trang bìa báo cáo học thuật chuẩn UTC) */
-                    <div className="bg-surface-container p-4 sm:p-10 flex justify-center items-center overflow-x-auto min-h-[560px]">
-                      <div
-                        className="w-full max-w-[560px] aspect-[1/1.414] bg-surface-container-lowest p-8 sm:p-12 shadow-md flex flex-col justify-between text-center relative select-none"
-                        style={{
-                          transform: `scale(${zoomLevel / 100})`,
-                          transformOrigin: 'top center',
-                          transition: 'transform 0.15s ease-out',
-                        }}
-                      >
-                        {/* Watermark stamp */}
-                        <div className="absolute right-4 top-4 opacity-20 pointer-events-none font-label-code text-[11px] text-right">
-                          UTC-FIT ARCHIVE
-                          <br />
-                          VERIFIED #88000
-                        </div>
-
-                        {/* Top institutional text */}
-                        <div className="flex flex-col gap-1 uppercase tracking-wider font-headline-sm">
-                          <div className="text-body-sm font-semibold text-on-surface">
-                            BỘ GIÁO DỤC VÀ ĐÀO TẠO
-                          </div>
-                          <div className="text-body-sm font-bold text-on-surface">
-                            TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI
-                          </div>
-                          <div className="text-body-sm font-bold text-primary">
-                            KHOA CÔNG NGHỆ THÔNG TIN
-                          </div>
-                          <div className="w-24 h-0.5 bg-primary mx-auto my-2"></div>
-                        </div>
-
-                        {/* Center Logo & Subject */}
-                        <div className="flex flex-col items-center gap-4 my-auto">
-                          <div className="w-16 h-16 bg-primary text-on-primary font-headline-md text-headline-md font-bold flex items-center justify-center">
-                            UTC
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            <span className="font-label-code text-label-code font-bold tracking-widest text-on-surface-variant uppercase">
-                              {doc.documentTypeLabel || 'BÁO CÁO KẾT THÚC HỌC PHẦN'}
-                            </span>
-                            <span className="font-headline-sm text-headline-sm font-bold text-on-surface">
-                              {doc.subjectName}
-                            </span>
-                          </div>
-                          <div className="p-4 bg-surface-container-low max-w-sm mt-2">
-                            <span className="font-label-meta text-label-meta uppercase tracking-wider text-on-surface-variant block mb-1">
-                              ĐỀ TÀI NGHIÊN CỨU:
-                            </span>
-                            <span className="font-headline-sm text-headline-sm font-bold text-primary block leading-tight">
-                              {doc.title}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Bottom signatories & candidates */}
-                        <div className="flex flex-col gap-4 text-left font-body-sm text-body-sm">
-                          <div className="grid grid-cols-2 gap-4 pt-4 bg-surface-container-high/40 p-3">
-                            <div>
-                              <span className="font-label-meta text-label-meta uppercase text-on-surface-variant block font-bold">
-                                GIẢNG VIÊN HƯỚNG DẪN:
-                              </span>
-                              <span className="font-bold text-on-surface">
-                                {doc.advisorName || 'ThS. Đào Thị Lệ Thủy'}
-                              </span>
-                              <span className="text-xs text-on-surface-variant block">
-                                {doc.majorName
-                                  ? `Bộ môn ${doc.majorName}`
-                                  : 'Bộ môn Kỹ thuật Phần mềm'}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="font-label-meta text-label-meta uppercase text-on-surface-variant block font-bold">
-                                SINH VIÊN THỰC HIỆN:
-                              </span>
-                              {memberList.map((m, idx) => (
-                                <div key={idx} className="font-bold text-on-surface text-xs leading-tight">
-                                  {m.fullName} ({m.studentCode || `23123074${idx + 1}`})
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="text-center font-label-code text-label-code text-on-surface-variant uppercase">
-                            HÀ NỘI - THÁNG 03/2026
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </div>
 
                 {/* 3. DANH SÁCH FILE ĐÍNH KÈM */}
-                <div className="p-6 bg-surface-container-lowest shadow-sm flex flex-col gap-4">
+                <div className="p-6 bg-surface-container-lowest shadow-sm rounded-xl border border-surface-container flex flex-col gap-4">
                   <div className="flex items-center justify-between">
-                    <span className="font-headline-sm text-headline-sm font-bold text-on-surface flex items-center gap-2">
-                      <span className="material-symbols-outlined text-primary">attachment</span>
-                      Tệp đính kèm trong hồ sơ (
-                      {String(doc.files.length || 1).padStart(2, '0')} tệp)
+                    <span className="font-headline-sm text-sm font-bold text-on-surface flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary text-[20px]">attachment</span>
+                      Tệp đính kèm trong hồ sơ ({doc.files?.length || 0} tệp)
                     </span>
-                    <span className="font-label-code text-label-code text-on-surface-variant">
-                      Dung lượng tổng: {formatFileSize(totalFileSize || 19200000)}
-                    </span>
+                    {totalFileSize > 0 && (
+                      <span className="font-label-code text-xs text-on-surface-variant">
+                        Dung lượng tổng: {formatFileSize(totalFileSize)}
+                      </span>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Primary Document File Card */}
                     {doc.files && doc.files.length > 0 ? (
-                      doc.files.map((f, idx) => {
+                      doc.files.map((f) => {
                         const isPdf = f.fileName.toLowerCase().endsWith('.pdf')
-                        const isPptx = f.fileName.toLowerCase().endsWith('.pptx')
+                        const isPptx =
+                          f.fileName.toLowerCase().endsWith('.pptx') ||
+                          f.fileName.toLowerCase().endsWith('.ppt')
                         const isSelected = activeFileId === f.id
+                        const ext = f.fileName.split('.').pop()?.toUpperCase() || 'FILE'
 
                         return (
                           <div
                             key={f.id}
-                            className={`p-4 bg-surface-container-low flex flex-col justify-between gap-3 border transition-colors ${
-                              isSelected ? 'border-primary' : 'border-transparent'
+                            className={`p-4 bg-surface-container-low flex flex-col justify-between gap-3 border rounded-lg transition-colors ${
+                              isSelected ? 'border-primary' : 'border-slate-200'
                             }`}
                           >
                             <div className="flex items-start gap-3">
                               <div
-                                className={`p-2.5 ${
+                                className={`p-2.5 rounded-lg ${
                                   isPdf
-                                    ? 'bg-primary text-on-primary'
+                                    ? 'bg-red-50 text-red-600 border border-red-200'
                                     : isPptx
-                                    ? 'bg-secondary text-on-secondary'
-                                    : 'bg-surface-container text-on-surface'
+                                    ? 'bg-orange-50 text-orange-600 border border-orange-200'
+                                    : 'bg-primary/10 text-primary border border-primary/20'
                                 }`}
                               >
                                 <span className="material-symbols-outlined text-[24px]">
-                                  {isPdf ? 'description' : isPptx ? 'slideshow' : 'insert_drive_file'}
+                                  {isPdf ? 'picture_as_pdf' : isPptx ? 'slideshow' : 'insert_drive_file'}
                                 </span>
                               </div>
                               <div className="flex flex-col min-w-0">
@@ -873,10 +796,10 @@ export default function DocumentDetail() {
                                 >
                                   {f.fileName}
                                 </span>
-                                <div className="flex items-center gap-2 font-label-code text-label-code text-on-surface-variant flex-wrap">
-                                  <span>{formatFileSize(f.fileSize || 12000000)}</span>
+                                <div className="flex items-center gap-2 font-label-code text-xs text-on-surface-variant flex-wrap">
+                                  <span>{f.fileSize ? formatFileSize(f.fileSize) : 'Tài liệu số'}</span>
                                   <span>•</span>
-                                  <span>{isPdf ? '48 Trang' : isPptx ? 'PowerPoint' : 'Tài liệu'}</span>
+                                  <span>{ext}</span>
                                   {f.isPrimary && (
                                     <>
                                       <span>•</span>
@@ -890,7 +813,7 @@ export default function DocumentDetail() {
                               {isPdf && (
                                 <button
                                   onClick={() => handleSelectFile(f.id)}
-                                  className={`flex-1 py-1.5 px-3 font-label-code text-label-code font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer ${
+                                  className={`flex-1 py-1.5 px-3 font-label-code text-xs font-bold flex items-center justify-center gap-1 rounded transition-colors cursor-pointer ${
                                     isSelected
                                       ? 'bg-primary text-on-primary'
                                       : 'bg-surface-container hover:bg-surface-container-high text-on-surface'
@@ -908,7 +831,7 @@ export default function DocumentDetail() {
                                 disabled={dlLoading}
                                 className={`${
                                   isPdf ? '' : 'w-full'
-                                } py-1.5 px-3 bg-primary text-on-primary hover:bg-primary-container font-label-code text-label-code font-bold flex items-center justify-center gap-1 transition-colors shadow-sm cursor-pointer`}
+                                } py-1.5 px-3 bg-primary text-on-primary hover:bg-primary/90 font-label-code text-xs font-bold flex items-center justify-center gap-1 rounded transition-colors shadow-xs cursor-pointer`}
                               >
                                 <span className="material-symbols-outlined text-[16px]">
                                   download
@@ -920,78 +843,10 @@ export default function DocumentDetail() {
                         )
                       })
                     ) : (
-                      <>
-                        <div className="p-4 bg-surface-container-low flex flex-col justify-between gap-3 border border-primary">
-                          <div className="flex items-start gap-3">
-                            <div className="p-2.5 bg-primary text-on-primary">
-                              <span className="material-symbols-outlined text-[24px]">
-                                description
-                              </span>
-                            </div>
-                            <div className="flex flex-col min-w-0">
-                              <span className="font-body-sm text-body-sm font-bold text-on-surface truncate">
-                                Bao_Cao_Nhom7_MaNguonMo.pdf
-                              </span>
-                              <div className="flex items-center gap-2 font-label-code text-label-code text-on-surface-variant">
-                                <span>18.4 MB</span>
-                                <span>•</span>
-                                <span>48 Trang</span>
-                                <span>•</span>
-                                <span className="text-primary font-bold">CHÍNH THỨC</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 pt-2">
-                            <button
-                              onClick={() => {
-                                setPdfUrl('/sample.pdf')
-                                setViewMode('pdf')
-                              }}
-                              className="flex-1 py-1.5 px-3 bg-primary text-on-primary font-label-code text-label-code font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                              type="button"
-                            >
-                              <span className="material-symbols-outlined text-[16px]">
-                                visibility
-                              </span>
-                              Đang xem
-                            </button>
-                            <button
-                              onClick={() => handleDownload()}
-                              className="py-1.5 px-3 bg-primary text-on-primary hover:bg-primary-container font-label-code text-label-code font-bold flex items-center justify-center gap-1 transition-colors shadow-sm cursor-pointer"
-                            >
-                              <span className="material-symbols-outlined text-[16px]">download</span>
-                              Tải về
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="p-4 bg-surface-container-low flex flex-col justify-between gap-3">
-                          <div className="flex items-start gap-3">
-                            <div className="p-2.5 bg-secondary text-on-secondary">
-                              <span className="material-symbols-outlined text-[24px]">slideshow</span>
-                            </div>
-                            <div className="flex flex-col min-w-0">
-                              <span className="font-body-sm text-body-sm font-bold text-on-surface truncate">
-                                Slides_Thuyet_Trinh_Nhom7.pptx
-                              </span>
-                              <div className="flex items-center gap-2 font-label-code text-label-code text-on-surface-variant">
-                                <span>8.2 MB</span>
-                                <span>•</span>
-                                <span>Microsoft PowerPoint</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 pt-2">
-                            <button
-                              onClick={() => handleDownload()}
-                              className="w-full py-1.5 px-3 bg-surface-container hover:bg-surface-container-high text-on-surface font-label-code text-label-code font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                            >
-                              <span className="material-symbols-outlined text-[16px]">download</span>
-                              Tải về tệp trình chiếu (.pptx)
-                            </button>
-                          </div>
-                        </div>
-                      </>
+                      <div className="col-span-full p-6 bg-surface-container-low text-on-surface-variant text-body-sm rounded-lg text-center flex flex-col items-center gap-2">
+                        <span className="material-symbols-outlined text-[28px] text-on-surface-variant/60">folder_open</span>
+                        <p>Học liệu này đã được số hóa trực tiếp trên hệ thống.</p>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1120,76 +975,118 @@ export default function DocumentDetail() {
                     </div>
                   </div>
                 </div>
+
+                {/* 5. HỌC LIỆU CÙNG MẠCH HỌC THUẬT & CÙNG HƯỚNG NGHIÊN CỨU */}
+                {relatedDocs.length > 0 && (
+                  <div className="bg-surface-container-lowest p-6 shadow-sm flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <span className="font-headline-sm text-headline-sm font-bold text-on-surface flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary">hub</span>
+                        Học liệu cùng mạch học thuật &amp; Hướng nghiên cứu
+                      </span>
+                      <span className="font-label-code text-label-code text-on-surface-variant font-medium">
+                        {relatedDocs.length} tài liệu liên quan
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {relatedDocs.map((item) => (
+                        <div
+                          key={item.id}
+                          onClick={() => {
+                            navigate(`/documents/${item.id}`)
+                            window.scrollTo({ top: 0, behavior: 'smooth' })
+                          }}
+                          className="p-4 bg-surface-container-low hover:bg-surface-container border border-surface-container hover:border-primary/40 transition-all flex flex-col justify-between gap-3 cursor-pointer group rounded-xl shadow-2xs"
+                        >
+                          <div>
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold uppercase rounded tracking-wider">
+                                {item.documentTypeLabel}
+                              </span>
+                              <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+                                {item.similarityScore}% tương quan
+                              </span>
+                            </div>
+                            <h4 className="font-bold text-body-sm text-on-surface group-hover:text-primary transition-colors line-clamp-2">
+                              {item.title}
+                            </h4>
+                            <p className="text-caption text-on-surface-variant mt-1">
+                              {item.subjectName} • {item.academicYearName}
+                            </p>
+                            {item.advisorName && (
+                              <p className="text-[11px] text-indigo-700 font-medium mt-0.5 flex items-center gap-1">
+                                <span className="text-[9px] bg-indigo-50 border border-indigo-100 px-1 rounded font-bold">GVHD</span>
+                                <span>{item.advisorName}</span>
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="pt-2 border-t border-surface-container flex items-center justify-between text-[11px]">
+                            <span className="text-secondary font-semibold text-[10px]">
+                              {item.matchReason}
+                            </span>
+                            <span className="text-primary font-bold inline-flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                              Xem chi tiết →
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* RIGHT COLUMN: ~32% (4 cols) Sticky Sidebar */}
               <div className="lg:col-span-4 flex flex-col gap-6 sticky top-20">
-                {/* BÌA HỌC LIỆU SỐ CHUẨN KHOA CNTT */}
-                <div className="bg-surface-container-lowest p-5 shadow-sm flex flex-col items-center justify-center border border-surface-container rounded-xl">
-                  <DynamicBookCover
-                    title={doc.title}
-                    author={doc.uploaderName}
-                    advisor={doc.advisorName}
-                    majorName={doc.majorName}
-                    majorId={doc.majorId}
-                    subjectName={doc.subjectName}
-                    documentTypeCode={doc.documentTypeCode}
-                    documentTypeLabel={doc.documentTypeLabel}
-                    academicYearName={doc.academicYearName}
-                    size="responsive"
-                    className="w-full max-w-[240px]"
-                  />
-                  <span className="font-label-code text-caption font-bold text-on-surface-variant mt-3 uppercase tracking-wider">
-                    Bìa học liệu số chuẩn FIT-UTC
-                  </span>
-                </div>
-
-                {/* CARD 1: HÀNH ĐỘNG CHÍNH */}
-                <div className="bg-surface-container-lowest p-6 shadow-sm flex flex-col gap-4">
-                  <div className="flex items-center justify-between pb-3 bg-surface-container-low -mx-6 -mt-6 p-4">
+                {/* CARD 1: HÀNH ĐỘNG HỌC THUẬT */}
+                <div className="bg-surface-container-lowest p-6 shadow-sm rounded-xl border border-surface-container flex flex-col gap-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-surface-container">
                     <span className="font-label-code text-label-code font-bold uppercase tracking-wider text-on-surface flex items-center gap-1.5">
                       <span className="material-symbols-outlined text-[18px] text-primary">bolt</span>
                       THAO TÁC HỌC THUẬT
                     </span>
-                    <span className="font-label-code text-label-code text-on-surface-variant">
-                      v2.1-SECURE
+                    <span className="px-2 py-0.5 bg-primary/10 text-primary text-[11px] font-bold rounded">
+                      FIT-UTC
                     </span>
                   </div>
 
                   {/* Nút đọc toàn màn hình */}
                   <button
                     onClick={handleToggleFullscreen}
-                    className="w-full py-3.5 px-4 bg-primary hover:bg-primary-container text-on-primary font-headline-sm text-headline-sm font-bold flex items-center justify-center gap-2 shadow-sm transition-all group cursor-pointer"
+                    className="w-full py-3 px-4 bg-primary hover:bg-primary/90 text-on-primary font-headline-sm text-sm font-bold flex items-center justify-center gap-2 rounded-lg shadow-sm transition-all group cursor-pointer"
                     type="button"
                   >
-                    <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">
                       fullscreen
                     </span>
-                    <span>ĐỌC FULLSCREEN</span>
+                    <span>ĐỌC TOÀN MÀN HÌNH</span>
                   </button>
 
                   {/* Nút Tải xuống PDF */}
                   <button
                     onClick={() => handleDownload()}
                     disabled={dlLoading}
-                    className="w-full py-3 px-4 bg-surface-container hover:bg-surface-container-high text-on-surface font-label-code text-label-code font-bold flex items-center justify-between transition-colors cursor-pointer"
+                    className="w-full py-2.5 px-4 bg-surface-container hover:bg-surface-container-high text-on-surface font-label-code text-xs font-bold flex items-center justify-between rounded-lg transition-colors cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-primary">cloud_download</span>
-                      <span>{dlLoading ? 'Đang chuẩn bị...' : 'Tải PDF chính thức'}</span>
+                      <span className="material-symbols-outlined text-primary text-[18px]">cloud_download</span>
+                      <span>{dlLoading ? 'Đang chuẩn bị...' : 'Tải tài liệu chính thức'}</span>
                     </span>
-                    <span className="px-2 py-0.5 bg-surface-container-highest text-on-surface text-xs font-semibold">
-                      {formatFileSize(primaryFile?.fileSize || 18400000)}
-                    </span>
+                    {primaryFile?.fileSize && (
+                      <span className="px-2 py-0.5 bg-surface-container-highest text-on-surface text-[11px] font-semibold rounded">
+                        {formatFileSize(primaryFile.fileSize)}
+                      </span>
+                    )}
                   </button>
 
                   {/* Nút Trích dẫn học thuật */}
                   <button
                     onClick={() => setShowCitation(true)}
-                    className="w-full py-3 px-4 bg-surface-container hover:bg-surface-container-high text-primary font-label-code text-label-code font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer border border-primary/20"
+                    className="w-full py-2.5 px-4 bg-surface-container hover:bg-surface-container-high text-primary font-label-code text-xs font-bold flex items-center justify-center gap-2 rounded-lg transition-colors cursor-pointer border border-primary/20"
                     type="button"
                   >
-                    <span className="material-symbols-outlined text-[20px] text-primary">format_quote</span>
+                    <span className="material-symbols-outlined text-[18px] text-primary">format_quote</span>
                     <span>TRÍCH DẪN (IEEE / APA / BIBTEX)</span>
                   </button>
 
@@ -1197,93 +1094,73 @@ export default function DocumentDetail() {
                   <button
                     onClick={handleBookmark}
                     disabled={bmLoading}
-                    className="w-full py-2.5 px-4 bg-surface-container hover:bg-surface-container-high text-on-surface font-label-code text-label-code font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                    className="w-full py-2.5 px-4 bg-surface-container hover:bg-surface-container-high text-on-surface font-label-code text-xs font-bold flex items-center justify-center gap-2 rounded-lg transition-colors cursor-pointer"
                     type="button"
                   >
                     <span
-                      className={`material-symbols-outlined text-[20px] ${
-                        bookmarked ? 'text-secondary' : 'text-on-surface-variant'
+                      className={`material-symbols-outlined text-[18px] ${
+                        bookmarked ? 'text-amber-500' : 'text-on-surface-variant'
                       }`}
                     >
                       {bookmarked ? 'bookmark' : 'bookmark_border'}
                     </span>
                     <span>
-                      {bookmarked ? 'Đã lưu trong thư viện cá nhân' : 'Lưu vào danh sách đọc sau'}
+                      {bookmarked ? 'Đã lưu trong tủ sách cá nhân' : 'Lưu vào danh sách đọc sau'}
                     </span>
                   </button>
 
                   {/* Report button */}
                   <button
                     onClick={() => setShowReport(true)}
-                    className="w-full py-2 px-3 text-error hover:bg-error-container/40 font-label-code text-label-code font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    className="w-full py-1.5 px-3 text-error hover:bg-error-container/40 font-label-code text-xs font-semibold flex items-center justify-center gap-1.5 rounded transition-colors cursor-pointer"
                     type="button"
                   >
-                    <span className="material-symbols-outlined text-[18px]">flag</span>
+                    <span className="material-symbols-outlined text-[16px]">flag</span>
                     <span>Báo cáo vi phạm / Bản quyền</span>
                   </button>
                 </div>
 
-                {/* CARD 2: THÔNG TIN THẨM ĐỊNH HỘI ĐỒNG */}
-                <div className="bg-surface-container-lowest p-6 shadow-sm flex flex-col gap-4">
-                  <div className="font-headline-sm text-headline-sm font-bold text-on-surface flex items-center gap-2 pb-2">
-                    <span className="material-symbols-outlined text-primary">military_tech</span>
-                    Thẩm định &amp; Đánh giá
+                {/* CARD 2: THÔNG TIN HỌC THUẬT & ĐÁNH GIÁ */}
+                <div className="bg-surface-container-lowest p-6 shadow-sm rounded-xl border border-surface-container flex flex-col gap-4">
+                  <div className="font-headline-sm text-sm font-bold text-on-surface flex items-center gap-2 pb-2 border-b border-surface-container">
+                    <span className="material-symbols-outlined text-primary text-[20px]">school</span>
+                    Thông tin học thuật &amp; Độc giả
                   </div>
 
                   <div className="flex flex-col gap-3 font-body-sm text-body-sm">
-                    <div className="flex flex-col bg-surface-container-low p-3">
-                      <span className="font-label-meta text-label-meta uppercase tracking-wider text-on-surface-variant font-bold">
-                        GIẢNG VIÊN HƯỚNG DẪN
-                      </span>
-                      <span className="font-bold text-on-surface text-body-md mt-0.5">
-                        {doc.advisorName || 'ThS. Đào Thị Lệ Thủy'}
-                      </span>
-                      <span className="text-on-surface-variant text-xs font-medium">
-                        {doc.majorName
-                          ? `Bộ môn ${doc.majorName} · Khoa CNTT`
-                          : 'Bộ môn Kỹ thuật Phần mềm · Khoa CNTT'}
-                      </span>
-                    </div>
-
-                    {/* Điểm hội đồng */}
-                    <div className="flex items-center justify-between p-3.5 bg-surface-container-high">
-                      <div className="flex flex-col">
-                        <span className="font-label-meta text-label-meta uppercase tracking-wider text-on-surface-variant font-bold">
-                          ĐIỂM HỘI ĐỒNG CHẤM:
+                    {doc.advisorName && (
+                      <div className="flex flex-col bg-surface-container-low p-3 rounded-lg">
+                        <span className="font-label-meta text-[10px] uppercase tracking-wider text-on-surface-variant font-bold">
+                          GIẢNG VIÊN HƯỚNG DẪN
                         </span>
-                        <span className="font-label-code text-label-code text-secondary font-bold uppercase mt-0.5">
-                          [XUẤT SẮC] TOP 5%
+                        <span className="font-bold text-on-surface text-sm mt-0.5">
+                          {doc.advisorName}
+                        </span>
+                        <span className="text-on-surface-variant text-xs">
+                          {doc.majorName ? `Bộ môn ${doc.majorName} · Khoa CNTT` : 'Khoa Công nghệ Thông tin - UTC'}
                         </span>
                       </div>
-                      <div className="flex items-baseline gap-1">
-                        <span className="font-headline-lg text-headline-lg font-bold text-primary">
-                          {doc.avgRating > 0 ? (doc.avgRating * 2).toFixed(1) : '9.5'}
-                        </span>
-                        <span className="font-label-code text-label-code text-on-surface-variant">
-                          / 10.0
-                        </span>
-                      </div>
-                    </div>
+                    )}
 
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-2 gap-2 text-center pt-1 font-label-code text-label-code">
-                      <div className="p-2.5 bg-surface-container">
+                    <div className="grid grid-cols-2 gap-2 text-center pt-1 font-label-code text-xs">
+                      <div className="p-2.5 bg-surface-container rounded-lg">
                         <span className="text-on-surface-variant block text-[11px]">LƯỢT XEM</span>
-                        <span className="font-bold text-on-surface text-body-md">
-                          {doc.viewCount || 1480}
+                        <span className="font-bold text-on-surface text-base">
+                          {doc.viewCount || 0}
                         </span>
                       </div>
-                      <div className="p-2.5 bg-surface-container">
+                      <div className="p-2.5 bg-surface-container rounded-lg">
                         <span className="text-on-surface-variant block text-[11px]">LƯỢT TẢI</span>
-                        <span className="font-bold text-on-surface text-body-md">
-                          {doc.downloadCount || 420}
+                        <span className="font-bold text-on-surface text-base">
+                          {doc.downloadCount || 0}
                         </span>
                       </div>
                     </div>
 
                     {/* Rating display & Action */}
-                    <div className="p-3 bg-surface-container-low flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-secondary font-bold font-label-code text-label-code">
+                    <div className="p-3 bg-surface-container-low rounded-lg flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-amber-500 font-bold font-label-code text-xs">
                         <span
                           className="material-symbols-outlined text-[18px]"
                           style={{ fontVariationSettings: "'FILL' 1" }}
@@ -1291,10 +1168,10 @@ export default function DocumentDetail() {
                           star
                         </span>
                         <span className="text-on-surface">
-                          {userRating || (doc.avgRating > 0 ? doc.avgRating.toFixed(1) : '4.9')} / 5.0
+                          {doc.avgRating > 0 ? doc.avgRating.toFixed(1) : 'Chưa có'} / 5.0
                         </span>
-                        <span className="text-on-surface-variant text-xs font-normal">
-                          ({doc.ratingCount || 38} đánh giá)
+                        <span className="text-on-surface-variant text-[11px] font-normal">
+                          ({doc.ratingCount || 0} đánh giá)
                         </span>
                       </div>
                       <button
@@ -1302,7 +1179,7 @@ export default function DocumentDetail() {
                           if (!isAuthenticated) navigate('/login')
                           else setShowRateModal(true)
                         }}
-                        className="font-label-code text-label-code text-primary hover:underline font-bold cursor-pointer"
+                        className="font-label-code text-xs text-primary hover:underline font-bold cursor-pointer"
                       >
                         Đánh giá ngay
                       </button>

@@ -10,6 +10,7 @@ public class SearchCriteria {
     private String documentTypeCode;
     private Long technologyId;
     private DocumentStatus status;
+    private String advisorName;
 
     public SearchCriteria() {}
 
@@ -55,6 +56,11 @@ public class SearchCriteria {
             return this;
         }
 
+        public Builder advisorName(String advisorName) {
+            criteria.advisorName = advisorName;
+            return this;
+        }
+
         public SearchCriteria build() {
             return criteria;
         }
@@ -80,4 +86,7 @@ public class SearchCriteria {
 
     public DocumentStatus getStatus() { return status; }
     public void setStatus(DocumentStatus status) { this.status = status; }
+
+    public String getAdvisorName() { return advisorName; }
+    public void setAdvisorName(String advisorName) { this.advisorName = advisorName; }
 }

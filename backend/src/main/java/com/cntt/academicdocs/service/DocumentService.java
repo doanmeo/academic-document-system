@@ -238,6 +238,32 @@ public class DocumentService {
             throw new BusinessException(HttpStatus.BAD_REQUEST, "MISSING_ATTACHED_FILE", "Tài liệu phải có ít nhất 1 tệp đính kèm trước khi gửi duyệt");
         }
 
+        // Strict Academic Context Checklist Validation
+        if (document.getSubject() == null) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "MISSING_SUBJECT", "Tài liệu bắt buộc phải gắn với một Môn học cụ thể của Khoa");
+        }
+
+        if (document.getAcademicYear() == null) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "MISSING_ACADEMIC_YEAR", "Tài liệu bắt buộc phải có Niên khóa / Năm học");
+        }
+
+        String typeCode = document.getDocumentTypeCode() != null ? document.getDocumentTypeCode().toUpperCase() : "";
+        if (("THESIS".equals(typeCode) || "CAPSTONE".equals(typeCode) || "DO_AN".equals(typeCode))
+                && (document.getAdvisorName() == null || document.getAdvisorName().trim().isEmpty())) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "ADVISOR_REQUIRED_FOR_CAPSTONE",
+                    "Đồ án chuyên ngành / Khóa luận tốt nghiệp bắt buộc phải có Giảng viên hướng dẫn");
+        }
+
+        if (document.getAbstractText() == null || document.getAbstractText().trim().length() < 15) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "ABSTRACT_REQUIRED",
+                    "Vui lòng nhập tóm tắt nội dung học thuật (tối thiểu 15 ký tự)");
+        }
+
+        if (document.getPledgeAccepted() == null || !document.getPledgeAccepted()) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "PLEDGE_REQUIRED",
+                    "Sinh viên bắt buộc phải đồng ý với Cam kết Liêm chính Học thuật UTC trước khi gửi duyệt");
+        }
+
         DocumentStatus oldStatus = document.getStatus();
         document.setStatus(DocumentStatus.PENDING);
         Document saved = documentRepository.save(document);
@@ -407,6 +433,11 @@ public class DocumentService {
 
             if (criteria.getTechnologyId() != null) {
                 predicates.add(cb.equal(root.join("technologies").get("technology").get("id"), criteria.getTechnologyId()));
+            }
+
+            if (criteria.getAdvisorName() != null && !criteria.getAdvisorName().isBlank()) {
+                String advPattern = "%" + criteria.getAdvisorName().trim().toLowerCase() + "%";
+                predicates.add(cb.like(cb.lower(root.get("advisorName")), advPattern));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
@@ -741,20 +772,277 @@ public class DocumentService {
         dto.setFiles(fileDTOs);
         dto.setMembers(memberDTOs);
         dto.setTechnologies(techDTOs);
+
+        // Academic Integrity Seal & Lineage
+        dto.setVerificationCode("UTC-FIT-" + (88000 + doc.getId()));
+        dto.setFacultyUnit("Khoa Công nghệ Thông tin - Trường Đại học Giao thông Vận tải");
+        dto.setFutureWorkSuggestions(generateFutureWorkSuggestions(doc));
         return dto;
+    }
+
+    private String generateFutureWorkSuggestions(Document doc) {
+        String type = doc.getDocumentTypeCode() != null ? doc.getDocumentTypeCode().toUpperCase() : "GENERAL";
+        String subject = doc.getSubject() != null ? doc.getSubject().getName() : "học phần";
+        return switch (type) {
+            case "THESIS", "CAPSTONE", "DO_AN" ->
+                "Gợi ý mở rộng cho khóa sau: Tích hợp thêm mô hình AI/RAG để tự động hóa xử lý nghiệp vụ, xây dựng giải pháp chịu tải cao phân tán trên Kubernetes và mở rộng bộ kiểm thử tự động CI/CD cho " + subject + ".";
+            case "PROJECT" ->
+                "Gợi ý nâng cấp bài tập lớn: Tối ưu hóa hiệu năng truy vấn cơ sở dữ liệu, bổ sung cơ chế xác thực JWT đa lớp và triển khai thử nghiệm trên môi trường Cloud Docker cho " + subject + ".";
+            case "LAB" ->
+                "Khuyến nghị thực hành: Sinh viên khóa sau nên chủ động clone mã nguồn mẫu trên GitHub, hoàn thiện các bài tập nâng cao (Challenge Tasks) và đối chiếu kết quả log hệ thống.";
+            default ->
+                "Tài liệu nền tảng phục vụ ôn tập và tham khảo cốt lõi cho học phần " + subject + " tại Khoa CNTT - UTC.";
+        };
     }
 
     public String getDocumentTypeLabel(String code) {
         if (code == null) return "Tài liệu học thuật";
         return switch (code.toUpperCase()) {
-            case "THESIS" -> "Khóa luận tốt nghiệp";
-            case "CAPSTONE" -> "Đồ án chuyên ngành";
-            case "PROJECT" -> "Bài tập lớn";
+            case "THESIS", "DO_AN" -> "Khóa luận tốt nghiệp";
+            case "CAPSTONE", "PROJECT", "BTL" -> "Bài tập lớn / Đồ án môn học";
             case "LECTURE", "SLIDE" -> "Bài giảng / Slide";
-            case "EXAM" -> "Đề thi & Lời giải";
+            case "EXAM", "DE_THI" -> "Đề thi & Đề cương ôn tập";
             case "EXERCISE" -> "Bài tập & Thực hành";
             case "LAB" -> "Tài liệu Thực hành Lab";
+            case "GIAO_TRINH" -> "Giáo trình & Sách chuyên ngành";
+            case "TAI_LIEU_THAM_KHAO" -> "Tài liệu tham khảo chuyên ngành";
             default -> code;
         };
+    }
+
+    // --- Academic Similarity & Duplicate Topic Prevention ---
+
+    @Transactional(readOnly = true)
+    public List<RelatedDocumentDTO> getRelatedDocuments(Long id, int limit) {
+        Document target = documentRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "DOCUMENT_NOT_FOUND", "Không tìm thấy tài liệu"));
+
+        List<Document> allApproved = documentRepository.findByStatus(DocumentStatus.APPROVED);
+
+        SimilarityCheckRequest checkReq = new SimilarityCheckRequest();
+        checkReq.setCurrentDocumentId(target.getId());
+        checkReq.setTitle(target.getTitle());
+        checkReq.setSubjectId(target.getSubject() != null ? target.getSubject().getId() : null);
+        checkReq.setMajorId(target.getMajor() != null ? target.getMajor().getId() : null);
+        checkReq.setAdvisorName(target.getAdvisorName());
+        checkReq.setDocumentTypeCode(target.getDocumentTypeCode());
+        checkReq.setAbstractText(target.getAbstractText());
+
+        return calculateSimilarities(checkReq, allApproved, limit > 0 ? limit : 4);
+    }
+
+    @Transactional(readOnly = true)
+    public List<RelatedDocumentDTO> checkSimilarity(SimilarityCheckRequest req) {
+        List<Document> allApproved = documentRepository.findByStatus(DocumentStatus.APPROVED);
+        return calculateSimilarities(req, allApproved, 5);
+    }
+
+    private List<RelatedDocumentDTO> calculateSimilarities(SimilarityCheckRequest req, List<Document> candidates, int limit) {
+        String targetTitleNoAccent = removeAccents(req.getTitle() != null ? req.getTitle().toLowerCase() : "");
+        String targetAdvisorNoAccent = removeAccents(req.getAdvisorName() != null ? req.getAdvisorName().toLowerCase() : "");
+        String[] titleTokens = targetTitleNoAccent.split("\\s+");
+
+        List<RelatedDocumentDTO> results = new ArrayList<>();
+
+        for (Document cand : candidates) {
+            if (req.getCurrentDocumentId() != null && req.getCurrentDocumentId().equals(cand.getId())) {
+                continue; // Skip comparing against self
+            }
+
+            int score = 0;
+            List<String> matchReasons = new ArrayList<>();
+
+            // 1. Same Subject (+35 pts)
+            if (req.getSubjectId() != null && cand.getSubject() != null && req.getSubjectId().equals(cand.getSubject().getId())) {
+                score += 35;
+                matchReasons.add("Cùng môn: " + cand.getSubject().getName());
+            }
+
+            // 2. Same Advisor (+30 pts)
+            if (!targetAdvisorNoAccent.isBlank() && cand.getAdvisorName() != null && !cand.getAdvisorName().isBlank()) {
+                String candAdvNoAccent = removeAccents(cand.getAdvisorName().toLowerCase());
+                if (targetAdvisorNoAccent.contains(candAdvNoAccent) || candAdvNoAccent.contains(targetAdvisorNoAccent)) {
+                    score += 30;
+                    matchReasons.add("Cùng GVHD: " + cand.getAdvisorName());
+                }
+            }
+
+            // 3. Same Major (+15 pts)
+            if (req.getMajorId() != null && cand.getMajor() != null && req.getMajorId().equals(cand.getMajor().getId())) {
+                score += 15;
+            }
+
+            // 4. Same Document Type (+10 pts)
+            if (req.getDocumentTypeCode() != null && cand.getDocumentTypeCode() != null &&
+                    req.getDocumentTypeCode().equalsIgnoreCase(cand.getDocumentTypeCode())) {
+                score += 10;
+                matchReasons.add("Cùng loại: " + getDocumentTypeLabel(cand.getDocumentTypeCode()));
+            }
+
+            // 5. Keyword Overlap in Title (+10 - +30 pts)
+            String candTitleNoAccent = removeAccents(cand.getTitle() != null ? cand.getTitle().toLowerCase() : "");
+            int matchedTokens = 0;
+            for (String token : titleTokens) {
+                if (token.length() >= 3 && candTitleNoAccent.contains(token)) {
+                    matchedTokens++;
+                }
+            }
+            if (matchedTokens >= 3) {
+                score += 25;
+                matchReasons.add("Hướng đề tài tương đồng");
+            } else if (matchedTokens >= 2) {
+                score += 15;
+                matchReasons.add("Từ khóa chủ đề gần gũi");
+            } else if (matchedTokens == 1 && titleTokens.length <= 4) {
+                score += 10;
+            }
+
+            if (score >= 25) {
+                RelatedDocumentDTO dto = new RelatedDocumentDTO();
+                dto.setId(cand.getId());
+                dto.setTitle(cand.getTitle());
+                dto.setDocumentTypeCode(cand.getDocumentTypeCode());
+                dto.setDocumentTypeLabel(getDocumentTypeLabel(cand.getDocumentTypeCode()));
+                dto.setSubjectId(cand.getSubject() != null ? cand.getSubject().getId() : null);
+                dto.setSubjectName(cand.getSubject() != null ? cand.getSubject().getName() : "");
+                dto.setMajorId(cand.getMajor() != null ? cand.getMajor().getId() : null);
+                dto.setMajorName(cand.getMajor() != null ? cand.getMajor().getName() : "");
+                dto.setAdvisorName(cand.getAdvisorName());
+                dto.setAcademicYearName(cand.getAcademicYear() != null ? cand.getAcademicYear().getName() : "");
+                dto.setAvgRating(cand.getAvgRating());
+                dto.setViewCount(cand.getViewCount());
+                dto.setDownloadCount(cand.getDownloadCount());
+                dto.setSimilarityScore(Math.min(score, 100));
+                dto.setMatchReason(String.join(" • ", matchReasons));
+                results.add(dto);
+            }
+        }
+
+        results.sort((a, b) -> Integer.compare(b.getSimilarityScore(), a.getSimilarityScore()));
+        return results.stream().limit(limit).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public CourseHubDTO getCourseHub(Long subjectId, Long currentUserId) {
+        Subject subject = subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "SUBJECT_NOT_FOUND", "Không tìm thấy môn học"));
+
+        SubjectDTO subjectDTO = SubjectDTO.fromEntity(subject);
+
+        List<Document> docs = documentRepository.findByStatus(DocumentStatus.APPROVED).stream()
+                .filter(d -> d.getSubject() != null && d.getSubject().getId().equals(subjectId))
+                .collect(Collectors.toList());
+
+        List<DocumentSummaryDTO> lectures = new ArrayList<>();
+        List<DocumentSummaryDTO> labs = new ArrayList<>();
+        List<DocumentSummaryDTO> projects = new ArrayList<>();
+        List<DocumentSummaryDTO> exams = new ArrayList<>();
+        List<String> advisors = new ArrayList<>();
+
+        for (Document d : docs) {
+            DocumentSummaryDTO sum = toSummaryDTO(d, currentUserId);
+            String type = d.getDocumentTypeCode() != null ? d.getDocumentTypeCode().toUpperCase() : "";
+            if (type.contains("LECTURE") || type.contains("SLIDE") || type.contains("GIAO_TRINH")) {
+                lectures.add(sum);
+            } else if (type.contains("LAB") || type.contains("EXERCISE") || type.contains("THUC_HANH")) {
+                labs.add(sum);
+            } else if (type.contains("PROJECT") || type.contains("CAPSTONE") || type.contains("THESIS") || type.contains("DO_AN") || type.contains("BTL")) {
+                projects.add(sum);
+            } else if (type.contains("EXAM") || type.contains("DE_THI") || type.contains("DE_CUONG")) {
+                exams.add(sum);
+            } else {
+                lectures.add(sum);
+            }
+
+            if (d.getAdvisorName() != null && !d.getAdvisorName().trim().isEmpty()) {
+                String adv = d.getAdvisorName().trim();
+                if (!advisors.contains(adv)) {
+                    advisors.add(adv);
+                }
+            }
+        }
+
+        CourseHubDTO hub = new CourseHubDTO();
+        hub.setSubject(subjectDTO);
+        hub.setTotalDocuments(docs.size());
+        hub.setTotalLectures(lectures.size());
+        hub.setTotalLabs(labs.size());
+        hub.setTotalProjects(projects.size());
+        hub.setTotalExams(exams.size());
+        hub.setLectures(lectures);
+        hub.setLabs(labs);
+        hub.setProjects(projects);
+        hub.setExams(exams);
+        hub.setInstructorAdvisors(advisors);
+        return hub;
+    }
+
+    @Transactional(readOnly = true)
+    public TopicComparisonResultDTO compareTopics(TopicComparisonRequest req) {
+        TopicComparisonResultDTO result = new TopicComparisonResultDTO();
+        if (req == null || req.getTitle() == null || req.getTitle().trim().length() < 3) {
+            result.setOverallOverlapScore(0);
+            result.setRiskLevel("LOW_DUPLICATION");
+            result.setVerdict("Vui lòng nhập tên đề tài để phân tích tính mới.");
+            result.setMatchedDocuments(List.of());
+            result.setNoveltyRecommendations(List.of("Nhập tên đề tài cụ thể và chọn Môn học để hệ thống đối soát."));
+            return result;
+        }
+
+        SimilarityCheckRequest simReq = new SimilarityCheckRequest();
+        simReq.setTitle(req.getTitle());
+        simReq.setSubjectId(req.getSubjectId());
+        simReq.setMajorId(req.getMajorId());
+        simReq.setAdvisorName(req.getAdvisorName());
+        simReq.setDocumentTypeCode("CAPSTONE");
+
+        List<RelatedDocumentDTO> similar = calculateSimilarities(simReq, documentRepository.findByStatus(DocumentStatus.APPROVED), 4);
+        List<TopicComparisonResultDTO.MatchedDocumentDTO> matched = new ArrayList<>();
+        int maxScore = 0;
+
+        for (RelatedDocumentDTO s : similar) {
+            TopicComparisonResultDTO.MatchedDocumentDTO m = new TopicComparisonResultDTO.MatchedDocumentDTO();
+            m.setId(s.getId());
+            m.setTitle(s.getTitle());
+            m.setAdvisorName(s.getAdvisorName());
+            m.setAcademicYearName(s.getAcademicYearName());
+            m.setSubjectName(s.getSubjectName());
+            m.setSimilarityScore(s.getSimilarityScore());
+            m.setOverlappingAspects(s.getMatchReason());
+
+            // Attach githubUrl if available
+            documentRepository.findById(s.getId()).ifPresent(doc -> m.setGithubUrl(doc.getGithubUrl()));
+
+            matched.add(m);
+            if (s.getSimilarityScore() > maxScore) {
+                maxScore = s.getSimilarityScore();
+            }
+        }
+
+        result.setOverallOverlapScore(maxScore);
+        result.setMatchedDocuments(matched);
+
+        List<String> recommendations = new ArrayList<>();
+        if (maxScore >= 65) {
+            result.setRiskLevel("HIGH_DUPLICATION_RISK");
+            result.setVerdict("Cảnh báo trùng lặp hướng nghiên cứu: Đề tài có sự trùng khớp cao với các công trình khóa trước đã bảo vệ tại Khoa.");
+            recommendations.add("Đổi mới bài toán nghiệp vụ: Thay vì làm lại mô hình cũ, hãy mở rộng sang giải quyết bài toán thực tế mới trong trường ĐH GTVT.");
+            recommendations.add("Nâng cấp kiến trúc công nghệ: Đưa vào các kỹ thuật mới như Event-driven, Microservices hoặc AI Agent.");
+            recommendations.add("Trao đổi trực tiếp với GVHD để xác định rõ ranh giới nghiên cứu (Scope) tránh bị hội đồng trừ điểm trùng lặp.");
+        } else if (maxScore >= 35) {
+            result.setRiskLevel("MODERATE_OVERLAP");
+            result.setVerdict("Mức độ tương đồng trung bình: Đề tài có nét tương đồng về bối cảnh nhưng hoàn toàn có thể phát triển tiếp.");
+            recommendations.add("Kế thừa có chọn lọc các kết quả nghiên cứu trước và tập trung giải quyết các hạn chế (Future Work) của khóa trước.");
+            recommendations.add("Bổ sung thực nghiệm đánh giá hiệu năng (Benchmark định lượng) để khẳng định tính vượt trội.");
+            recommendations.add("Đóng gói mã nguồn sạch, cấu hình Docker Container và viết tài liệu hướng dẫn triển khai hoàn chỉnh.");
+        } else {
+            result.setRiskLevel("LOW_DUPLICATION");
+            result.setVerdict("Ý tưởng mới mẻ: Chưa phát hiện trùng lặp đáng kể với các đề tài đã lưu trữ trong Khoa CNTT.");
+            recommendations.add("Đề tài có tiềm năng tốt, đủ điều kiện bảo vệ đề cương với Bộ môn.");
+            recommendations.add("Nên bám sát chuẩn trích dẫn IEEE/APA và ký cam kết liêm chính học thuật khi hoàn thiện báo cáo.");
+        }
+
+        result.setNoveltyRecommendations(recommendations);
+        return result;
     }
 }

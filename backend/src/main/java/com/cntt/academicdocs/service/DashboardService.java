@@ -63,6 +63,63 @@ public class DashboardService {
 
         long totalDownloads = documentRepository.sumDownloadCount();
 
+        // 1. Documents by Subject
+        java.util.Map<String, Long> subjectMap = new java.util.LinkedHashMap<>();
+        List<Object[]> subjectCounts = documentRepository.countBySubjectGroup();
+        for (Object[] row : subjectCounts) {
+            if (row[0] != null) {
+                subjectMap.put(row[0].toString(), (Long) row[1]);
+            }
+        }
+
+        // 2. Documents by Major
+        java.util.Map<String, Long> majorMap = new java.util.LinkedHashMap<>();
+        List<Object[]> majorCounts = documentRepository.countByMajorGroup();
+        for (Object[] row : majorCounts) {
+            if (row[0] != null) {
+                majorMap.put(row[0].toString(), (Long) row[1]);
+            }
+        }
+
+        // 3. Documents by Type (friendly labels)
+        java.util.Map<String, Long> typeMap = new java.util.LinkedHashMap<>();
+        List<Object[]> typeCounts = documentRepository.countByTypeGroup();
+        for (Object[] row : typeCounts) {
+            if (row[0] != null) {
+                String typeCode = row[0].toString();
+                String label = documentService.getDocumentTypeLabel(typeCode);
+                typeMap.put(label, (Long) row[1]);
+            }
+        }
+
+        // 4. Documents by Academic Year
+        java.util.Map<String, Long> yearMap = new java.util.LinkedHashMap<>();
+        List<Object[]> yearCounts = documentRepository.countByAcademicYearGroup();
+        for (Object[] row : yearCounts) {
+            if (row[0] != null) {
+                yearMap.put(row[0].toString(), (Long) row[1]);
+            }
+        }
+
+        // 5. Top Advisors
+        List<com.cntt.academicdocs.dto.AdvisorStatDTO> advisorStats = new java.util.ArrayList<>();
+        List<Object[]> advisorCounts = documentRepository.countByAdvisorGroup();
+        for (Object[] row : advisorCounts) {
+            if (row[0] != null && !row[0].toString().isBlank()) {
+                String advName = row[0].toString().trim();
+                Long count = (Long) row[1];
+                Double rating = row[2] != null ? ((Number) row[2]).doubleValue() : 5.0;
+                advisorStats.add(new com.cntt.academicdocs.dto.AdvisorStatDTO(advName, count, Math.round(rating * 10.0) / 10.0));
+            }
+        }
+
+        // 6. Approval rate percentage
+        long approved = statusMap.getOrDefault("APPROVED", 0L);
+        long rejected = statusMap.getOrDefault("REJECTED", 0L);
+        long revision = statusMap.getOrDefault("REVISION_REQUIRED", 0L);
+        long reviewedTotal = approved + rejected + revision;
+        double approvalRate = reviewedTotal > 0 ? (double) approved / reviewedTotal * 100.0 : 0.0;
+
         DashboardDTO dto = new DashboardDTO();
         dto.setTotalDocuments(totalDocs);
         dto.setDocumentsByStatus(statusMap);
@@ -74,6 +131,12 @@ public class DashboardService {
         dto.setTopDocuments(topDTOs);
         dto.setTopViewed(topDTOs);
         dto.setRecentDocuments(recentDTOs);
+        dto.setDocumentsBySubject(subjectMap);
+        dto.setDocumentsByMajor(majorMap);
+        dto.setDocumentsByType(typeMap);
+        dto.setDocumentsByAcademicYear(yearMap);
+        dto.setTopAdvisors(advisorStats);
+        dto.setApprovalRate(Math.round(approvalRate * 10.0) / 10.0);
         return dto;
     }
 }

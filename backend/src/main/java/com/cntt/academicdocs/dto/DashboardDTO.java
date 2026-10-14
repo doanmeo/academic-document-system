@@ -16,6 +16,12 @@ public class DashboardDTO {
     private List<DocumentSummaryDTO> topDocuments = new ArrayList<>();
     private List<DocumentSummaryDTO> topViewed = new ArrayList<>();
     private List<DocumentSummaryDTO> recentDocuments = new ArrayList<>();
+    private Map<String, Long> documentsBySubject = new java.util.LinkedHashMap<>();
+    private Map<String, Long> documentsByMajor = new java.util.LinkedHashMap<>();
+    private Map<String, Long> documentsByType = new java.util.LinkedHashMap<>();
+    private Map<String, Long> documentsByAcademicYear = new java.util.LinkedHashMap<>();
+    private List<AdvisorStatDTO> topAdvisors = new ArrayList<>();
+    private Double approvalRate = 0.0;
 
     public DashboardDTO() {}
 
@@ -48,4 +54,22 @@ public class DashboardDTO {
 
     public List<DocumentSummaryDTO> getRecentDocuments() { return recentDocuments; }
     public void setRecentDocuments(List<DocumentSummaryDTO> recentDocuments) { this.recentDocuments = recentDocuments; }
+
+    public Map<String, Long> getDocumentsBySubject() { return documentsBySubject; }
+    public void setDocumentsBySubject(Map<String, Long> documentsBySubject) { this.documentsBySubject = documentsBySubject; }
+
+    public Map<String, Long> getDocumentsByMajor() { return documentsByMajor; }
+    public void setDocumentsByMajor(Map<String, Long> documentsByMajor) { this.documentsByMajor = documentsByMajor; }
+
+    public Map<String, Long> getDocumentsByType() { return documentsByType; }
+    public void setDocumentsByType(Map<String, Long> documentsByType) { this.documentsByType = documentsByType; }
+
+    public Map<String, Long> getDocumentsByAcademicYear() { return documentsByAcademicYear; }
+    public void setDocumentsByAcademicYear(Map<String, Long> documentsByAcademicYear) { this.documentsByAcademicYear = documentsByAcademicYear; }
+
+    public List<AdvisorStatDTO> getTopAdvisors() { return topAdvisors; }
+    public void setTopAdvisors(List<AdvisorStatDTO> topAdvisors) { this.topAdvisors = topAdvisors; }
+
+    public Double getApprovalRate() { return approvalRate; }
+    public void setApprovalRate(Double approvalRate) { this.approvalRate = approvalRate; }
 }

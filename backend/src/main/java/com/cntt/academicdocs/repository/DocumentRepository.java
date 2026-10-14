@@ -45,4 +45,24 @@ public interface DocumentRepository extends JpaRepository<Document, Long>, JpaSp
     List<Document> findTop5ByStatusOrderByViewCountDesc(DocumentStatus status);
 
     List<Document> findTop5ByStatusOrderByCreatedAtDesc(DocumentStatus status);
+
+    List<Document> findByStatus(DocumentStatus status);
+
+    @Query("SELECT DISTINCT d.advisorName FROM Document d WHERE d.advisorName IS NOT NULL AND TRIM(d.advisorName) <> '' ORDER BY d.advisorName ASC")
+    List<String> findDistinctAdvisors();
+
+    @Query("SELECT s.name, COUNT(d) FROM Document d JOIN d.subject s GROUP BY s.name ORDER BY COUNT(d) DESC")
+    List<Object[]> countBySubjectGroup();
+
+    @Query("SELECT m.name, COUNT(d) FROM Document d JOIN d.major m GROUP BY m.name ORDER BY COUNT(d) DESC")
+    List<Object[]> countByMajorGroup();
+
+    @Query("SELECT d.documentTypeCode, COUNT(d) FROM Document d WHERE d.documentTypeCode IS NOT NULL GROUP BY d.documentTypeCode ORDER BY COUNT(d) DESC")
+    List<Object[]> countByTypeGroup();
+
+    @Query("SELECT y.name, COUNT(d) FROM Document d JOIN d.academicYear y GROUP BY y.name ORDER BY y.name DESC")
+    List<Object[]> countByAcademicYearGroup();
+
+    @Query("SELECT d.advisorName, COUNT(d), COALESCE(AVG(d.avgRating), 0.0) FROM Document d WHERE d.advisorName IS NOT NULL AND TRIM(d.advisorName) <> '' GROUP BY d.advisorName ORDER BY COUNT(d) DESC")
+    List<Object[]> countByAdvisorGroup();
 }

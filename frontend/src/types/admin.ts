@@ -13,6 +13,12 @@ export interface DashboardStats {
   documentsByStatus: Record<string, number>
   topDocuments: DocumentSummary[]
   recentDocuments: DocumentSummary[]
+  documentsBySubject?: Record<string, number>
+  documentsByMajor?: Record<string, number>
+  documentsByType?: Record<string, number>
+  documentsByAcademicYear?: Record<string, number>
+  topAdvisors?: { advisorName: string; documentCount: number; avgRating: number }[]
+  approvalRate?: number
 }
 
 // ─── Review history ────────────────────────────────────────────────────────────

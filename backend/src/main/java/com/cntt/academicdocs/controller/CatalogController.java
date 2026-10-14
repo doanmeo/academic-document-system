@@ -49,4 +49,10 @@ public class CatalogController {
     public ResponseEntity<ApiResponse<List<LovValueDTO>>> getLovValues(@PathVariable String groupCode) {
         return ResponseEntity.ok(ApiResponse.success(catalogService.getLovValues(groupCode)));
     }
+
+    @GetMapping("/advisors")
+    @Operation(summary = "Lấy danh sách Giảng viên hướng dẫn đồ án / khóa luận")
+    public ResponseEntity<ApiResponse<List<String>>> getAdvisors() {
+        return ResponseEntity.ok(ApiResponse.success(catalogService.getAdvisors()));
+    }
 }

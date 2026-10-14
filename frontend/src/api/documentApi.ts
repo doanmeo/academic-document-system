@@ -255,6 +255,51 @@ export const reportDocument = async (
   await api.post(`/documents/${id}/reports`, body)
 }
 
+/**
+ * GET /documents/:id/related
+ * Lấy danh sách học liệu cùng mạch học thuật (cùng môn, cùng GVHD, cùng ngành)
+ */
+export const getRelatedDocuments = async (
+  id: number,
+  limit = 4
+): Promise<import('../types/document').RelatedDocument[]> => {
+  const res = await api.get(`/documents/${id}/related`, { params: { limit } })
+  return unwrap(res)
+}
+
+/**
+ * POST /documents/check-similarity
+ * Kiểm tra tương đồng và phát hiện trùng lặp đề tài khi sinh viên nhập
+ */
+export const checkSimilarity = async (
+  payload: import('../types/document').SimilarityCheckParams
+): Promise<import('../types/document').RelatedDocument[]> => {
+  const res = await api.post('/documents/check-similarity', payload)
+  return unwrap(res)
+}
+
+/**
+ * GET /documents/course-hub/:subjectId
+ * Lấy toàn bộ gói học liệu chuẩn bộ môn theo học phần (Course Hub)
+ */
+export const getCourseHub = async (
+  subjectId: number
+): Promise<import('../types/document').CourseHub> => {
+  const res = await api.get(`/documents/course-hub/${subjectId}`)
+  return unwrap(res)
+}
+
+/**
+ * POST /documents/compare-topics
+ * Phân tích độ trùng lặp và tính mới của đề tài nghiên cứu / đồ án
+ */
+export const compareTopics = async (
+  payload: import('../types/document').TopicComparisonRequest
+): Promise<import('../types/document').TopicComparisonResult> => {
+  const res = await api.post('/documents/compare-topics', payload)
+  return unwrap(res)
+}
+
 // Named object export để tương thích với các component gọi documentApi.method()
 export const documentApi = {
   search: searchDocuments,
@@ -262,6 +307,11 @@ export const documentApi = {
   get: getDocument,
   getById: getDocument,
   getDocument,
+  getRelated: getRelatedDocuments,
+  getRelatedDocuments,
+  checkSimilarity,
+  getCourseHub,
+  compareTopics,
   create: createDocument,
   createDocument,
   update: updateDocument,

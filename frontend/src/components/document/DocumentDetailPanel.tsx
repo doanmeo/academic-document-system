@@ -196,10 +196,10 @@ export default function DocumentDetailPanel({ doc, onClose, onOpenPdf }: Documen
         </div>
         <div className="flex items-start justify-between">
           <span className="text-on-surface-variant font-caption text-caption uppercase tracking-wider font-semibold">
-            Đánh giá học thuật
+            Đánh giá độc giả
           </span>
           <span className="font-label-code text-body-sm text-primary font-bold text-right">
-            ⭐ {doc.avgRating > 0 ? doc.avgRating.toFixed(1) : '5.0'} / 5.0 (Xuất sắc)
+            ⭐ {doc.avgRating > 0 ? `${doc.avgRating.toFixed(1)} / 5.0` : 'Chưa có đánh giá'}
           </span>
         </div>
       </div>
@@ -215,27 +215,21 @@ export default function DocumentDetailPanel({ doc, onClose, onOpenPdf }: Documen
         </p>
       </div>
 
-      {/* Tech Stack Pill Group */}
-      <div className="flex flex-col gap-1.5">
-        <span className="font-caption text-caption text-on-surface-variant uppercase font-bold tracking-wider">
-          Công nghệ ứng dụng
-        </span>
-        <div className="flex flex-wrap gap-1.5">
-          {doc.technologies && doc.technologies.length > 0 ? (
-            doc.technologies.map((t) => (
+      {/* Tech Stack Pill Group (only when exists) */}
+      {doc.technologies && doc.technologies.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <span className="font-caption text-caption text-on-surface-variant uppercase font-bold tracking-wider">
+            Công nghệ ứng dụng
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {doc.technologies.map((t) => (
               <span key={t.id} className="px-2.5 py-1 bg-surface-container text-primary font-label-code text-caption font-bold rounded">
                 {t.name}
               </span>
-            ))
-          ) : (
-            <>
-              <span className="px-2.5 py-1 bg-surface-container text-primary font-label-code text-caption font-bold rounded">Spring Boot</span>
-              <span className="px-2.5 py-1 bg-surface-container text-primary font-label-code text-caption font-bold rounded">React</span>
-              <span className="px-2.5 py-1 bg-surface-container text-primary font-label-code text-caption font-bold rounded">MySQL</span>
-            </>
-          )}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Action Command Buttons */}
       <div className="flex flex-col gap-space-xs pt-space-xs">

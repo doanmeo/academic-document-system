@@ -10,19 +10,20 @@ import EmptyState from '../components/ui/EmptyState';
 import CustomSelect from '../components/ui/CustomSelect';
 
 import { searchDocuments } from '../api/documentApi';
-import { getSubjects, getAcademicYears, getMajors } from '../api/catalogApi';
+import { getSubjects, getAcademicYears, getMajors, getAdvisors } from '../api/catalogApi';
 import { DocumentSummary, SearchDocumentParams, PageResponse, DocumentTypeCode } from '../types/document';
 import { Subject, AcademicYear, Major } from '../types/catalog';
 import { getErrorMessage } from '../utils/errorMessages';
 
 // Hot subject Quick Pills for 1-touch filtering
 const QUICK_PILLS = [
-  { label: 'Cấu trúc dữ liệu & GT', keyword: 'Cấu trúc dữ liệu' },
+  { label: 'Kỹ thuật phần mềm', keyword: 'Kỹ thuật phần mềm' },
+  { label: 'Phát triển PM Mã nguồn mở', keyword: 'Mã nguồn mở' },
+  { label: 'Trí tuệ nhân tạo (AI)', keyword: 'Trí tuệ nhân tạo' },
   { label: 'Lập trình Hướng đối tượng', keyword: 'Hướng đối tượng' },
-  { label: 'Cơ sở dữ liệu phân tán', keyword: 'Cơ sở dữ liệu' },
-  { label: 'Deep Learning & AI', keyword: 'Deep Learning' },
-  { label: 'Mạng máy tính', keyword: 'Mạng máy tính' },
-  { label: 'An toàn thông tin', keyword: 'An toàn thông tin' },
+  { label: 'Kiểm thử PM (Testing)', keyword: 'Kiểm thử' },
+  { label: 'An ninh mạng & ATTT', keyword: 'An ninh mạng' },
+  { label: 'Hệ điều hành Unix/Linux', keyword: 'Unix' },
 ];
 
 export default function Home() {
@@ -42,16 +43,18 @@ export default function Home() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [majors, setMajors] = useState<Major[]>([]);
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
+  const [advisors, setAdvisors] = useState<string[]>([]);
   const [searchInput, setSearchInput] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Load catalogs
   useEffect(() => {
-    Promise.all([getSubjects(), getMajors(), getAcademicYears()])
-      .then(([subRes, majRes, ayRes]) => {
+    Promise.all([getSubjects(), getMajors(), getAcademicYears(), getAdvisors()])
+      .then(([subRes, majRes, ayRes, advRes]) => {
         setSubjects(subRes || []);
         setMajors(majRes || []);
         setAcademicYears(ayRes || []);
+        setAdvisors(advRes || []);
       })
       .catch(console.error);
   }, []);
@@ -129,6 +132,10 @@ export default function Home() {
   const handleYearFilter = (val: string) => {
     const num = val ? Number(val) : undefined;
     setFilters((prev) => ({ ...prev, academicYearId: num, page: 0 }));
+  };
+
+  const handleAdvisorFilter = (val: string) => {
+    setFilters((prev) => ({ ...prev, advisorName: val || undefined, page: 0 }));
   };
 
   const handleSortFilter = (val: string) => {
@@ -307,7 +314,20 @@ export default function Home() {
                 ]}
                 placeholder="Tất cả Niên khóa"
                 icon="calendar_month"
-                className="min-w-[160px]"
+                className="min-w-[150px]"
+              />
+
+              {/* Advisor (GVHD) */}
+              <CustomSelect
+                value={filters.advisorName || ''}
+                onChange={handleAdvisorFilter}
+                options={[
+                  { value: '', label: 'Tất cả GV Hướng dẫn' },
+                  ...advisors.map((adv) => ({ value: adv, label: `GVHD: ${adv}` })),
+                ]}
+                placeholder="Giảng viên hướng dẫn"
+                icon="school"
+                className="min-w-[190px]"
               />
 
               {/* Sort By */}

@@ -261,6 +261,7 @@ public class Phase2BackendIntegrationTest {
         createReq.setDescription("Báo cáo môn học kiến trúc phần mềm");
         createReq.setSubjectId(sampleSubject.getId());
         createReq.setAcademicYearId(sampleAcademicYear.getId());
+        createReq.setAdvisorName("PGS. TS. Đào Thị Lệ Thủy");
         createReq.setDocumentTypeCode("PROJECT");
         createReq.setSharingScope("FACULTY_INTERNAL");
         createReq.setPledgeAccepted(true);

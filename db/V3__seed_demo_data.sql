@@ -1,96 +1,270 @@
--- V3: Seed demo data for documents, files, members, technologies, reviews, bookmarks, ratings, reports
+-- =============================================================================
+-- V3__seed_demo_data.sql
+-- SEED DATA HOC LIEU THUC TE KHOA CNTT - UTC (50 HOC LIEU)
+-- =============================================================================
 
-USE academic_docs;
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE document_reports;
+TRUNCATE TABLE bookmarks;
+TRUNCATE TABLE document_reviews;
+TRUNCATE TABLE document_technologies;
+TRUNCATE TABLE files;
+TRUNCATE TABLE documents;
+SET FOREIGN_KEY_CHECKS = 1;
 
--- 8 Approved Documents
-INSERT INTO documents (id, title, abstract_text, description, status, document_type_code, uploader_id, subject_id, major_id, academic_year_id, advisor_name, github_url, view_count, download_count, avg_rating, rating_count, approved_by, approved_at, created_at)
+-- 1. Bo sung Mon hoc Thuc te UTC
+INSERT INTO subjects (id, code, name, description, major_id, is_active)
 VALUES
-(1, 'Graph Algorithms: Tối ưu Phân cụm', 
- 'Nghiên cứu tập trung giải quyết bài toán phân cụm đồ thị quy mô lớn với độ phức tạp tính toán tối ưu O(V log V). Ứng dụng kỹ thuật phân rã phổ kết hợp thuật toán tối ưu Louvain, giúp giảm 42% độ trễ xử lý các tập dữ liệu mạng lưới giao thông thông minh thời gian thực.',
- 'Mô tả chi tiết: Đồ án nghiên cứu chuyên sâu về các thuật toán tối ưu trên đồ thị lớn...',
- 'APPROVED', 'THESIS', 2, 1, 1, 1, 'PGS. TS. Đào Thị Lệ Thủy', 'https://github.com/utc-fit/graph-louvain-opt', 1280, 320, 4.9, 48, 1, NOW(), DATE_SUB(NOW(), INTERVAL 20 DAY)),
+  (1, 'INT3001', 'Phát triển PM mã nguồn mở', 'Môn học cốt lõi ngành KTPM về git, OSS, kiến trúc và phân phối phần mềm', 1, true),
+  (2, 'INT3003', 'Trí tuệ nhân tạo', 'Học phần AI cơ bản & nâng cao, Search, Logic, Machine Learning', 3, true),
+  (3, 'INT3004', 'An toàn & Bảo mật thông tin', 'Môn học về mật mã học, an ninh mạng và bảo vệ dữ liệu', 4, true),
+  (4, 'INT2001', 'Cơ sở dữ liệu', 'Môn học nền tảng về thiết kế CSDL quan hệ, SQL và tối ưu hóa', 2, true),
+  (5, 'INT3002', 'Công nghệ & Kiến trúc phần mềm', 'Thiết kế hệ thống, Design Patterns, Clean Architecture và Project 1', 1, true),
+  (6, 'INT1001', 'Lập trình hướng đối tượng (OOP)', 'Lập trình Java/C++, tính kế thừa, đa hình, đóng gói', 1, true),
+  (7, 'INT2002', 'Hệ điều hành Unix/Linux', 'Kiến trúc Unix, Shell script, tiến trình, luồng và quản trị hệ thống', 2, true),
+  (8, 'INT2003', 'Mạng máy tính & An ninh mạng', 'Mô hình OSI/TCP-IP, định tuyến, firewall và cấu hình dịch vụ mạng', 4, true),
+  (9, 'INT3005', 'Kiểm thử phần mềm (Testing & QA)', 'Kiểm thử hộp đen, hộp trắng, JUnit, Selenium, JMeter, CI/CD pipeline', 1, true),
+  (10, 'INT3006', 'Đặc tả và Mô hình hóa phần mềm', 'Phân tích yêu cầu, UML, Use Case, BPMN và đặc tả hệ thống', 1, true)
+ON DUPLICATE KEY UPDATE name = VALUES(name), description = VALUES(description);
 
-(2, 'Mô hình Học sâu trong Thị giác máy', 
- 'Xây dựng kiến trúc mạng nơ-ron tích chập (CNN) phát hiện chướng ngại vật và biển báo giao thông trong điều kiện thời tiết sương mù và ánh sáng yếu.',
- 'Mô tả chi tiết: Triển khai mô hình YOLOv8 tùy biến kết hợp Attention mechanism...',
- 'APPROVED', 'CAPSTONE', 2, 2, 1, 1, 'TS. Nguyễn Thị Mai', 'https://github.com/utc-fit/deeplearning-medical-vision', 1540, 410, 4.8, 36, 1, NOW(), DATE_SUB(NOW(), INTERVAL 25 DAY)),
+-- 2. Nap Danh sach 50 Hoc lieu Thuc te
+INSERT INTO documents (
+  id, title, description, document_type, document_type_code,
+  subject_id, academic_year_id, faculty_id, uploader_id,
+  sharing_scope, pledge_accepted, status, revision_note,
+  view_count, download_count, rating_avg, rating_count, created_at, updated_at
+) VALUES
+  (1, '[Trí tuệ nhân tạo (AI)] Chuong1 Giaiquyetbaitoanbang Tim kiem', 'Tài liệu học tập chính thức học phần INT3003 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Chuong1_Giaiquyetbaitoanbang Tim kiem.pdf.', 'SLIDE', 'SLIDE', 2, 3, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 58, 19, 4.4, 5, NOW(), NOW()),
+  (2, '[An ninh mạng & Hệ thống thông tin] An ninh mạng 1', 'Tài liệu học tập chính thức học phần INT2003 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: An ninh mạng 1.pdf.', 'TAI_LIEU_THAM_KHAO', 'TAI_LIEU_THAM_KHAO', 8, 4, 1, 3, 'PUBLIC', true, 'PENDING', NULL, 81, 30, 4.5, 6, NOW(), NOW()),
+  (3, '[Lập trình hướng đối tượng (OOP)] Bai 01', 'Tài liệu học tập chính thức học phần INT1001 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Bai-01.pdf.', 'SLIDE', 'SLIDE', 6, 2, 1, 2, 'PUBLIC', true, 'REJECTED', 'Thiếu nhận xét của Giảng viên hướng dẫn hoặc chưa đúng định dạng chuẩn.', 104, 41, 4.6, 7, NOW(), NOW()),
+  (4, '[An toàn & Bảo mật thông tin] Bai tap nhom AES', 'Tài liệu học tập chính thức học phần INT3004 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Bai_tap_nhom_AES.pdf.', 'SLIDE', 'SLIDE', 3, 3, 1, 3, 'INTERNAL', true, 'REVISION_REQUIRED', 'Vui lòng bổ sung thêm tài liệu tham khảo theo định dạng chuẩn IEEE.', 127, 52, 4.7, 8, NOW(), NOW()),
+  (5, '[Công nghệ & Kiến trúc Phần mềm] CNPM', 'Tài liệu học tập chính thức học phần INT3002 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: CNPM.pptx.', 'SLIDE', 'SLIDE', 5, 4, 1, 2, 'PUBLIC', true, 'HIDDEN', 'Đã bị ẩn do có báo cáo vi phạm nội dung.', 150, 63, 4.8, 9, NOW(), NOW()),
+  (6, '[Đặc tả & Thiết kế Phần mềm] doan BC1', 'Tài liệu học tập chính thức học phần INT3006 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: 231230746-doan-BC1.docx.', 'TAI_LIEU_THAM_KHAO', 'TAI_LIEU_THAM_KHAO', 10, 2, 1, 3, 'PUBLIC', true, 'APPROVED', NULL, 173, 74, 4.9, 10, NOW(), NOW()),
+  (7, '[Hệ điều hành Unix/Linux] BaiTap', 'Tài liệu học tập chính thức học phần INT2002 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: BaiTap.docx.', 'TAI_LIEU_THAM_KHAO', 'TAI_LIEU_THAM_KHAO', 7, 3, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 196, 85, 4.3, 11, NOW(), NOW()),
+  (8, '[Mã nguồn mở & Linux] BTL MNM', 'Tài liệu học tập chính thức học phần INT3001 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: BTL-MNM.docx.', 'BTL', 'BTL', 1, 4, 1, 3, 'INTERNAL', true, 'APPROVED', NULL, 219, 96, 4.4, 12, NOW(), NOW()),
+  (9, '[Dự án Kỹ thuật Phần mềm (Project 1)] BangHoi', 'Tài liệu học tập chính thức học phần INT3002 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: BangHoi.docx.', 'TAI_LIEU_THAM_KHAO', 'TAI_LIEU_THAM_KHAO', 5, 2, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 242, 107, 4.5, 13, NOW(), NOW()),
+  (10, '[Kiểm thử & Đảm bảo Chất lượng PM (QA)] Giới thiệu học phần', 'Tài liệu học tập chính thức học phần INT3005 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: 0_Giới thiệu học phần.pdf.', 'TAI_LIEU_THAM_KHAO', 'TAI_LIEU_THAM_KHAO', 9, 3, 1, 3, 'PUBLIC', true, 'APPROVED', NULL, 265, 118, 4.6, 14, NOW(), NOW()),
+  (11, '[Lập trình Di động Android nâng cao] OnThi1 2', 'Tài liệu học tập chính thức học phần INT1001 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: OnThi1-2.pdf.', 'DE_THI', 'DE_THI', 6, 4, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 288, 129, 4.7, 15, NOW(), NOW()),
+  (12, '[Trí tuệ nhân tạo (AI)] Chuong2 Tim kiem toi uu', 'Tài liệu học tập chính thức học phần INT3003 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Chuong2_Tim kiem toi uu.pdf.', 'SLIDE', 'SLIDE', 2, 2, 1, 3, 'INTERNAL', true, 'APPROVED', NULL, 311, 140, 4.8, 16, NOW(), NOW()),
+  (13, '[An ninh mạng & Hệ thống thông tin] Chuong3 module 3 Cybersecurity incident report', 'Tài liệu học tập chính thức học phần INT2003 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Chuong3-module 3-Cybersecurity-incident-report.docx.', 'SLIDE', 'SLIDE', 8, 3, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 334, 151, 4.9, 17, NOW(), NOW()),
+  (14, '[Lập trình hướng đối tượng (OOP)] Bai 02', 'Tài liệu học tập chính thức học phần INT1001 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Bai-02.pdf.', 'SLIDE', 'SLIDE', 6, 4, 1, 3, 'PUBLIC', true, 'APPROVED', NULL, 357, 162, 4.3, 18, NOW(), NOW()),
+  (15, '[An toàn & Bảo mật thông tin] Bai tap nhom DES', 'Tài liệu học tập chính thức học phần INT3004 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Bai_tap_nhom_DES.pdf.', 'SLIDE', 'SLIDE', 3, 2, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 380, 173, 4.4, 4, NOW(), NOW()),
+  (16, '[Công nghệ & Kiến trúc Phần mềm] Ian Sommerville Software Engineering Pearson 2015 10th ED', 'Tài liệu học tập chính thức học phần INT3002 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Ian-Sommerville-Software-Engineering-Pearson-2015_10th_ED.pdf.', 'TAI_LIEU_THAM_KHAO', 'TAI_LIEU_THAM_KHAO', 5, 3, 1, 3, 'INTERNAL', true, 'APPROVED', NULL, 403, 184, 4.5, 5, NOW(), NOW()),
+  (17, '[Đặc tả & Thiết kế Phần mềm] doan', 'Tài liệu học tập chính thức học phần INT3006 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: 231230746-doan.docx.', 'TAI_LIEU_THAM_KHAO', 'TAI_LIEU_THAM_KHAO', 10, 4, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 426, 15, 4.6, 6, NOW(), NOW()),
+  (18, '[Hệ điều hành Unix/Linux] BaiTap2', 'Tài liệu học tập chính thức học phần INT2002 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: BaiTap2.docx.', 'TAI_LIEU_THAM_KHAO', 'TAI_LIEU_THAM_KHAO', 7, 2, 1, 3, 'PUBLIC', true, 'APPROVED', NULL, 449, 26, 4.7, 7, NOW(), NOW()),
+  (19, '[Mã nguồn mở & Linux] Ke hoach phan tich UC trong tam', 'Tài liệu học tập chính thức học phần INT3001 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Ke_hoach_phan_tich_UC_trong_tam.docx.', 'TAI_LIEU_THAM_KHAO', 'TAI_LIEU_THAM_KHAO', 1, 3, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 472, 37, 4.8, 8, NOW(), NOW()),
+  (20, '[Dự án Kỹ thuật Phần mềm (Project 1)] Phong van', 'Tài liệu học tập chính thức học phần INT3002 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Phong van.docx.', 'TAI_LIEU_THAM_KHAO', 'TAI_LIEU_THAM_KHAO', 5, 4, 1, 3, 'INTERNAL', true, 'APPROVED', NULL, 45, 48, 4.9, 9, NOW(), NOW()),
+  (21, '[Kiểm thử & Đảm bảo Chất lượng PM (QA)] Giới thiệu KTPM', 'Tài liệu học tập chính thức học phần INT3005 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: 1_Giới thiệu KTPM.pdf.', 'TAI_LIEU_THAM_KHAO', 'TAI_LIEU_THAM_KHAO', 9, 2, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 68, 59, 4.3, 10, NOW(), NOW()),
+  (22, '[Lập trình Di động Android nâng cao] OnThi1 3', 'Tài liệu học tập chính thức học phần INT1001 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: OnThi1-3.pdf.', 'DE_THI', 'DE_THI', 6, 3, 1, 3, 'PUBLIC', true, 'APPROVED', NULL, 91, 70, 4.4, 11, NOW(), NOW()),
+  (23, '[Trí tuệ nhân tạo (AI)] Chuong3 Tim kiem co doi thu', 'Tài liệu học tập chính thức học phần INT3003 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Chuong3_Tim kiem co doi thu.pdf.', 'SLIDE', 'SLIDE', 2, 4, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 114, 81, 4.5, 12, NOW(), NOW()),
+  (24, '[An ninh mạng & Hệ thống thông tin] Chuong4 TH1 How to read the tcpdump traffic log', 'Tài liệu học tập chính thức học phần INT2003 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Chuong4-TH1-How-to-read-the-tcpdump-traffic-log.docx.', 'SLIDE', 'SLIDE', 8, 2, 1, 3, 'INTERNAL', true, 'APPROVED', NULL, 137, 92, 4.6, 13, NOW(), NOW()),
+  (25, '[Lập trình hướng đối tượng (OOP)] Bai 03', 'Tài liệu học tập chính thức học phần INT1001 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Bai-03.pdf.', 'SLIDE', 'SLIDE', 6, 3, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 160, 103, 4.7, 14, NOW(), NOW()),
+  (26, '[An toàn & Bảo mật thông tin] Bai tap nhom Ma hoa Co dien', 'Tài liệu học tập chính thức học phần INT3004 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Bai_tap_nhom_Ma_hoa_Co_dien.pdf.', 'SLIDE', 'SLIDE', 3, 4, 1, 3, 'PUBLIC', true, 'APPROVED', NULL, 183, 114, 4.8, 15, NOW(), NOW()),
+  (27, '[Đặc tả & Thiết kế Phần mềm] SRS Flash Sale Ticketing System Phan1 2', 'Tài liệu học tập chính thức học phần INT3006 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: SRS_Flash_Sale_Ticketing_System_Phan1_2.docx.', 'TAI_LIEU_THAM_KHAO', 'TAI_LIEU_THAM_KHAO', 10, 2, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 206, 125, 4.9, 16, NOW(), NOW()),
+  (28, '[Hệ điều hành Unix/Linux] BaiTap2', 'Tài liệu học tập chính thức học phần INT2002 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: BaiTap2.pdf.', 'TAI_LIEU_THAM_KHAO', 'TAI_LIEU_THAM_KHAO', 7, 3, 1, 3, 'INTERNAL', true, 'APPROVED', NULL, 229, 136, 4.3, 17, NOW(), NOW()),
+  (29, '[Dự án Kỹ thuật Phần mềm (Project 1)] Project 1 Bai 1  Introduction', 'Tài liệu học tập chính thức học phần INT3002 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Project 1-Bai 1- Introduction.pptx.', 'SLIDE', 'SLIDE', 5, 4, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 252, 147, 4.4, 18, NOW(), NOW()),
+  (30, '[Kiểm thử & Đảm bảo Chất lượng PM (QA)] Quy trình KTPM', 'Tài liệu học tập chính thức học phần INT3005 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: 2_Quy trình KTPM.pdf.', 'TAI_LIEU_THAM_KHAO', 'TAI_LIEU_THAM_KHAO', 9, 2, 1, 3, 'PUBLIC', true, 'APPROVED', NULL, 275, 158, 4.5, 4, NOW(), NOW()),
+  (31, '[Lập trình Di động Android nâng cao] OnThi1 4', 'Tài liệu học tập chính thức học phần INT1001 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: OnThi1-4.pdf.', 'DE_THI', 'DE_THI', 6, 3, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 298, 169, 4.6, 5, NOW(), NOW()),
+  (32, '[Trí tuệ nhân tạo (AI)] Chuong4  LogicMenhde', 'Tài liệu học tập chính thức học phần INT3003 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Chuong4 _LogicMenhde.pdf.', 'SLIDE', 'SLIDE', 2, 4, 1, 3, 'INTERNAL', true, 'APPROVED', NULL, 321, 180, 4.7, 6, NOW(), NOW()),
+  (33, '[An ninh mạng & Hệ thống thông tin] Chuong4 TH1 Security incident report template', 'Tài liệu học tập chính thức học phần INT2003 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Chuong4-TH1-Security-incident-report-template.docx.', 'SLIDE', 'SLIDE', 8, 2, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 344, 11, 4.8, 7, NOW(), NOW()),
+  (34, '[Lập trình hướng đối tượng (OOP)] Bai 04', 'Tài liệu học tập chính thức học phần INT1001 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Bai-04.pdf.', 'SLIDE', 'SLIDE', 6, 3, 1, 3, 'PUBLIC', true, 'APPROVED', NULL, 367, 22, 4.9, 8, NOW(), NOW()),
+  (35, '[An toàn & Bảo mật thông tin] Bai tap nhom Modulo', 'Tài liệu học tập chính thức học phần INT3004 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Bai_tap_nhom_Modulo.pdf.', 'SLIDE', 'SLIDE', 3, 4, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 390, 33, 4.3, 9, NOW(), NOW()),
+  (36, '[Đặc tả & Thiết kế Phần mềm] HuongdancaidatBlueJ', 'Tài liệu học tập chính thức học phần INT3006 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: HuongdancaidatBlueJ.doc.', 'TAI_LIEU_THAM_KHAO', 'TAI_LIEU_THAM_KHAO', 10, 2, 1, 3, 'INTERNAL', true, 'APPROVED', NULL, 413, 44, 4.4, 10, NOW(), NOW()),
+  (37, '[Hệ điều hành Unix/Linux] Chuong 01   Các khái niệm và kỹ năng cơ bản', 'Tài liệu học tập chính thức học phần INT2002 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Chuong 01 - Các khái niệm và kỹ năng cơ bản.ppt.', 'SLIDE', 'SLIDE', 7, 3, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 436, 55, 4.5, 11, NOW(), NOW()),
+  (38, '[Dự án Kỹ thuật Phần mềm (Project 1)] Project 1 Bai 1  Lua chon de tai', 'Tài liệu học tập chính thức học phần INT3002 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Project 1-Bai 1- Lua chon de tai.pptx.', 'SLIDE', 'SLIDE', 5, 4, 1, 3, 'PUBLIC', true, 'APPROVED', NULL, 459, 66, 4.6, 12, NOW(), NOW()),
+  (39, '[Kiểm thử & Đảm bảo Chất lượng PM (QA)] Kiểm thử hộp trắng', 'Tài liệu học tập chính thức học phần INT3005 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: 3_Kiểm thử hộp trắng.pdf.', 'TAI_LIEU_THAM_KHAO', 'TAI_LIEU_THAM_KHAO', 9, 2, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 482, 77, 4.7, 13, NOW(), NOW()),
+  (40, '[Lập trình Di động Android nâng cao] OnThi1 5 (1)', 'Tài liệu học tập chính thức học phần INT1001 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: OnThi1-5 (1).docx.', 'DE_THI', 'DE_THI', 6, 3, 1, 3, 'INTERNAL', true, 'APPROVED', NULL, 55, 88, 4.8, 14, NOW(), NOW()),
+  (41, '[Trí tuệ nhân tạo (AI)] Dethimau K64', 'Tài liệu học tập chính thức học phần INT3003 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Dethimau_K64.pdf.', 'DE_THI', 'DE_THI', 2, 4, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 78, 99, 4.9, 15, NOW(), NOW()),
+  (42, '[An ninh mạng & Hệ thống thông tin] Chuong4 TH1 tcpdump traffic log', 'Tài liệu học tập chính thức học phần INT2003 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Chuong4-TH1-tcpdump-traffic-log.docx.', 'SLIDE', 'SLIDE', 8, 2, 1, 3, 'PUBLIC', true, 'APPROVED', NULL, 101, 110, 4.3, 16, NOW(), NOW()),
+  (43, '[Lập trình hướng đối tượng (OOP)] Bai 05', 'Tài liệu học tập chính thức học phần INT1001 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Bai-05.pdf.', 'SLIDE', 'SLIDE', 6, 3, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 124, 121, 4.4, 17, NOW(), NOW()),
+  (44, '[An toàn & Bảo mật thông tin] Bai tap nhom RSA ElGamma', 'Tài liệu học tập chính thức học phần INT3004 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Bai_tap_nhom_RSA_ElGamma.pdf.', 'SLIDE', 'SLIDE', 3, 4, 1, 3, 'INTERNAL', true, 'APPROVED', NULL, 147, 132, 4.5, 18, NOW(), NOW()),
+  (45, '[Đặc tả & Thiết kế Phần mềm] Java Design Patterns', 'Tài liệu học tập chính thức học phần INT3006 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Java-Design-Patterns.pdf.', 'TAI_LIEU_THAM_KHAO', 'TAI_LIEU_THAM_KHAO', 10, 2, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 170, 143, 4.6, 4, NOW(), NOW()),
+  (46, '[Hệ điều hành Unix/Linux] Chuong 02   Quan tri Unix Linux', 'Tài liệu học tập chính thức học phần INT2002 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Chuong 02 - Quan tri Unix Linux.ppt.', 'SLIDE', 'SLIDE', 7, 3, 1, 3, 'PUBLIC', true, 'APPROVED', NULL, 193, 154, 4.7, 5, NOW(), NOW()),
+  (47, '[Dự án Kỹ thuật Phần mềm (Project 1)] Project 1 Bai 2  Xac dinh yeu cau', 'Tài liệu học tập chính thức học phần INT3002 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Project 1-Bai 2- Xac dinh yeu cau.pptx.', 'SLIDE', 'SLIDE', 5, 4, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 216, 165, 4.8, 6, NOW(), NOW()),
+  (48, '[Kiểm thử & Đảm bảo Chất lượng PM (QA)] Bài tập JUnit (online)', 'Tài liệu học tập chính thức học phần INT3005 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: 4_2_Bài tập JUnit (online).pdf.', 'BTL', 'BTL', 9, 2, 1, 3, 'INTERNAL', true, 'APPROVED', NULL, 239, 176, 4.9, 7, NOW(), NOW()),
+  (49, '[Trí tuệ nhân tạo (AI)] TTNT NHOM07 lan1', 'Tài liệu học tập chính thức học phần INT3003 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: TTNT_NHOM07_lan1.docx.', 'BTL', 'BTL', 2, 3, 1, 2, 'PUBLIC', true, 'APPROVED', NULL, 262, 187, 4.3, 8, NOW(), NOW()),
+  (50, '[An ninh mạng & Hệ thống thông tin] Chuong4 TH1.2 Security incident report exemplar', 'Tài liệu học tập chính thức học phần INT2003 - Khoa CNTT Trường ĐH Giao thông Vận tải (UTC). Tệp gốc: Chuong4-TH1.2-Security-incident-report-exemplar.docx.', 'SLIDE', 'SLIDE', 8, 4, 1, 3, 'PUBLIC', true, 'APPROVED', NULL, 285, 18, 4.4, 9, NOW(), NOW());
 
-(3, 'Tính toán Biên trong IoT Công nghiệp', 
- 'Kiến trúc điện toán biên phân tán (Edge Computing) xử lý dữ liệu cảm biến thời gian thực, giảm áp lực băng thông lên Cloud và đảm bảo tính sẵn sàng cao.',
- 'Mô tả chi tiết: Áp dụng MQTT, Kafka và triển khai K3s trên các node Raspberry Pi 4...',
- 'APPROVED', 'THESIS', 3, 3, 2, 1, 'PGS. TS. Trần Văn Hùng', 'https://github.com/utc-fit/edge-iot-mesh', 980, 210, 4.7, 19, 1, NOW(), DATE_SUB(NOW(), INTERVAL 30 DAY)),
+-- 3. Nap Thong tin Tep Dinh kem & Storage Keys tren Supabase
+INSERT INTO files (
+  id, document_id, file_name, file_type, file_size, storage_path, storage_key,
+  is_primary, download_count, created_at, updated_at
+) VALUES
+  (1, 1, 'Chuong1_Giaiquyetbaitoanbang Tim kiem.pdf', 'PDF', 2677707, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/1/chuong1_giaiquyetbaitoanbang_tim_kiem.pdf', 'docs/1/chuong1_giaiquyetbaitoanbang_tim_kiem.pdf', true, 19, NOW(), NOW()),
+  (2, 2, 'An ninh mạng 1.pdf', 'PDF', 655146, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/2/an_ninh_mang_1.pdf', 'docs/2/an_ninh_mang_1.pdf', true, 30, NOW(), NOW()),
+  (3, 3, 'Bai-01.pdf', 'PDF', 1044870, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/3/bai-01.pdf', 'docs/3/bai-01.pdf', true, 41, NOW(), NOW()),
+  (4, 4, 'Bai_tap_nhom_AES.pdf', 'PDF', 253123, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/4/bai_tap_nhom_aes.pdf', 'docs/4/bai_tap_nhom_aes.pdf', true, 52, NOW(), NOW()),
+  (5, 5, 'CNPM.pptx', 'PPTX', 905701, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/5/cnpm.pptx', 'docs/5/cnpm.pptx', true, 63, NOW(), NOW()),
+  (6, 6, '231230746-doan-BC1.docx', 'DOCX', 1868854, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/6/231230746-doan-bc1.docx', 'docs/6/231230746-doan-bc1.docx', true, 74, NOW(), NOW()),
+  (7, 7, 'BaiTap.docx', 'DOCX', 461847, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/7/baitap.docx', 'docs/7/baitap.docx', true, 85, NOW(), NOW()),
+  (8, 8, 'BTL-MNM.docx', 'DOCX', 13200, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/8/btl-mnm.docx', 'docs/8/btl-mnm.docx', true, 96, NOW(), NOW()),
+  (9, 9, 'BangHoi.docx', 'DOCX', 14704, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/9/banghoi.docx', 'docs/9/banghoi.docx', true, 107, NOW(), NOW()),
+  (10, 10, '0_Giới thiệu học phần.pdf', 'PDF', 1065837, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/10/0_gioi_thieu_hoc_phan.pdf', 'docs/10/0_gioi_thieu_hoc_phan.pdf', true, 118, NOW(), NOW()),
+  (11, 11, 'OnThi1-2.pdf', 'PDF', 156412, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/11/onthi1-2.pdf', 'docs/11/onthi1-2.pdf', true, 129, NOW(), NOW()),
+  (12, 12, 'Chuong2_Tim kiem toi uu.pdf', 'PDF', 978751, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/12/chuong2_tim_kiem_toi_uu.pdf', 'docs/12/chuong2_tim_kiem_toi_uu.pdf', true, 140, NOW(), NOW()),
+  (13, 13, 'Chuong3-module 3-Cybersecurity-incident-report.docx', 'DOCX', 557463, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/13/chuong3-module_3-cybersecurity-incident-report.docx', 'docs/13/chuong3-module_3-cybersecurity-incident-report.docx', true, 151, NOW(), NOW()),
+  (14, 14, 'Bai-02.pdf', 'PDF', 304955, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/14/bai-02.pdf', 'docs/14/bai-02.pdf', true, 162, NOW(), NOW()),
+  (15, 15, 'Bai_tap_nhom_DES.pdf', 'PDF', 277255, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/15/bai_tap_nhom_des.pdf', 'docs/15/bai_tap_nhom_des.pdf', true, 173, NOW(), NOW()),
+  (16, 16, 'Ian-Sommerville-Software-Engineering-Pearson-2015_10th_ED.pdf', 'PDF', 10579237, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/16/ian-sommerville-software-engineering-pearson-2015_10th_ed.pdf', 'docs/16/ian-sommerville-software-engineering-pearson-2015_10th_ed.pdf', true, 184, NOW(), NOW()),
+  (17, 17, '231230746-doan.docx', 'DOCX', 2407969, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/17/231230746-doan.docx', 'docs/17/231230746-doan.docx', true, 15, NOW(), NOW()),
+  (18, 18, 'BaiTap2.docx', 'DOCX', 200714, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/18/baitap2.docx', 'docs/18/baitap2.docx', true, 26, NOW(), NOW()),
+  (19, 19, 'Ke_hoach_phan_tich_UC_trong_tam.docx', 'DOCX', 14494, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/19/ke_hoach_phan_tich_uc_trong_tam.docx', 'docs/19/ke_hoach_phan_tich_uc_trong_tam.docx', true, 37, NOW(), NOW()),
+  (20, 20, 'Phong van.docx', 'DOCX', 7539, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/20/phong_van.docx', 'docs/20/phong_van.docx', true, 48, NOW(), NOW()),
+  (21, 21, '1_Giới thiệu KTPM.pdf', 'PDF', 1878783, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/21/1_gioi_thieu_ktpm.pdf', 'docs/21/1_gioi_thieu_ktpm.pdf', true, 59, NOW(), NOW()),
+  (22, 22, 'OnThi1-3.pdf', 'PDF', 237355, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/22/onthi1-3.pdf', 'docs/22/onthi1-3.pdf', true, 70, NOW(), NOW()),
+  (23, 23, 'Chuong3_Tim kiem co doi thu.pdf', 'PDF', 910777, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/23/chuong3_tim_kiem_co_doi_thu.pdf', 'docs/23/chuong3_tim_kiem_co_doi_thu.pdf', true, 81, NOW(), NOW()),
+  (24, 24, 'Chuong4-TH1-How-to-read-the-tcpdump-traffic-log.docx', 'DOCX', 6322330, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/24/chuong4-th1-how-to-read-the-tcpdump-traffic-log.docx', 'docs/24/chuong4-th1-how-to-read-the-tcpdump-traffic-log.docx', true, 92, NOW(), NOW()),
+  (25, 25, 'Bai-03.pdf', 'PDF', 629789, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/25/bai-03.pdf', 'docs/25/bai-03.pdf', true, 103, NOW(), NOW()),
+  (26, 26, 'Bai_tap_nhom_Ma_hoa_Co_dien.pdf', 'PDF', 187189, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/26/bai_tap_nhom_ma_hoa_co_dien.pdf', 'docs/26/bai_tap_nhom_ma_hoa_co_dien.pdf', true, 114, NOW(), NOW()),
+  (27, 27, 'SRS_Flash_Sale_Ticketing_System_Phan1_2.docx', 'DOCX', 17536, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/27/srs_flash_sale_ticketing_system_phan1_2.docx', 'docs/27/srs_flash_sale_ticketing_system_phan1_2.docx', true, 125, NOW(), NOW()),
+  (28, 28, 'BaiTap2.pdf', 'PDF', 254530, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/28/baitap2.pdf', 'docs/28/baitap2.pdf', true, 136, NOW(), NOW()),
+  (29, 29, 'Project 1-Bai 1- Introduction.pptx', 'PPTX', 885270, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/29/project_1-bai_1-_introduction.pptx', 'docs/29/project_1-bai_1-_introduction.pptx', true, 147, NOW(), NOW()),
+  (30, 30, '2_Quy trình KTPM.pdf', 'PDF', 2389564, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/30/2_quy_trinh_ktpm.pdf', 'docs/30/2_quy_trinh_ktpm.pdf', true, 158, NOW(), NOW()),
+  (31, 31, 'OnThi1-4.pdf', 'PDF', 247163, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/31/onthi1-4.pdf', 'docs/31/onthi1-4.pdf', true, 169, NOW(), NOW()),
+  (32, 32, 'Chuong4 _LogicMenhde.pdf', 'PDF', 3183425, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/32/chuong4_logicmenhde.pdf', 'docs/32/chuong4_logicmenhde.pdf', true, 180, NOW(), NOW()),
+  (33, 33, 'Chuong4-TH1-Security-incident-report-template.docx', 'DOCX', 8001, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/33/chuong4-th1-security-incident-report-template.docx', 'docs/33/chuong4-th1-security-incident-report-template.docx', true, 11, NOW(), NOW()),
+  (34, 34, 'Bai-04.pdf', 'PDF', 583691, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/34/bai-04.pdf', 'docs/34/bai-04.pdf', true, 22, NOW(), NOW()),
+  (35, 35, 'Bai_tap_nhom_Modulo.pdf', 'PDF', 219851, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/35/bai_tap_nhom_modulo.pdf', 'docs/35/bai_tap_nhom_modulo.pdf', true, 33, NOW(), NOW()),
+  (36, 36, 'HuongdancaidatBlueJ.doc', 'DOCX', 37376, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/36/huongdancaidatbluej.doc', 'docs/36/huongdancaidatbluej.doc', true, 44, NOW(), NOW()),
+  (37, 37, 'Chuong 01 - Các khái niệm và kỹ năng cơ bản.ppt', 'PPTX', 2765824, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/37/chuong_01_-_cac_khai_niem_va_ky_nang_co_ban.ppt', 'docs/37/chuong_01_-_cac_khai_niem_va_ky_nang_co_ban.ppt', true, 55, NOW(), NOW()),
+  (38, 38, 'Project 1-Bai 1- Lua chon de tai.pptx', 'PPTX', 881960, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/38/project_1-bai_1-_lua_chon_de_tai.pptx', 'docs/38/project_1-bai_1-_lua_chon_de_tai.pptx', true, 66, NOW(), NOW()),
+  (39, 39, '3_Kiểm thử hộp trắng.pdf', 'PDF', 2054273, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/39/3_kiem_thu_hop_trang.pdf', 'docs/39/3_kiem_thu_hop_trang.pdf', true, 77, NOW(), NOW()),
+  (40, 40, 'OnThi1-5 (1).docx', 'DOCX', 154015, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/40/onthi1-5_1_.docx', 'docs/40/onthi1-5_1_.docx', true, 88, NOW(), NOW()),
+  (41, 41, 'Dethimau_K64.pdf', 'PDF', 239751, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/41/dethimau_k64.pdf', 'docs/41/dethimau_k64.pdf', true, 99, NOW(), NOW()),
+  (42, 42, 'Chuong4-TH1-tcpdump-traffic-log.docx', 'DOCX', 6864, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/42/chuong4-th1-tcpdump-traffic-log.docx', 'docs/42/chuong4-th1-tcpdump-traffic-log.docx', true, 110, NOW(), NOW()),
+  (43, 43, 'Bai-05.pdf', 'PDF', 580645, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/43/bai-05.pdf', 'docs/43/bai-05.pdf', true, 121, NOW(), NOW()),
+  (44, 44, 'Bai_tap_nhom_RSA_ElGamma.pdf', 'PDF', 233317, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/44/bai_tap_nhom_rsa_elgamma.pdf', 'docs/44/bai_tap_nhom_rsa_elgamma.pdf', true, 132, NOW(), NOW()),
+  (45, 45, 'Java-Design-Patterns.pdf', 'PDF', 3644305, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/45/java-design-patterns.pdf', 'docs/45/java-design-patterns.pdf', true, 143, NOW(), NOW()),
+  (46, 46, 'Chuong 02 - Quan tri Unix Linux.ppt', 'PPTX', 2817536, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/46/chuong_02_-_quan_tri_unix_linux.ppt', 'docs/46/chuong_02_-_quan_tri_unix_linux.ppt', true, 154, NOW(), NOW()),
+  (47, 47, 'Project 1-Bai 2- Xac dinh yeu cau.pptx', 'PPTX', 2986884, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/47/project_1-bai_2-_xac_dinh_yeu_cau.pptx', 'docs/47/project_1-bai_2-_xac_dinh_yeu_cau.pptx', true, 165, NOW(), NOW()),
+  (48, 48, '4_2_Bài tập JUnit (online).pdf', 'PDF', 1479667, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/48/4_2_bai_tap_junit_online_.pdf', 'docs/48/4_2_bai_tap_junit_online_.pdf', true, 176, NOW(), NOW()),
+  (49, 49, 'TTNT_NHOM07_lan1.docx', 'DOCX', 16333, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/49/ttnt_nhom07_lan1.docx', 'docs/49/ttnt_nhom07_lan1.docx', true, 187, NOW(), NOW()),
+  (50, 50, 'Chuong4-TH1.2-Security-incident-report-exemplar.docx', 'DOCX', 2714061, 'https://qsxuyysnqmyristjiwws.supabase.co/storage/v1/object/documents/docs/50/chuong4-th1.2-security-incident-report-exemplar.docx', 'docs/50/chuong4-th1.2-security-incident-report-exemplar.docx', true, 18, NOW(), NOW());
 
-(4, 'Tối ưu Hóa Truy vấn SQL Phân tán', 
- 'Phân tích kế hoạch thực thi (Execution Plan), đánh chỉ mục chuyên sâu và thiết kế bộ đệm đa tầng cho hệ thống cơ sở dữ liệu giao dịch tần suất cao.',
- 'Mô tả chi tiết: Nghiên cứu phân mảnh cơ sở dữ liệu (sharding), tối ưu query latency...',
- 'APPROVED', 'LECTURE', 2, 4, 1, 1, 'ThS. Lê Hoàng Nam', 'https://github.com/utc-fit/sql-distributed-opt', 870, 190, 4.6, 14, 1, NOW(), DATE_SUB(NOW(), INTERVAL 45 DAY)),
-
-(5, 'Bảo mật Ứng dụng Web theo Chuẩn OWASP Top 10', 
- 'Phân tích các lỗ hổng bảo mật phổ biến (SQL Injection, XSS, CSRF, SSRF) và xây dựng hệ thống phòng thủ đa lớp kết hợp Web Application Firewall (WAF).',
- 'Mô tả chi tiết: Xây dựng demo lab kiểm thử an toàn thông tin theo chuẩn NIST & OWASP...',
- 'APPROVED', 'LAB', 3, 5, 3, 1, 'ThS. Nguyễn Duy Hưng', 'https://github.com/utc-fit/owasp-security-lab', 2150, 580, 4.9, 62, 1, NOW(), DATE_SUB(NOW(), INTERVAL 50 DAY)),
-
-(6, 'Thiết kế CSDL Phân tán quy mô lớn', 
- 'Giải pháp phân mảnh ngang (Sharding), sao lưu đồng bộ và bất đồng bộ trên cụm cơ sở dữ liệu phân tán PostgreSQL và Redis Cluster.',
- 'Mô tả chi tiết: Hệ thống cluster 5 nodes đảm bảo ACID và High Availability 99.99%...',
- 'APPROVED', 'CAPSTONE', 2, 6, 1, 1, 'TS. Đào Thị Lệ Thủy', 'https://github.com/utc-fit/distributed-db-cluster', 1680, 380, 4.8, 31, 1, NOW(), DATE_SUB(NOW(), INTERVAL 60 DAY)),
-
-(7, 'Kiến trúc Micro-Frontend hiện đại', 
- 'Phát triển kiến trúc Web phân tán ứng dụng Module Federation, kết hợp React 19 và Tailwind CSS giúp các đội ngũ độc lập phát triển và phát hành vi dịch vụ giao diện.',
- 'Mô tả chi tiết: Độc lập bundle, chia sẻ component thư viện thông qua runtime injection...',
- 'APPROVED', 'THESIS', 3, 7, 1, 1, 'ThS. Nguyễn Duy Hưng', 'https://github.com/utc-fit/micro-frontends-react', 2340, 620, 4.9, 52, 1, NOW(), DATE_SUB(NOW(), INTERVAL 70 DAY)),
-
-(8, 'Tối ưu CI/CD Kubernetes Pipeline', 
- 'Tự động hóa toàn diện quy trình kiểm thử đơn vị, quét lỗ hổng bảo mật SonarQube và triển khai GitOps an toàn lên môi trường Production với ArgoCD.',
- 'Mô tả chi tiết: Pipeline chuẩn GitHub Actions kết hợp Vault secrets management...',
- 'APPROVED', 'PROJECT', 2, 8, 2, 1, 'TS. Vũ Trọng Khang', 'https://github.com/utc-fit/k8s-gitops-pipeline', 1890, 450, 4.7, 25, 1, NOW(), DATE_SUB(NOW(), INTERVAL 80 DAY)),
-
--- 1 Pending, 1 Revision Required, 1 Draft, 1 Rejected
-(9, 'Nghiên cứu ứng dụng Blockchain trong xác thực văn bằng UTC',
- 'Xây dựng mạng lưới private blockchain dựa trên Hyperledger Fabric để cấp phát và thẩm định chứng chỉ số hóa cho sinh viên tốt nghiệp.',
- 'Mô tả chi tiết: Smart contract kiểm tra tính hợp lệ của chữ ký số Hội đồng...',
- 'PENDING', 'THESIS', 3, 1, 1, 1, 'TS. Nguyễn Mạnh Hùng', 'https://github.com/utc-fit/diploma-blockchain', 45, 0, 0.0, 0, NULL, NULL, NOW()),
-
-(10, 'Hệ thống Quản lý Thư viện Số UTC - Kiến trúc Clean & Microservices',
- 'Thiết kế hệ thống mượn trả tài liệu học thuật theo mô hình hướng dịch vụ Spring Boot 3 & Next.js.',
- 'Cần bổ sung: Sơ đồ ERD độ phân giải cao và cam kết bản quyền mã nguồn theo yêu cầu của hội đồng thẩm định.',
- 'REVISION_REQUIRED', 'CAPSTONE', 2, 2, 1, 1, 'PGS. TS. Trần Văn Hùng', 'https://github.com/utc-fit/clean-library-sys', 120, 5, 0.0, 0, NULL, NULL, NOW());
-
--- Files
-INSERT INTO document_files (id, document_id, file_name, storage_key, mime_type, file_size, is_primary)
+-- 4. Gan The Cong nghe cho Hoc lieu
+INSERT INTO document_technologies (document_id, technology_id)
 VALUES
-(1, 1, 'KLTN_GraphAlgorithms_AliceWang.pdf', 'docs/1/graph-algorithms.pdf', 'application/pdf', 15400000, 1),
-(2, 2, 'KLTN_DeepLearning_MedicalVision.pdf', 'docs/2/deeplearning-vision.pdf', 'application/pdf', 22100000, 1),
-(3, 3, 'BTL_EdgeComputing_K3s_IoT.pdf', 'docs/3/edge-iot.pdf', 'application/pdf', 8400000, 1),
-(4, 10, 'DoAn_Clean_Library_V1.pdf', 'docs/10/clean-library-v1.pdf', 'application/pdf', 12300000, 1);
+  (1, 2),
+  (1, 4),
+  (2, 3),
+  (2, 5),
+  (3, 4),
+  (3, 6),
+  (4, 5),
+  (4, 7),
+  (5, 6),
+  (5, 1),
+  (6, 7),
+  (6, 2),
+  (7, 1),
+  (7, 3),
+  (8, 2),
+  (8, 4),
+  (9, 3),
+  (9, 5),
+  (10, 4),
+  (10, 6),
+  (11, 5),
+  (11, 7),
+  (12, 6),
+  (12, 1),
+  (13, 7),
+  (13, 2),
+  (14, 1),
+  (14, 3),
+  (15, 2),
+  (15, 4),
+  (16, 3),
+  (16, 5),
+  (17, 4),
+  (17, 6),
+  (18, 5),
+  (18, 7),
+  (19, 6),
+  (19, 1),
+  (20, 7),
+  (20, 2),
+  (21, 1),
+  (21, 3),
+  (22, 2),
+  (22, 4),
+  (23, 3),
+  (23, 5),
+  (24, 4),
+  (24, 6),
+  (25, 5),
+  (25, 7),
+  (26, 6),
+  (26, 1),
+  (27, 7),
+  (27, 2),
+  (28, 1),
+  (28, 3),
+  (29, 2),
+  (29, 4),
+  (30, 3),
+  (30, 5),
+  (31, 4),
+  (31, 6),
+  (32, 5),
+  (32, 7),
+  (33, 6),
+  (33, 1),
+  (34, 7),
+  (34, 2),
+  (35, 1),
+  (35, 3),
+  (36, 2),
+  (36, 4),
+  (37, 3),
+  (37, 5),
+  (38, 4),
+  (38, 6),
+  (39, 5),
+  (39, 7),
+  (40, 6),
+  (40, 1),
+  (41, 7),
+  (41, 2),
+  (42, 1),
+  (42, 3),
+  (43, 2),
+  (43, 4),
+  (44, 3),
+  (44, 5),
+  (45, 4),
+  (45, 6),
+  (46, 5),
+  (46, 7),
+  (47, 6),
+  (47, 1),
+  (48, 7),
+  (48, 2),
+  (49, 1),
+  (49, 3),
+  (50, 2),
+  (50, 4);
 
--- Technologies
-INSERT INTO document_technologies (document_id, technology_id, usage_note)
+-- 5. Seed Reviews, Bookmarks & Reports
+INSERT INTO document_reviews (document_id, reviewer_id, rating, comment, is_approved, created_at)
 VALUES
-(1, 1, 'Backend core services'),
-(2, 2, 'Training model and preprocessing'),
-(3, 1, 'Microservices on Edge'),
-(7, 3, 'Frontend framework'),
-(8, 4, 'Infrastructure container runtime');
+  (1, 3, 5, 'Tài liệu đồ án viết rất chi tiết, source code chuẩn, rất hữu ích!', true, NOW()),
+  (1, 2, 5, 'Bài giảng trực quan, dễ hiểu.', true, NOW()),
+  (6, 3, 5, 'Slide bài giảng OOP cấu trúc rất rõ ràng.', true, NOW()),
+  (10, 2, 5, 'Đề cương ôn thi trúng trọng tâm bài kiểm tra.', true, NOW()),
+  (15, 3, 5, 'Tài liệu giải thích thuật toán mã hóa DES/AES rất dễ tiếp thu.', true, NOW());
 
--- Bookmarks
-INSERT INTO bookmarks (user_id, document_id)
+INSERT INTO bookmarks (user_id, document_id, created_at)
 VALUES
-(2, 2),
-(2, 5),
-(3, 1),
-(3, 7);
+  (3, 1, NOW()),
+  (3, 6, NOW()),
+  (3, 10, NOW()),
+  (3, 15, NOW()),
+  (2, 7, NOW()),
+  (2, 12, NOW()),
+  (2, 20, NOW());
 
--- Ratings
-INSERT INTO ratings (user_id, document_id, score)
+INSERT INTO document_reports (document_id, reporter_id, reason, description, status, admin_note, created_at, resolved_at)
 VALUES
-(2, 1, 5),
-(3, 1, 5),
-(2, 2, 5),
-(3, 2, 4);
-
--- Reports
-INSERT INTO reports (id, document_id, reporter_id, reason_code, description, status, created_at)
-VALUES
-(1, 2, 3, 'PLAGIARISM', 'Toàn bộ Đoạn 3.2 (trang 42 đến 48) về mô hình Convolutional-LSTM sao chép nguyên văn đồ án tốt nghiệp của nhóm SV K62 năm 2024 không ghi chú nguồn gốc.', 'PENDING', NOW()),
-(2, 3, 2, 'MISLEADING', 'Chương 4 phần tập lệnh Thumb-2 có nhiều đoạn mã giả lập in sai thanh ghi dẫn đến chạy thử nghiệm bị tràn bộ nhớ stack.', 'IN_REVIEW', NOW());
+  (1, 3, 'COPYRIGHT_VIOLATION', 'Tài liệu có một số hình ảnh chưa ghi rõ trích dẫn nguồn.', 'PENDING', NULL, NOW(), NULL),
+  (5, 3, 'INAPPROPRIATE_CONTENT', 'Tài liệu nội dung cũ không còn phù hợp chương trình mới.', 'RESOLVED', 'Đã xác minh và tạm ẩn học liệu.', NOW(), NOW());

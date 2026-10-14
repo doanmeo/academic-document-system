@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/layout/Navbar'
 import Footer from '../components/layout/Footer'
-import { createDocument, submitDocument } from '../api/documentApi'
+import { createDocument, submitDocument, checkSimilarity } from '../api/documentApi'
 import { uploadFile } from '../api/fileApi'
 import { getSubjects, getAcademicYears, getMajors, getTechnologies } from '../api/catalogApi'
-import type { DocumentTypeCode } from '../types/document'
+import type { DocumentTypeCode, RelatedDocument } from '../types/document'
 import type { Subject, AcademicYear, Major, Technology } from '../types/catalog'
 import { getErrorMessage } from '../utils/errorMessages'
 import { useToast } from '../contexts/ToastContext'
@@ -35,6 +35,11 @@ export default function UploadDocument() {
   const [githubUrl, setGithubUrl] = useState('')
   const [selectedTechIds, setSelectedTechIds] = useState<number[]>([])
   const [pledgeAccepted, setPledgeAccepted] = useState(false)
+
+  // Academic similarity & check states
+  const [similarDocs, setSimilarDocs] = useState<RelatedDocument[]>([])
+  const [checkingSimilarity, setCheckingSimilarity] = useState(false)
+  const [showTechAccordion, setShowTechAccordion] = useState(false)
 
   // Status
   const [submitting, setSubmitting] = useState(false)
@@ -69,6 +74,32 @@ export default function UploadDocument() {
     }
   }
 
+  // Debounced real-time academic similarity check (Tránh trùng lặp hướng đề tài)
+  useEffect(() => {
+    if (!title.trim() || title.trim().length < 4) {
+      setSimilarDocs([])
+      return
+    }
+    const timer = setTimeout(async () => {
+      try {
+        setCheckingSimilarity(true)
+        const res = await checkSimilarity({
+          title: title.trim(),
+          subjectId: subjectId ? Number(subjectId) : undefined,
+          majorId: majorId ? Number(majorId) : undefined,
+          advisorName: advisorName.trim() || undefined,
+          documentTypeCode,
+        })
+        setSimilarDocs(res || [])
+      } catch {
+        setSimilarDocs([])
+      } finally {
+        setCheckingSimilarity(false)
+      }
+    }, 450)
+    return () => clearTimeout(timer)
+  }, [title, subjectId, majorId, advisorName, documentTypeCode])
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(true)
@@ -97,29 +128,54 @@ export default function UploadDocument() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
+  // Checklist Validation Statuses
+  const isAdvisorRequired = ['THESIS', 'CAPSTONE', 'PROJECT'].includes(documentTypeCode)
+  const isAdvisorValid = !isAdvisorRequired || advisorName.trim().length > 0
+  const isAbstractValid = abstractText.trim().length >= 15
+  const isFileValid = !!file
+  const isTitleValid = title.trim().length >= 5
+  const isSubjectValid = !!subjectId
+  const isYearValid = !!academicYearId
+  const isPledgeValid = pledgeAccepted
+  const isAllValid = isFileValid && isTitleValid && isSubjectValid && isYearValid && isAdvisorValid && isAbstractValid && isPledgeValid
+
   const handleFormSubmit = async (shouldSubmitToPending = true) => {
-    if (!file) {
-      setError('Vui lòng kéo thả hoặc tải lên tệp tài liệu PDF.')
-      toast.warning('Thiếu tệp đính kèm', 'Vui lòng chọn tệp PDF học liệu trước khi nộp.')
-      return
-    }
+    if (shouldSubmitToPending) {
+      if (!isFileValid) {
+        setError('Vui lòng kéo thả hoặc tải lên tệp tài liệu PDF.')
+        toast.warning('Thiếu tệp đính kèm', 'Vui lòng chọn tệp PDF học liệu trước khi nộp.')
+        return
+      }
 
-    if (!title.trim()) {
-      setError('Vui lòng nhập tên đề tài học liệu.')
-      toast.warning('Thiếu tiêu đề', 'Vui lòng nhập tên đề tài học liệu.')
-      return
-    }
+      if (!isTitleValid) {
+        setError('Vui lòng nhập tên đề tài học liệu (tối thiểu 5 ký tự).')
+        toast.warning('Tiêu đề quá ngắn', 'Tên đề tài cần tối thiểu 5 ký tự.')
+        return
+      }
 
-    if (!subjectId || !academicYearId) {
-      setError('Vui lòng chọn đầy đủ Môn học và Niên khóa.')
-      toast.warning('Thiếu thông tin phân loại', 'Vui lòng chọn Môn học và Niên khóa.')
-      return
-    }
+      if (!isSubjectValid || !isYearValid) {
+        setError('Vui lòng chọn đầy đủ Môn học và Niên khóa.')
+        toast.warning('Thiếu thông tin phân loại', 'Vui lòng chọn Môn học và Niên khóa.')
+        return
+      }
 
-    if (shouldSubmitToPending && !pledgeAccepted) {
-      setError('Bạn cần đồng ý với Cam kết Liêm chính Học thuật UTC trước khi nộp bài.')
-      toast.warning('Yêu cầu cam kết liêm chính', 'Vui lòng tích vào ô cam kết quyền tác giả.')
-      return
+      if (isAdvisorRequired && !isAdvisorValid) {
+        setError('Vui lòng nhập Giảng viên hướng dẫn cho Khóa luận tốt nghiệp / Đồ án / BTL.')
+        toast.warning('Yêu cầu Giảng viên hướng dẫn', 'Đồ án và Khóa luận bắt buộc phải có Giảng viên hướng dẫn.')
+        return
+      }
+
+      if (!isAbstractValid) {
+        setError('Tóm tắt nội dung (Abstract) cần tối thiểu 15 ký tự để đảm bảo chất lượng tra cứu.')
+        toast.warning('Tóm tắt quá ngắn', 'Vui lòng viết tóm tắt tối thiểu 15 ký tự mô tả nội dung đề tài.')
+        return
+      }
+
+      if (!isPledgeValid) {
+        setError('Bạn cần đồng ý với Cam kết Liêm chính Học thuật UTC trước khi nộp bài.')
+        toast.warning('Yêu cầu cam kết liêm chính', 'Vui lòng tích vào ô cam kết quyền tác giả.')
+        return
+      }
     }
 
     setSubmitting(true)
@@ -144,10 +200,12 @@ export default function UploadDocument() {
       const docId = created.id
       setUploadProgress(40)
 
-      // 2. Upload tệp đính kèm
-      await uploadFile(file, docId, true, (progress) => {
-        setUploadProgress(40 + Math.round((progress * 40) / 100))
-      })
+      // 2. Upload tệp đính kèm (nếu có file)
+      if (file) {
+        await uploadFile(file, docId, true, (progress) => {
+          setUploadProgress(40 + Math.round((progress * 40) / 100))
+        })
+      }
 
       setUploadProgress(85)
 
@@ -289,6 +347,7 @@ export default function UploadDocument() {
           {/* ─── 2. Metadata Form ─────────────────────────────────────────── */}
           <div className="bg-surface-container-lowest rounded-2xl border border-surface-container p-6 shadow-xs space-y-5">
             {/* Title */}
+            {/* Title */}
             <div>
               <label className="block text-body-sm font-bold text-primary mb-1">
                 Tên đề tài / Tiêu đề học liệu <span className="text-error">*</span>
@@ -297,10 +356,65 @@ export default function UploadDocument() {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Ví dụ: Đồ án Xây dựng Website Bán sách Spring Boot & React"
+                placeholder="Ví dụ: Nghiên cứu Xây dựng Hệ thống Quản lý Học liệu Khoa CNTT UTC"
                 className="w-full px-4 py-2.5 bg-surface-container-low rounded-xl border border-surface-container text-body-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary transition-all"
               />
             </div>
+
+            {/* ─── Real-time Similarity & Overlap Detection Box ─────────────── */}
+            {title.trim().length >= 4 && (
+              <div className="p-4 rounded-xl border transition-all text-xs space-y-2 bg-slate-50 border-slate-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-800">
+                    <span className="text-sm">🔍</span>
+                    <span>Đối soát đề tài trùng lặp &amp; Học liệu cùng mạch trong Khoa</span>
+                  </div>
+                  {checkingSimilarity && (
+                    <span className="text-[11px] text-indigo-600 font-medium animate-pulse flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-indigo-600 animate-ping" />
+                      Đang phân tích...
+                    </span>
+                  )}
+                </div>
+
+                {!checkingSimilarity && similarDocs.length > 0 && (
+                  <div className="space-y-1.5 pt-1">
+                    <p className="text-[11px] text-amber-800 font-semibold flex items-center gap-1">
+                      <span>⚠️</span>
+                      <span>Phát hiện {similarDocs.length} tài liệu / đề tài có liên quan mật thiết (tránh trùng lặp hướng nghiên cứu):</span>
+                    </p>
+                    <div className="space-y-1.5">
+                      {similarDocs.map((sim) => (
+                        <div
+                          key={sim.id}
+                          className="p-2.5 bg-white rounded-lg border border-amber-200 flex items-start justify-between gap-2 shadow-2xs"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-slate-900 truncate">{sim.title}</p>
+                            <p className="text-[10px] text-slate-500 mt-0.5">
+                              {sim.subjectName} • {sim.academicYearName} {sim.advisorName ? `• GVHD: ${sim.advisorName}` : ''}
+                            </p>
+                            <span className="inline-block mt-1 px-1.5 py-0.5 bg-amber-50 text-amber-700 text-[9px] font-bold rounded border border-amber-200">
+                              {sim.matchReason}
+                            </span>
+                          </div>
+                          <span className="shrink-0 px-2 py-1 bg-amber-100 text-amber-800 font-bold text-[10px] rounded-md">
+                            {sim.similarityScore}% tương đồng
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {!checkingSimilarity && similarDocs.length === 0 && title.trim().length >= 8 && (
+                  <p className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
+                    <span>✅</span>
+                    <span>Ý tưởng đề tài độc lập: Chưa phát hiện trùng lặp tiêu đề với các đề tài đã nghiệm thu trong Khoa.</span>
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Categorization Grid: Document Type, Subject, Major, Year */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -374,14 +488,16 @@ export default function UploadDocument() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-body-sm font-semibold text-on-surface mb-1">
-                  Giảng viên hướng dẫn
+                  Giảng viên hướng dẫn {isAdvisorRequired && <span className="text-error">* (Bắt buộc cho Đồ án/KLTN)</span>}
                 </label>
                 <input
                   type="text"
                   value={advisorName}
                   onChange={(e) => setAdvisorName(e.target.value)}
-                  placeholder="Ví dụ: ThS. Nguyễn Duy Hưng"
-                  className="w-full px-4 py-2 bg-surface-container-low rounded-xl border border-surface-container text-body-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                  placeholder="Ví dụ: PGS. TS. Đào Thị Lệ Thủy"
+                  className={`w-full px-4 py-2 bg-surface-container-low rounded-xl border text-body-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary transition-all ${
+                    isAdvisorRequired && !isAdvisorValid ? 'border-amber-400 bg-amber-50/30' : 'border-surface-container'
+                  }`}
                 />
               </div>
 
@@ -401,44 +517,61 @@ export default function UploadDocument() {
 
             {/* Abstract */}
             <div>
-              <label className="block text-body-sm font-semibold text-on-surface mb-1">
-                Tóm tắt nội dung (Abstract)
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-body-sm font-semibold text-on-surface">
+                  Tóm tắt nội dung (Abstract) <span className="text-error">* (Tối thiểu 15 ký tự)</span>
+                </label>
+                <span className={`text-[11px] ${abstractText.trim().length >= 15 ? 'text-emerald-600 font-semibold' : 'text-slate-400'}`}>
+                  {abstractText.trim().length} / 15 ký tự
+                </span>
+              </div>
               <textarea
                 rows={3}
                 value={abstractText}
                 onChange={(e) => setAbstractText(e.target.value)}
-                placeholder="Tóm tắt mục tiêu, kiến trúc và kết quả đạt được của đề tài đồ án..."
+                placeholder="Tóm tắt mục tiêu, phương pháp nghiên cứu và kết quả đạt được của đề tài đồ án..."
                 className="w-full px-4 py-2 bg-surface-container-low rounded-xl border border-surface-container text-body-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary transition-all"
               />
             </div>
 
-            {/* Tech Tags Selection */}
+            {/* Collapsible Tech Tags (De-emphasized / Optional) */}
             {technologies.length > 0 && (
-              <div>
-                <label className="block text-body-sm font-semibold text-on-surface mb-1.5">
-                  Công nghệ ứng dụng trong đồ án:
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {technologies.map((tech) => {
-                    const selected = selectedTechIds.includes(tech.id)
-                    return (
-                      <button
-                        key={tech.id}
-                        type="button"
-                        onClick={() => toggleTech(tech.id)}
-                        className={`px-3 py-1 rounded-lg text-caption font-semibold transition-all cursor-pointer border ${
-                          selected
-                            ? 'bg-primary text-on-primary border-primary shadow-xs'
-                            : 'bg-surface-container-low text-on-surface-variant border-surface-container hover:bg-surface-container'
-                        }`}
-                      >
-                        {selected ? '✓ ' : '+ '}
-                        {tech.name}
-                      </button>
-                    )
-                  })}
-                </div>
+              <div className="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50">
+                <button
+                  type="button"
+                  onClick={() => setShowTechAccordion(!showTechAccordion)}
+                  className="w-full px-4 py-2.5 flex items-center justify-between text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span>⚙️</span>
+                    <span>Thẻ công nghệ phụ trợ ({selectedTechIds.length} đã chọn - Tùy chọn)</span>
+                  </span>
+                  <span className="text-slate-400 font-mono">{showTechAccordion ? '▲ Đóng' : '▼ Mở rộng'}</span>
+                </button>
+                {showTechAccordion && (
+                  <div className="p-3 pt-1 border-t border-slate-200 bg-white">
+                    <div className="flex flex-wrap gap-1.5">
+                      {technologies.map((tech) => {
+                        const selected = selectedTechIds.includes(tech.id)
+                        return (
+                          <button
+                            key={tech.id}
+                            type="button"
+                            onClick={() => toggleTech(tech.id)}
+                            className={`px-2.5 py-1 rounded-lg text-caption font-semibold transition-all cursor-pointer border ${
+                              selected
+                                ? 'bg-primary text-on-primary border-primary shadow-xs'
+                                : 'bg-surface-container-low text-on-surface-variant border-surface-container hover:bg-surface-container'
+                            }`}
+                          >
+                            {selected ? '✓ ' : '+ '}
+                            {tech.name}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -458,6 +591,47 @@ export default function UploadDocument() {
                   </p>
                 </div>
               </label>
+            </div>
+
+            {/* ─── Academic Checklist Status Widget ─────────────── */}
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <span>📋</span>
+                  <span>Checklist Tiêu chuẩn nộp học liệu Khoa CNTT</span>
+                </span>
+                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                  isAllValid ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                }`}>
+                  {isAllValid ? 'Đủ điều kiện nộp' : 'Chưa hoàn thiện'}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] pt-1">
+                <div className={`flex items-center gap-1.5 ${isFileValid ? 'text-emerald-700 font-medium' : 'text-slate-400'}`}>
+                  <span>{isFileValid ? '✓' : '○'}</span>
+                  <span>Tệp PDF học liệu đính kèm</span>
+                </div>
+                <div className={`flex items-center gap-1.5 ${isTitleValid ? 'text-emerald-700 font-medium' : 'text-slate-400'}`}>
+                  <span>{isTitleValid ? '✓' : '○'}</span>
+                  <span>Tên đề tài rõ ràng (≥ 5 ký tự)</span>
+                </div>
+                <div className={`flex items-center gap-1.5 ${isSubjectValid && isYearValid ? 'text-emerald-700 font-medium' : 'text-slate-400'}`}>
+                  <span>{isSubjectValid && isYearValid ? '✓' : '○'}</span>
+                  <span>Môn học &amp; Niên khóa xác thực</span>
+                </div>
+                <div className={`flex items-center gap-1.5 ${isAdvisorValid ? 'text-emerald-700 font-medium' : 'text-amber-700 font-semibold'}`}>
+                  <span>{isAdvisorValid ? '✓' : '○'}</span>
+                  <span>Giảng viên hướng dẫn {isAdvisorRequired ? '(Bắt buộc)' : '(Tùy chọn)'}</span>
+                </div>
+                <div className={`flex items-center gap-1.5 ${isAbstractValid ? 'text-emerald-700 font-medium' : 'text-amber-700 font-semibold'}`}>
+                  <span>{isAbstractValid ? '✓' : '○'}</span>
+                  <span>Tóm tắt Abstract (≥ 15 ký tự)</span>
+                </div>
+                <div className={`flex items-center gap-1.5 ${isPledgeValid ? 'text-emerald-700 font-medium' : 'text-amber-700 font-semibold'}`}>
+                  <span>{isPledgeValid ? '✓' : '○'}</span>
+                  <span>Cam kết Liêm chính Học thuật</span>
+                </div>
+              </div>
             </div>
 
             {/* Progress bar if uploading */}
