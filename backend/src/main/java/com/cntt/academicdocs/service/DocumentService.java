@@ -93,6 +93,8 @@ public class DocumentService {
         document.setAdvisorName(req.getAdvisorName());
         document.setGithubUrl(req.getGithubUrl());
         document.setGitlabUrl(req.getGitlabUrl());
+        document.setSharingScope(req.getSharingScope() != null && !req.getSharingScope().isBlank() ? req.getSharingScope() : "FACULTY_INTERNAL");
+        document.setPledgeAccepted(req.getPledgeAccepted() != null ? req.getPledgeAccepted() : true);
         document.setViewCount(0);
         document.setDownloadCount(0);
         document.setAvgRating(0.0);
@@ -139,6 +141,17 @@ public class DocumentService {
             }
         }
 
+        // Attached files
+        if (req.getFileIds() != null && !req.getFileIds().isEmpty()) {
+            for (Long fileId : req.getFileIds()) {
+                documentFileRepository.findById(fileId).ifPresent(file -> {
+                    file.setDocument(saved);
+                    documentFileRepository.save(file);
+                    saved.getFiles().add(file);
+                });
+            }
+        }
+
         return toDetailDTO(saved, userId);
     }
 
@@ -163,6 +176,10 @@ public class DocumentService {
         if (req.getGithubUrl() != null) document.setGithubUrl(req.getGithubUrl());
         if (req.getGitlabUrl() != null) document.setGitlabUrl(req.getGitlabUrl());
 
+        if (req.getSharingScope() != null && !req.getSharingScope().isBlank()) document.setSharingScope(req.getSharingScope());
+        if (req.getPledgeAccepted() != null) document.setPledgeAccepted(req.getPledgeAccepted());
+        if (req.getRevisionNote() != null) document.setRevisionNote(req.getRevisionNote());
+
         if (req.getSubjectId() != null) {
             subjectRepository.findById(req.getSubjectId()).ifPresent(document::setSubject);
         }
@@ -186,6 +203,19 @@ public class DocumentService {
             }
         }
 
+        // Attach additional files if provided
+        if (req.getFileIds() != null && !req.getFileIds().isEmpty()) {
+            for (Long fileId : req.getFileIds()) {
+                documentFileRepository.findById(fileId).ifPresent(file -> {
+                    file.setDocument(document);
+                    documentFileRepository.save(file);
+                    if (!document.getFiles().contains(file)) {
+                        document.getFiles().add(file);
+                    }
+                });
+            }
+        }
+
         Document updated = documentRepository.save(document);
         return toDetailDTO(updated, userId);
     }
@@ -197,6 +227,10 @@ public class DocumentService {
 
         if (!document.getUploader().getId().equals(userId)) {
             throw new BusinessException(HttpStatus.FORBIDDEN, "NOT_DOCUMENT_OWNER", "Bạn không có quyền gửi duyệt tài liệu này");
+        }
+
+        if (document.getStatus() != DocumentStatus.DRAFT && document.getStatus() != DocumentStatus.REJECTED && document.getStatus() != DocumentStatus.REVISION_REQUIRED) {
+            throw new BusinessException(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_STATUS_TRANSITION", "Chỉ có thể nộp duyệt tài liệu ở trạng thái Nháp, Yêu cầu chỉnh sửa hoặc Từ chối");
         }
 
         List<DocumentFile> files = documentFileRepository.findByDocument_Id(id);
@@ -214,6 +248,42 @@ public class DocumentService {
         review.setFromStatus(oldStatus);
         review.setToStatus(DocumentStatus.PENDING);
         review.setComment("Sinh viên gửi yêu cầu thẩm định tài liệu");
+        documentReviewRepository.save(review);
+
+        return toDetailDTO(saved, userId);
+    }
+
+    @Transactional
+    public DocumentDetailDTO resubmitDocument(Long id, Long userId, String revisionNote) {
+        Document document = documentRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "DOCUMENT_NOT_FOUND", "Không tìm thấy tài liệu"));
+
+        if (!document.getUploader().getId().equals(userId)) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "NOT_DOCUMENT_OWNER", "Bạn không có quyền nộp lại tài liệu này");
+        }
+
+        if (document.getStatus() != DocumentStatus.REVISION_REQUIRED && document.getStatus() != DocumentStatus.REJECTED) {
+            throw new BusinessException(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_STATUS_TRANSITION", "Chỉ có thể nộp lại tài liệu ở trạng thái Yêu cầu chỉnh sửa hoặc Từ chối");
+        }
+
+        List<DocumentFile> files = documentFileRepository.findByDocument_Id(id);
+        if (files.isEmpty()) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "MISSING_ATTACHED_FILE", "Tài liệu phải có ít nhất 1 tệp đính kèm trước khi nộp lại");
+        }
+
+        DocumentStatus oldStatus = document.getStatus();
+        document.setStatus(DocumentStatus.PENDING);
+        if (revisionNote != null && !revisionNote.isBlank()) {
+            document.setRevisionNote(revisionNote.trim());
+        }
+        Document saved = documentRepository.save(document);
+
+        DocumentReview review = new DocumentReview();
+        review.setDocument(saved);
+        review.setReviewer(document.getUploader());
+        review.setFromStatus(oldStatus);
+        review.setToStatus(DocumentStatus.PENDING);
+        review.setComment(revisionNote != null && !revisionNote.isBlank() ? revisionNote.trim() : "Sinh viên nộp lại bản sửa đổi");
         documentReviewRepository.save(review);
 
         return toDetailDTO(saved, userId);
@@ -358,9 +428,14 @@ public class DocumentService {
             String adv = doc.getAdvisorName() != null ? doc.getAdvisorName().toLowerCase() : "";
             String sub = doc.getSubject() != null && doc.getSubject().getName() != null ? doc.getSubject().getName().toLowerCase() : "";
             String desc = doc.getDescription() != null ? doc.getDescription().toLowerCase() : "";
+            String uploader = doc.getUploader() != null && doc.getUploader().getFullName() != null ? doc.getUploader().getFullName().toLowerCase() : "";
+            String members = doc.getMembers().stream()
+                    .map(m -> m.getUser() != null && m.getUser().getFullName() != null ? m.getUser().getFullName() : "")
+                    .collect(Collectors.joining(" ")).toLowerCase();
 
             // 1. Direct match with accents
-            if (title.contains(keywordLower) || abs.contains(keywordLower) || adv.contains(keywordLower) || sub.contains(keywordLower) || desc.contains(keywordLower)) {
+            if (title.contains(keywordLower) || abs.contains(keywordLower) || adv.contains(keywordLower) 
+                    || sub.contains(keywordLower) || desc.contains(keywordLower) || uploader.contains(keywordLower) || members.contains(keywordLower)) {
                 return true;
             }
 
@@ -370,12 +445,16 @@ public class DocumentService {
             String advNoAccent = removeAccents(adv);
             String subNoAccent = removeAccents(sub);
             String descNoAccent = removeAccents(desc);
+            String uploaderNoAccent = removeAccents(uploader);
+            String membersNoAccent = removeAccents(members);
 
             return titleNoAccent.contains(keywordNoAccent)
                     || absNoAccent.contains(keywordNoAccent)
                     || advNoAccent.contains(keywordNoAccent)
                     || subNoAccent.contains(keywordNoAccent)
-                    || descNoAccent.contains(keywordNoAccent);
+                    || descNoAccent.contains(keywordNoAccent)
+                    || uploaderNoAccent.contains(keywordNoAccent)
+                    || membersNoAccent.contains(keywordNoAccent);
         }).collect(Collectors.toList());
 
         int start = (int) pageable.getOffset();
@@ -405,6 +484,10 @@ public class DocumentService {
     public DocumentDetailDTO approveDocument(Long id, Long adminId, String note) {
         Document document = documentRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "DOCUMENT_NOT_FOUND", "Không tìm thấy tài liệu"));
+
+        if (document.getStatus() != DocumentStatus.PENDING && document.getStatus() != DocumentStatus.REVISION_REQUIRED) {
+            throw new BusinessException(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_STATUS_TRANSITION", "Chỉ có thể phê duyệt tài liệu đang chờ kiểm duyệt");
+        }
 
         User admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Không tìm thấy quản trị viên"));
@@ -436,12 +519,17 @@ public class DocumentService {
         Document document = documentRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "DOCUMENT_NOT_FOUND", "Không tìm thấy tài liệu"));
 
+        if (document.getStatus() != DocumentStatus.PENDING && document.getStatus() != DocumentStatus.REVISION_REQUIRED) {
+            throw new BusinessException(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_STATUS_TRANSITION", "Chỉ có thể từ chối tài liệu đang chờ kiểm duyệt");
+        }
+
         User admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Không tìm thấy quản trị viên"));
 
         DocumentStatus oldStatus = document.getStatus();
         document.setStatus(DocumentStatus.REJECTED);
         document.setRejectionNote(note);
+        document.setRevisionNote(note);
         Document saved = documentRepository.save(document);
 
         DocumentReview review = new DocumentReview();
@@ -460,12 +548,17 @@ public class DocumentService {
         Document document = documentRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "DOCUMENT_NOT_FOUND", "Không tìm thấy tài liệu"));
 
+        if (document.getStatus() != DocumentStatus.PENDING) {
+            throw new BusinessException(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_STATUS_TRANSITION", "Chỉ có thể yêu cầu chỉnh sửa tài liệu đang chờ kiểm duyệt");
+        }
+
         User admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Không tìm thấy quản trị viên"));
 
         DocumentStatus oldStatus = document.getStatus();
         document.setStatus(DocumentStatus.REVISION_REQUIRED);
         document.setRejectionNote(note);
+        document.setRevisionNote(note);
         Document saved = documentRepository.save(document);
 
         DocumentReview review = new DocumentReview();
@@ -554,6 +647,10 @@ public class DocumentService {
         dto.setRatingCount(doc.getRatingCount());
         dto.setPrimaryFileMimeType(primaryMime);
         dto.setBookmarked(isBookmarked);
+        dto.setSharingScope(doc.getSharingScope());
+        dto.setPledgeAccepted(doc.getPledgeAccepted());
+        dto.setRejectionNote(doc.getRejectionNote());
+        dto.setRevisionNote(doc.getRevisionNote());
         dto.setCreatedAt(doc.getCreatedAt());
         dto.setApprovedAt(doc.getApprovedAt());
         return dto;
@@ -617,6 +714,8 @@ public class DocumentService {
         dto.setStatus(doc.getStatus());
         dto.setDocumentTypeCode(doc.getDocumentTypeCode());
         dto.setDocumentTypeLabel(summary.getDocumentTypeLabel());
+        dto.setSharingScope(doc.getSharingScope());
+        dto.setPledgeAccepted(doc.getPledgeAccepted());
         dto.setSubjectId(summary.getSubjectId());
         dto.setSubjectName(summary.getSubjectName());
         dto.setMajorId(doc.getMajor() != null ? doc.getMajor().getId() : null);
@@ -635,6 +734,7 @@ public class DocumentService {
         dto.setBookmarked(summary.getBookmarked());
         dto.setUserRating(userRating);
         dto.setRejectionNote(doc.getRejectionNote());
+        dto.setRevisionNote(doc.getRevisionNote());
         dto.setCreatedAt(doc.getCreatedAt());
         dto.setApprovedAt(doc.getApprovedAt());
         dto.setUpdatedAt(doc.getUpdatedAt());
@@ -644,13 +744,17 @@ public class DocumentService {
         return dto;
     }
 
-    private String getDocumentTypeLabel(String code) {
-        if ("THESIS".equalsIgnoreCase(code)) return "Đồ án Tốt nghiệp (KLTN)";
-        if ("CAPSTONE".equalsIgnoreCase(code)) return "Đồ án Chuyên ngành";
-        if ("PROJECT".equalsIgnoreCase(code)) return "Bài tập lớn (BTL)";
-        if ("LECTURE".equalsIgnoreCase(code)) return "Bài giảng / Slide";
-        if ("EXAM".equalsIgnoreCase(code)) return "Đề thi & Lời giải";
-        if ("LAB".equalsIgnoreCase(code)) return "Tài liệu Thực hành Lab";
-        return code;
+    public String getDocumentTypeLabel(String code) {
+        if (code == null) return "Tài liệu học thuật";
+        return switch (code.toUpperCase()) {
+            case "THESIS" -> "Khóa luận tốt nghiệp";
+            case "CAPSTONE" -> "Đồ án chuyên ngành";
+            case "PROJECT" -> "Bài tập lớn";
+            case "LECTURE", "SLIDE" -> "Bài giảng / Slide";
+            case "EXAM" -> "Đề thi & Lời giải";
+            case "EXERCISE" -> "Bài tập & Thực hành";
+            case "LAB" -> "Tài liệu Thực hành Lab";
+            default -> code;
+        };
     }
 }

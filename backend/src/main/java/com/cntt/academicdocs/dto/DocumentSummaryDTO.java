@@ -1,6 +1,7 @@
 package com.cntt.academicdocs.dto;
 
 import com.cntt.academicdocs.domain.DocumentStatus;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +12,8 @@ public class DocumentSummaryDTO {
     private DocumentStatus status;
     private String documentTypeCode;
     private String documentTypeLabel;
+    private String sharingScope = "FACULTY_INTERNAL";
+    private Boolean pledgeAccepted = true;
     private Long subjectId;
     private String subjectName;
     private Long academicYearId;
@@ -24,6 +27,8 @@ public class DocumentSummaryDTO {
     private Integer ratingCount = 0;
     private String primaryFileMimeType;
     private Boolean bookmarked = false;
+    private String rejectionNote;
+    private String revisionNote;
     private LocalDateTime createdAt;
     private LocalDateTime approvedAt;
 
@@ -83,8 +88,26 @@ public class DocumentSummaryDTO {
     public String getPrimaryFileMimeType() { return primaryFileMimeType; }
     public void setPrimaryFileMimeType(String primaryFileMimeType) { this.primaryFileMimeType = primaryFileMimeType; }
 
+    public String getSharingScope() { return sharingScope; }
+    public void setSharingScope(String sharingScope) { this.sharingScope = sharingScope; }
+
+    public Boolean getPledgeAccepted() { return pledgeAccepted; }
+    public void setPledgeAccepted(Boolean pledgeAccepted) { this.pledgeAccepted = pledgeAccepted; }
+
     public Boolean getBookmarked() { return bookmarked; }
     public void setBookmarked(Boolean bookmarked) { this.bookmarked = bookmarked; }
+
+    @JsonProperty("isBookmarked")
+    public Boolean getIsBookmarked() { return bookmarked; }
+
+    @JsonProperty("isBookmarked")
+    public void setIsBookmarked(Boolean isBookmarked) { this.bookmarked = isBookmarked; }
+
+    public String getRejectionNote() { return rejectionNote; }
+    public void setRejectionNote(String rejectionNote) { this.rejectionNote = rejectionNote; }
+
+    public String getRevisionNote() { return revisionNote; }
+    public void setRevisionNote(String revisionNote) { this.revisionNote = revisionNote; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

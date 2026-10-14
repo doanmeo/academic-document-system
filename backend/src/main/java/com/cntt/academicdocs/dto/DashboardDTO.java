@@ -9,10 +9,12 @@ public class DashboardDTO {
     private Long totalDocuments = 0L;
     private Map<String, Long> documentsByStatus = new HashMap<>();
     private Long totalUsers = 0L;
+    private Long totalDownloads = 0L;
     private Long pendingDocuments = 0L;
     private Long totalReports = 0L;
     private Long pendingReports = 0L;
     private List<DocumentSummaryDTO> topDocuments = new ArrayList<>();
+    private List<DocumentSummaryDTO> topViewed = new ArrayList<>();
     private List<DocumentSummaryDTO> recentDocuments = new ArrayList<>();
 
     public DashboardDTO() {}
@@ -29,6 +31,9 @@ public class DashboardDTO {
     public Long getTotalUsers() { return totalUsers; }
     public void setTotalUsers(Long totalUsers) { this.totalUsers = totalUsers; }
 
+    public Long getTotalDownloads() { return totalDownloads; }
+    public void setTotalDownloads(Long totalDownloads) { this.totalDownloads = totalDownloads; }
+
     public Long getTotalReports() { return totalReports; }
     public void setTotalReports(Long totalReports) { this.totalReports = totalReports; }
 
@@ -37,6 +42,9 @@ public class DashboardDTO {
 
     public List<DocumentSummaryDTO> getTopDocuments() { return topDocuments; }
     public void setTopDocuments(List<DocumentSummaryDTO> topDocuments) { this.topDocuments = topDocuments; }
+
+    public List<DocumentSummaryDTO> getTopViewed() { return topViewed; }
+    public void setTopViewed(List<DocumentSummaryDTO> topViewed) { this.topViewed = topViewed; }
 
     public List<DocumentSummaryDTO> getRecentDocuments() { return recentDocuments; }
     public void setRecentDocuments(List<DocumentSummaryDTO> recentDocuments) { this.recentDocuments = recentDocuments; }

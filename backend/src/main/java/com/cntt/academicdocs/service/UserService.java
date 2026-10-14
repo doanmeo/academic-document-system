@@ -28,6 +28,13 @@ public class UserService {
         this.majorRepository = majorRepository;
     }
 
+    @Transactional(readOnly = true)
+    public UserDTO getUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Không tìm thấy người dùng"));
+        return toDTO(user);
+    }
+
     @Transactional
     public UserDTO updateProfile(Long userId, UpdateUserRequest req) {
         User user = userRepository.findById(userId)

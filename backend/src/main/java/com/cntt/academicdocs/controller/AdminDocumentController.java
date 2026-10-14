@@ -66,7 +66,7 @@ public class AdminDocumentController {
     ) {
         Long adminId = SecurityUtils.getCurrentUserId();
         if (adminId == null) throw new BusinessException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Yêu cầu đăng nhập");
-        String note = body != null ? (body.get("reason") != null ? body.get("reason") : body.get("note")) : null;
+        String note = extractNote(body);
         DocumentDetailDTO doc = documentService.approveDocument(id, adminId, note);
         return ResponseEntity.ok(ApiResponse.success(doc, "Phê duyệt tài liệu thành công"));
     }
@@ -75,11 +75,11 @@ public class AdminDocumentController {
     @Operation(summary = "Hội đồng từ chối tài liệu kèm lý do")
     public ResponseEntity<ApiResponse<DocumentDetailDTO>> reject(
             @PathVariable Long id,
-            @RequestBody Map<String, String> body
+            @RequestBody(required = false) Map<String, String> body
     ) {
         Long adminId = SecurityUtils.getCurrentUserId();
         if (adminId == null) throw new BusinessException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Yêu cầu đăng nhập");
-        String note = body != null ? (body.get("reason") != null ? body.get("reason") : body.get("note")) : null;
+        String note = extractNote(body);
         DocumentDetailDTO doc = documentService.rejectDocument(id, adminId, note);
         return ResponseEntity.ok(ApiResponse.success(doc, "Từ chối tài liệu thành công"));
     }
@@ -92,7 +92,7 @@ public class AdminDocumentController {
     ) {
         Long adminId = SecurityUtils.getCurrentUserId();
         if (adminId == null) throw new BusinessException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Yêu cầu đăng nhập");
-        String note = body != null ? (body.get("reason") != null ? body.get("reason") : body.get("note")) : null;
+        String note = extractNote(body);
         DocumentDetailDTO doc = documentService.requestRevision(id, adminId, note);
         return ResponseEntity.ok(ApiResponse.success(doc, "Đã gửi yêu cầu chỉnh sửa"));
     }
@@ -105,9 +105,23 @@ public class AdminDocumentController {
     ) {
         Long adminId = SecurityUtils.getCurrentUserId();
         if (adminId == null) throw new BusinessException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Yêu cầu đăng nhập");
-        String note = body != null ? (body.get("reason") != null ? body.get("reason") : body.get("note")) : null;
+        String note = extractNote(body);
         DocumentDetailDTO doc = documentService.hideDocument(id, adminId, note);
         return ResponseEntity.ok(ApiResponse.success(doc, "Đã tạm ẩn tài liệu khỏi hệ thống"));
+    }
+
+    private String extractNote(Map<String, String> body) {
+        if (body == null) return null;
+        if (body.get("comment") != null && !body.get("comment").isBlank()) {
+            return body.get("comment").trim();
+        }
+        if (body.get("reason") != null && !body.get("reason").isBlank()) {
+            return body.get("reason").trim();
+        }
+        if (body.get("note") != null && !body.get("note").isBlank()) {
+            return body.get("note").trim();
+        }
+        return null;
     }
 
     @GetMapping("/{id}/reviews")

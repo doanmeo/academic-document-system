@@ -3,12 +3,12 @@ package com.cntt.academicdocs.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
     private boolean success;
     private String message;
     private T data;
     private List<ApiError> errors;
+    private String timestamp = java.time.Instant.now().toString();
 
     public ApiResponse() {}
 
@@ -17,6 +17,7 @@ public class ApiResponse<T> {
         this.message = message;
         this.data = data;
         this.errors = errors;
+        this.timestamp = java.time.Instant.now().toString();
     }
 
     public static <T> ApiResponse<T> success(T data) {
@@ -79,6 +80,15 @@ public class ApiResponse<T> {
         this.errors = errors;
     }
 
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class ApiError {
         private String field;
         private String code;

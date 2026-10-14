@@ -34,6 +34,15 @@ public class UserController {
         this.reportService = reportService;
     }
 
+    @GetMapping("/me")
+    @Operation(summary = "Lấy thông tin hồ sơ cá nhân")
+    public ResponseEntity<ApiResponse<UserDTO>> getProfile() {
+        Long userId = SecurityUtils.getCurrentUserId();
+        if (userId == null) throw new BusinessException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Yêu cầu đăng nhập");
+        UserDTO dto = userService.getUserById(userId);
+        return ResponseEntity.ok(ApiResponse.success(dto));
+    }
+
     @PutMapping("/me")
     @Operation(summary = "Cập nhật thông tin hồ sơ cá nhân")
     public ResponseEntity<ApiResponse<UserDTO>> updateProfile(@RequestBody UpdateUserRequest request) {

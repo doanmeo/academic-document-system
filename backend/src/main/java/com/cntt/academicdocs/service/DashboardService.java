@@ -61,14 +61,18 @@ public class DashboardService {
                 .map(d -> documentService.toSummaryDTO(d, null))
                 .collect(Collectors.toList());
 
+        long totalDownloads = documentRepository.sumDownloadCount();
+
         DashboardDTO dto = new DashboardDTO();
         dto.setTotalDocuments(totalDocs);
         dto.setDocumentsByStatus(statusMap);
         dto.setTotalUsers(totalUsers);
+        dto.setTotalDownloads(totalDownloads);
         dto.setPendingDocuments(pendingDocs);
         dto.setTotalReports(totalReports);
         dto.setPendingReports(pendingReports);
         dto.setTopDocuments(topDTOs);
+        dto.setTopViewed(topDTOs);
         dto.setRecentDocuments(recentDTOs);
         return dto;
     }

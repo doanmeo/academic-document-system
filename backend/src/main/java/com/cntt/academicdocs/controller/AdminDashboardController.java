@@ -23,7 +23,7 @@ public class AdminDashboardController {
         this.dashboardService = dashboardService;
     }
 
-    @GetMapping
+    @GetMapping({"", "/stats"})
     @Operation(summary = "Lấy dữ liệu thống kê bảng điều khiển quản trị")
     public ResponseEntity<ApiResponse<DashboardDTO>> getDashboard() {
         DashboardDTO stats = dashboardService.getDashboardStats();

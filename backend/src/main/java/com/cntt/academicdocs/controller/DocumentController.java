@@ -27,17 +27,20 @@ public class DocumentController {
     private final BookmarkService bookmarkService;
     private final RatingService ratingService;
     private final ReportService reportService;
+    private final com.cntt.academicdocs.service.CitationService citationService;
 
     public DocumentController(
             DocumentService documentService,
             BookmarkService bookmarkService,
             RatingService ratingService,
-            ReportService reportService
+            ReportService reportService,
+            com.cntt.academicdocs.service.CitationService citationService
     ) {
         this.documentService = documentService;
         this.bookmarkService = bookmarkService;
         this.ratingService = ratingService;
         this.reportService = reportService;
+        this.citationService = citationService;
     }
 
     @PostMapping
@@ -70,6 +73,19 @@ public class DocumentController {
         if (userId == null) throw new BusinessException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Yêu cầu đăng nhập");
         DocumentDetailDTO doc = documentService.submitDocument(id, userId);
         return ResponseEntity.ok(ApiResponse.success(doc, "Đã gửi tài liệu phê duyệt thành công"));
+    }
+
+    @PutMapping("/{id}/resubmit")
+    @Operation(summary = "Nộp lại tài liệu sau khi chỉnh sửa kèm revisionNote")
+    public ResponseEntity<ApiResponse<DocumentDetailDTO>> resubmitDocument(
+            @PathVariable Long id,
+            @RequestBody(required = false) java.util.Map<String, String> body
+    ) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        if (userId == null) throw new BusinessException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Yêu cầu đăng nhập");
+        String note = body != null ? (body.get("revisionNote") != null ? body.get("revisionNote") : body.get("comment")) : null;
+        DocumentDetailDTO doc = documentService.resubmitDocument(id, userId, note);
+        return ResponseEntity.ok(ApiResponse.success(doc, "Nộp lại tài liệu thành công"));
     }
 
     @GetMapping("/my")
@@ -110,12 +126,38 @@ public class DocumentController {
         Sort sortObj = Sort.by(Sort.Direction.DESC, "createdAt");
         if (sortBy != null && !sortBy.isBlank()) {
             Sort.Direction direction = "asc".equalsIgnoreCase(sortDir) ? Sort.Direction.ASC : Sort.Direction.DESC;
-            sortObj = Sort.by(direction, sortBy.trim());
+            String lower = sortBy.trim().toLowerCase();
+            String sortField = switch (lower) {
+                case "newest" -> "createdAt";
+                case "views", "viewcount" -> "viewCount";
+                case "downloads", "downloadcount" -> "downloadCount";
+                case "rating", "avgrating" -> "avgRating";
+                case "title" -> "title";
+                default -> sortBy.trim();
+            };
+            sortObj = Sort.by(direction, sortField);
         } else if (sort != null && sort.contains(",")) {
             String[] parts = sort.split(",");
-            sortObj = Sort.by(parts[1].equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, parts[0].trim());
+            String rawField = parts[0].trim();
+            String lower = rawField.toLowerCase();
+            String sortField = switch (lower) {
+                case "newest" -> "createdAt";
+                case "views", "viewcount" -> "viewCount";
+                case "downloads", "downloadcount" -> "downloadCount";
+                case "rating", "avgrating" -> "avgRating";
+                default -> rawField;
+            };
+            sortObj = Sort.by(parts[1].equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
         } else if (sort != null && !sort.isBlank()) {
-            sortObj = Sort.by(Sort.Direction.DESC, sort.trim());
+            String lower = sort.trim().toLowerCase();
+            String sortField = switch (lower) {
+                case "newest" -> "createdAt";
+                case "views", "viewcount" -> "viewCount";
+                case "downloads", "downloadcount" -> "downloadCount";
+                case "rating", "avgrating" -> "avgRating";
+                default -> sort.trim();
+            };
+            sortObj = Sort.by(Sort.Direction.DESC, sortField);
         }
 
         String resolvedType = (documentTypeCode != null && !documentTypeCode.isBlank()) ? documentTypeCode : type;
@@ -141,6 +183,16 @@ public class DocumentController {
         String currentRole = SecurityUtils.getCurrentRole();
         DocumentDetailDTO doc = documentService.getDocumentById(id, currentUserId, currentRole);
         return ResponseEntity.ok(ApiResponse.success(doc));
+    }
+
+    @GetMapping("/{id}/citation")
+    @Operation(summary = "Tạo trích dẫn tài liệu theo chuẩn APA, IEEE, BibTeX")
+    public ResponseEntity<ApiResponse<CitationResponseDTO>> getCitation(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "IEEE") String format
+    ) {
+        CitationResponseDTO citation = citationService.generateCitation(id, format);
+        return ResponseEntity.ok(ApiResponse.success(citation));
     }
 
     @DeleteMapping("/{id}")

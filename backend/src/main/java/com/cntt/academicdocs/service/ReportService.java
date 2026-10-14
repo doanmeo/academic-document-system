@@ -59,7 +59,8 @@ public class ReportService {
         report.setDocument(document);
         report.setReporter(reporter);
         report.setReasonCode(req.getReasonCode());
-        report.setDescription(req.getDescription());
+        String desc = req.getDescription();
+        report.setDescription(desc != null && !desc.isBlank() ? desc.trim() : "Báo cáo vi phạm tài liệu");
         report.setStatus("PENDING");
 
         Report saved = reportRepository.save(report);
