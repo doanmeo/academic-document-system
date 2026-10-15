@@ -11,6 +11,9 @@ import Profile from './pages/Profile'
 import MyDocuments from './pages/MyDocuments'
 import Bookmarks from './pages/Bookmarks'
 import MyReports from './pages/MyReports'
+import ExamBank from './pages/ExamBank'
+import TemplateCenter from './pages/TemplateCenter'
+import Collections from './pages/Collections'
 
 // Admin pages — sẽ được uncomment sau khi Phase 6 hoàn thành
 import AdminLayout from './pages/admin/AdminLayout'
@@ -28,6 +31,9 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/" element={<Search />} />
       <Route path="/search" element={<Search />} />
+      <Route path="/exams" element={<ExamBank />} />
+      <Route path="/templates" element={<TemplateCenter />} />
+      <Route path="/collections/public/:shareToken" element={<Collections />} />
 
       {/* Chi tiết tài liệu — public với tài liệu APPROVED */}
       <Route path="/documents/:id" element={<DocumentDetail />} />
@@ -35,6 +41,7 @@ function App() {
       {/* ─── Protected — Sinh viên ───────────────────────────────────────── */}
       <Route element={<ProtectedRoute />}>
         <Route path="/profile" element={<Profile />} />
+        <Route path="/collections" element={<Collections />} />
         <Route path="/documents/upload" element={<UploadDocument />} />
         <Route path="/documents/:id/edit" element={<EditDocument />} />
         <Route path="/me/documents" element={<MyDocuments />} />

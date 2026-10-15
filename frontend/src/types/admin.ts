@@ -13,6 +13,7 @@ export interface DashboardStats {
   documentsByStatus: Record<string, number>
   topDocuments: DocumentSummary[]
   recentDocuments: DocumentSummary[]
+  recentSubmissions?: DocumentSummary[]
   documentsBySubject?: Record<string, number>
   documentsByMajor?: Record<string, number>
   documentsByType?: Record<string, number>

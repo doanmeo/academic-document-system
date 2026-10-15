@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getMyDocuments, deleteDocument, submitDocument } from '../api/documentApi';
-import { DocumentSummary, DocumentStatus, PageResponse } from '../types/document';
+import { userApi } from '../api/userApi';
+import { DocumentSummary, DocumentStatus, PageResponse, UserStats } from '../types/document';
 import { getErrorMessage } from '../utils/errorMessages';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -10,6 +11,7 @@ import Pagination from '../components/ui/Pagination';
 import EmptyState from '../components/ui/EmptyState';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
+import { Award, Eye, Download, Star, Bookmark, BookOpen } from 'lucide-react';
 
 const STATUS_CONFIG: Record<DocumentStatus, { label: string; badgeClass: string; icon: string }> = {
   APPROVED: { label: 'Đã duyệt', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200', icon: 'verified' },
@@ -27,6 +29,7 @@ export default function MyDocuments() {
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(0);
   const [data, setData] = useState<PageResponse<DocumentSummary> | null>(null);
+  const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const navigate = useNavigate();
@@ -46,6 +49,14 @@ export default function MyDocuments() {
   useEffect(() => {
     fetchDocuments();
   }, [page, status, keyword]);
+
+  // Load User Contribution Stats (F5)
+  useEffect(() => {
+    userApi
+      .getMyStats()
+      .then((res) => setStats(res))
+      .catch((err) => console.error('Failed to load user stats', err));
+  }, []);
 
   const handleDelete = async (id: number) => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa tài liệu này?')) return;
@@ -120,43 +131,82 @@ export default function MyDocuments() {
                 </p>
               </div>
 
-              {/* Contribution Telemetry */}
+              {/* Contribution Telemetry (F5: Real User Contribution Stats) */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-label-code text-caption uppercase tracking-wider font-bold text-on-surface">
                     Đóng góp học thuật
                   </span>
-                  <span className="px-2 py-0.5 bg-secondary text-on-secondary font-bold text-[11px] rounded">
-                    TOP 5%
+                  <span className="px-2 py-0.5 bg-blue-100 text-blue-800 font-bold text-[10px] rounded uppercase tracking-wider">
+                    {stats?.contributorRank || 'THÀNH VIÊN TÍCH CỰC'}
                   </span>
                 </div>
+
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="bg-surface-container-low p-2.5 rounded-lg text-center">
-                    <span className="block font-headline-sm font-bold text-primary">
-                      {data ? data.totalElements : 0}
+                  <div className="bg-surface-container-low p-2 rounded-lg text-center" title="Số tài liệu đã được duyệt">
+                    <span className="block font-headline-sm font-bold text-emerald-700">
+                      {stats ? stats.totalApproved : (data ? data.totalElements : 0)}
                     </span>
-                    <span className="font-caption text-[11px] text-on-surface-variant">Tài liệu</span>
+                    <span className="font-caption text-[10px] text-on-surface-variant flex items-center justify-center gap-0.5">
+                      <BookOpen className="w-2.5 h-2.5" /> Đã duyệt
+                    </span>
                   </div>
-                  <div className="bg-surface-container-low p-2.5 rounded-lg text-center">
-                    <span className="block font-headline-sm font-bold text-on-surface">2.4k</span>
-                    <span className="font-caption text-[11px] text-on-surface-variant">Lượt xem</span>
+                  <div className="bg-surface-container-low p-2 rounded-lg text-center" title="Tổng lượt xem tài liệu">
+                    <span className="block font-headline-sm font-bold text-on-surface">
+                      {stats?.totalViews ?? 0}
+                    </span>
+                    <span className="font-caption text-[10px] text-on-surface-variant flex items-center justify-center gap-0.5">
+                      <Eye className="w-2.5 h-2.5" /> Lượt xem
+                    </span>
                   </div>
-                  <div className="bg-surface-container-low p-2.5 rounded-lg text-center">
-                    <span className="block font-headline-sm font-bold text-secondary">950</span>
-                    <span className="font-caption text-[11px] text-on-surface-variant">Điểm EXP</span>
+                  <div className="bg-surface-container-low p-2 rounded-lg text-center" title="Tổng lượt tải tài liệu">
+                    <span className="block font-headline-sm font-bold text-indigo-600">
+                      {stats?.totalDownloads ?? 0}
+                    </span>
+                    <span className="font-caption text-[10px] text-on-surface-variant flex items-center justify-center gap-0.5">
+                      <Download className="w-2.5 h-2.5" /> Lượt tải
+                    </span>
                   </div>
                 </div>
 
-                {/* Progress Bar */}
-                <div className="bg-surface-container-low p-3 rounded-lg">
-                  <div className="flex justify-between text-caption text-on-surface-variant mb-1 font-semibold">
-                    <span>HẠNG HỌC HỘI // CẤP BẬC V</span>
-                    <span className="text-primary font-bold">950 / 1000 EXP</span>
+                {/* Sub-telemetry: Rating & Top Subject */}
+                <div className="bg-surface-container-low p-2.5 rounded-lg text-xs space-y-1 border border-surface-container">
+                  <div className="flex justify-between items-center text-slate-600">
+                    <span className="flex items-center gap-1 text-[11px]">
+                      <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> Đánh giá TB:
+                    </span>
+                    <span className="font-bold text-slate-800">{stats?.avgRating ? stats.avgRating.toFixed(1) : '5.0'} / 5.0</span>
                   </div>
-                  <div className="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
-                    <div className="h-full bg-primary" style={{ width: '95%' }}></div>
+                  <div className="flex justify-between items-center text-slate-600">
+                    <span className="flex items-center gap-1 text-[11px]">
+                      <Bookmark className="w-3.5 h-3.5 text-blue-500" /> Đã lưu trữ:
+                    </span>
+                    <span className="font-bold text-slate-800">{stats?.totalBookmarks ?? 0}</span>
                   </div>
+                  {stats?.topSubject && (
+                    <div className="pt-1 border-t border-slate-200 text-[11px] text-slate-600">
+                      Môn đóng góp nhiều nhất: <span className="font-bold text-slate-800">{stats.topSubject}</span>
+                    </div>
+                  )}
                 </div>
+
+                {/* Badges / Huy hiệu Khoa CNTT */}
+                {stats?.badges && stats.badges.length > 0 && (
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Huy hiệu đạt được</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {stats.badges.map((b, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-md text-[10px] font-bold"
+                        >
+                          <Award className="w-3 h-3 text-amber-600" />
+                          {b}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Security info */}

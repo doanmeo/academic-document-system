@@ -37,10 +37,18 @@ public class CreateDocumentRequest {
 
     private String sharingScope;
     private Boolean pledgeAccepted;
+    private String targetYear;
     private List<Long> fileIds;
 
     private List<Long> technologyIds;
     private List<String> memberStudentCodes;
+
+    private String codeLanguage;
+    private String sourceCodeSnippet;
+    private String examDifficulty;
+    private String examSemester;
+    private String examTips;
+    private Boolean hasSolution;
 
     public CreateDocumentRequest() {}
 
@@ -80,6 +88,9 @@ public class CreateDocumentRequest {
     public Boolean getPledgeAccepted() { return pledgeAccepted; }
     public void setPledgeAccepted(Boolean pledgeAccepted) { this.pledgeAccepted = pledgeAccepted; }
 
+    public String getTargetYear() { return targetYear; }
+    public void setTargetYear(String targetYear) { this.targetYear = targetYear; }
+
     public List<Long> getFileIds() { return fileIds; }
     public void setFileIds(List<Long> fileIds) { this.fileIds = fileIds; }
 
@@ -88,4 +99,22 @@ public class CreateDocumentRequest {
 
     public List<String> getMemberStudentCodes() { return memberStudentCodes; }
     public void setMemberStudentCodes(List<String> memberStudentCodes) { this.memberStudentCodes = memberStudentCodes; }
+
+    public String getCodeLanguage() { return codeLanguage; }
+    public void setCodeLanguage(String codeLanguage) { this.codeLanguage = codeLanguage; }
+
+    public String getSourceCodeSnippet() { return sourceCodeSnippet; }
+    public void setSourceCodeSnippet(String sourceCodeSnippet) { this.sourceCodeSnippet = sourceCodeSnippet; }
+
+    public String getExamDifficulty() { return examDifficulty; }
+    public void setExamDifficulty(String examDifficulty) { this.examDifficulty = examDifficulty; }
+
+    public String getExamSemester() { return examSemester; }
+    public void setExamSemester(String examSemester) { this.examSemester = examSemester; }
+
+    public String getExamTips() { return examTips; }
+    public void setExamTips(String examTips) { this.examTips = examTips; }
+
+    public Boolean getHasSolution() { return hasSolution; }
+    public void setHasSolution(Boolean hasSolution) { this.hasSolution = hasSolution; }
 }

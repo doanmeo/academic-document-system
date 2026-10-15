@@ -28,19 +28,22 @@ public class DocumentController {
     private final RatingService ratingService;
     private final ReportService reportService;
     private final com.cntt.academicdocs.service.CitationService citationService;
+    private final com.cntt.academicdocs.service.GeminiService geminiService;
 
     public DocumentController(
             DocumentService documentService,
             BookmarkService bookmarkService,
             RatingService ratingService,
             ReportService reportService,
-            com.cntt.academicdocs.service.CitationService citationService
+            com.cntt.academicdocs.service.CitationService citationService,
+            com.cntt.academicdocs.service.GeminiService geminiService
     ) {
         this.documentService = documentService;
         this.bookmarkService = bookmarkService;
         this.ratingService = ratingService;
         this.reportService = reportService;
         this.citationService = citationService;
+        this.geminiService = geminiService;
     }
 
     @PostMapping
@@ -113,6 +116,7 @@ public class DocumentController {
             @RequestParam(required = false) String documentTypeCode,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String advisorName,
+            @RequestParam(required = false) String targetYear,
             @RequestParam(required = false) Long technologyId,
             @RequestParam(required = false) DocumentStatus status,
             @RequestParam(defaultValue = "0") int page,
@@ -170,6 +174,7 @@ public class DocumentController {
                 .academicYearId(academicYearId)
                 .documentTypeCode(resolvedType)
                 .advisorName(advisorName)
+                .targetYear(targetYear)
                 .technologyId(technologyId)
                 .status(status)
                 .build();
@@ -297,5 +302,48 @@ public class DocumentController {
         if (userId == null) throw new BusinessException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Yêu cầu đăng nhập");
         ReportDTO report = reportService.createReport(id, userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(report, "Đã gửi báo cáo vi phạm thành công"));
+    }
+
+    // --- F1: Coverage Heatmap ---
+
+    @GetMapping("/coverage-matrix")
+    @Operation(summary = "Lấy ma trận độ phủ học liệu (Coverage Heatmap) theo Môn học và Loại tài liệu")
+    public ResponseEntity<ApiResponse<CoverageMatrixDTO>> getCoverageMatrix() {
+        CoverageMatrixDTO matrix = documentService.getCoverageMatrix();
+        return ResponseEntity.ok(ApiResponse.success(matrix));
+    }
+
+    // --- F4: AI-Assisted Abstract Generator (Gemini) ---
+
+    @PostMapping("/generate-abstract")
+    @Operation(summary = "Trợ lý AI Gemini gợi ý tóm tắt học thuật tự động cho tài liệu")
+    public ResponseEntity<ApiResponse<java.util.Map<String, String>>> generateAbstract(
+            @Valid @RequestBody GenerateAbstractRequest request
+    ) {
+        String generated = geminiService.generateAcademicAbstract(request);
+        return ResponseEntity.ok(ApiResponse.success(java.util.Map.of("abstractText", generated)));
+    }
+
+    // --- U4: Lịch sử thẩm định (Review Timeline) cho Chủ tài liệu & Quản trị viên ---
+
+    @GetMapping("/{id}/reviews")
+    @Operation(summary = "Xem tiến trình và lịch sử thẩm định của tài liệu")
+    public ResponseEntity<ApiResponse<java.util.List<DocumentReviewDTO>>> getDocumentReviews(
+            @PathVariable Long id
+    ) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        String currentRole = SecurityUtils.getCurrentRole();
+
+        // Check permission: Owner or Admin or document is approved
+        DocumentDetailDTO doc = documentService.getDocumentById(id, currentUserId, currentRole);
+        boolean isOwner = currentUserId != null && currentUserId.equals(doc.getUploaderId());
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(currentRole);
+
+        if (!isOwner && !isAdmin) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bạn không có quyền xem lịch sử thẩm định của tài liệu này");
+        }
+
+        java.util.List<DocumentReviewDTO> reviews = documentService.getDocumentReviews(id);
+        return ResponseEntity.ok(ApiResponse.success(reviews));
     }
 }

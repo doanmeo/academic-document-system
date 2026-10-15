@@ -52,6 +52,15 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(dto, "Cập nhật hồ sơ thành công"));
     }
 
+    @GetMapping("/me/stats")
+    @Operation(summary = "Lấy thống kê đóng góp cá nhân (Personal Contribution Dashboard)")
+    public ResponseEntity<ApiResponse<com.cntt.academicdocs.dto.UserStatsDTO>> getMyStats() {
+        Long userId = SecurityUtils.getCurrentUserId();
+        if (userId == null) throw new BusinessException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Yêu cầu đăng nhập");
+        com.cntt.academicdocs.dto.UserStatsDTO stats = userService.getUserStats(userId);
+        return ResponseEntity.ok(ApiResponse.success(stats));
+    }
+
     @GetMapping("/me/bookmarks")
     @Operation(summary = "Danh sách tài liệu đã lưu của người dùng")
     public ResponseEntity<ApiResponse<PageResponse<DocumentSummaryDTO>>> getMyBookmarks(

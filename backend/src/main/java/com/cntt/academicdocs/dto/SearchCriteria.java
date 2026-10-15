@@ -11,6 +11,7 @@ public class SearchCriteria {
     private Long technologyId;
     private DocumentStatus status;
     private String advisorName;
+    private String targetYear;
 
     public SearchCriteria() {}
 
@@ -61,6 +62,11 @@ public class SearchCriteria {
             return this;
         }
 
+        public Builder targetYear(String targetYear) {
+            criteria.targetYear = targetYear;
+            return this;
+        }
+
         public SearchCriteria build() {
             return criteria;
         }
@@ -89,4 +95,7 @@ public class SearchCriteria {
 
     public String getAdvisorName() { return advisorName; }
     public void setAdvisorName(String advisorName) { this.advisorName = advisorName; }
+
+    public String getTargetYear() { return targetYear; }
+    public void setTargetYear(String targetYear) { this.targetYear = targetYear; }
 }

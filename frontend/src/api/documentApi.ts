@@ -300,6 +300,37 @@ export const compareTopics = async (
   return unwrap(res)
 }
 
+/**
+ * GET /documents/coverage-matrix
+ * Lấy ma trận độ phủ học liệu (F1: Môn học x Thể loại)
+ */
+export const getCoverageMatrix = async (): Promise<import('../types/document').CoverageMatrix> => {
+  const res = await api.get('/documents/coverage-matrix')
+  return unwrap(res)
+}
+
+/**
+ * POST /documents/generate-abstract
+ * AI hỗ trợ sinh tóm tắt đề tài học thuật (F4: Gemini AI / Rule-based)
+ */
+export const generateAbstract = async (
+  payload: import('../types/document').GenerateAbstractRequest
+): Promise<import('../types/document').GenerateAbstractResponse> => {
+  const res = await api.post('/documents/generate-abstract', payload)
+  return unwrap(res)
+}
+
+/**
+ * GET /documents/:id/reviews
+ * Lấy lịch sử thẩm định (Review Timeline) của tài liệu (U4)
+ */
+export const getDocumentReviews = async (
+  id: number
+): Promise<import('../types/document').DocumentReviewHistory[]> => {
+  const res = await api.get(`/documents/${id}/reviews`)
+  return unwrap(res)
+}
+
 // Named object export để tương thích với các component gọi documentApi.method()
 export const documentApi = {
   search: searchDocuments,
@@ -312,6 +343,9 @@ export const documentApi = {
   checkSimilarity,
   getCourseHub,
   compareTopics,
+  getCoverageMatrix,
+  generateAbstract,
+  getDocumentReviews,
   create: createDocument,
   createDocument,
   update: updateDocument,
@@ -334,3 +368,4 @@ export const documentApi = {
   report: reportDocument,
   reportDocument,
 }
+

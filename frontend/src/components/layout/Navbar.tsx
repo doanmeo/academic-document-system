@@ -1,174 +1,250 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState, useRef, useEffect } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import {
+  GraduationCap,
+  Search,
+  BookOpen,
+  FileCheck,
+  FolderArchive,
+  Upload,
+  Sun,
+  Moon,
+  ChevronDown,
+  User as UserIcon,
+  LogOut,
+  Shield,
+  FileText,
+  Bookmark,
+} from 'lucide-react'
+import { useAuth } from '../../contexts/AuthContext'
+import { useTheme } from '../../contexts/ThemeContext'
+import NotificationBell from '../NotificationBell'
 
 export default function Navbar() {
-  const { user, isAuthenticated, logout } = useAuth();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const location = useLocation();
+  const { user, isAuthenticated, logout } = useAuth()
+  const { theme, toggleTheme } = useTheme()
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const location = useLocation()
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setDropdownOpen(false);
+        setDropdownOpen(false)
       }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const isActive = (path: string) => {
     if (path === '/') {
       return (
         (location.pathname === '/' || location.pathname === '/search') &&
         !location.search.includes('tab=hub') &&
-        !location.search.includes('tab=novelty')
-      );
+        !location.search.includes('tab=novelty') &&
+        !location.search.includes('tab=heatmap')
+      )
     }
-    return location.pathname.startsWith(path);
-  };
+    return location.pathname === path
+  }
 
-  const navLinkClass = (path: string) =>
-    `px-space-md py-space-xs rounded-lg font-body-sm text-body-sm transition-all ${
-      isActive(path)
-        ? 'bg-surface-container text-primary font-headline-sm font-semibold'
-        : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
-    }`;
+  const isTabActive = (tab: string) => {
+    return location.pathname === '/search' && location.search.includes(`tab=${tab}`)
+  }
+
+  const navLinkClass = (active: boolean) =>
+    `px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 ${
+      active
+        ? 'bg-blue-600 text-white shadow-xs font-bold'
+        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+    }`
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] border-b border-surface-container">
-      <div className="h-16 max-w-7xl mx-auto px-4 lg:px-gutter-desktop flex items-center justify-between gap-space-md">
-        {/* Brand & Nav */}
-        <div className="flex items-center gap-space-lg">
-          <Link to="/" className="flex items-center gap-space-sm group focus:outline-none">
-            <div className="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary shadow-sm">
-              <span className="material-symbols-outlined text-[22px]">local_library</span>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-[#0b0f19]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-colors">
+      <div className="h-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+        {/* Brand */}
+        <div className="flex items-center gap-6">
+          <Link to="/" className="flex items-center gap-2.5 group focus:outline-none">
+            <div className="w-9 h-9 rounded-xl bg-blue-600 dark:bg-blue-600 text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+              <GraduationCap className="w-5 h-5" />
             </div>
             <div className="flex flex-col">
-              <span className="font-headline-sm text-headline-sm tracking-tight text-primary leading-none group-hover:text-primary-container transition-colors font-bold">
-                Academic Docs
-              </span>
-              <span className="font-label-code text-[11px] font-bold text-secondary uppercase tracking-wider mt-1">
-                KHOA CNTT - UTC
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-base tracking-tight text-slate-900 dark:text-white leading-none">
+                  Academic Docs
+                </span>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/40 font-mono">
+                  UTC FIT
+                </span>
+              </div>
+              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-none mt-1">
+                Khoa Công Nghệ Thông Tin
               </span>
             </div>
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-space-xs">
-            <Link to="/" className={navLinkClass('/')}>
-              Tra cứu
+          {/* Navigation Links */}
+          <nav className="hidden xl:flex items-center gap-1 bg-slate-100/70 dark:bg-slate-850 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-800/60">
+            <Link to="/" className={navLinkClass(isActive('/'))}>
+              <Search className="w-3.5 h-3.5" />
+              <span>Tra cứu</span>
             </Link>
-            <Link
-              to="/search?tab=hub"
-              className={`px-space-md py-space-xs rounded-lg font-body-sm text-body-sm transition-all ${
-                location.pathname === '/search' && location.search.includes('tab=hub')
-                  ? 'bg-surface-container text-primary font-headline-sm font-semibold'
-                  : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
-              }`}
-            >
-              Sổ tay Học phần
+
+            <Link to="/exams" className={navLinkClass(isActive('/exams'))}>
+              <BookOpen className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
+              <span>Kho Đề Thi</span>
             </Link>
-            <Link
-              to="/search?tab=novelty"
-              className={`px-space-md py-space-xs rounded-lg font-body-sm text-body-sm transition-all ${
-                location.pathname === '/search' && location.search.includes('tab=novelty')
-                  ? 'bg-surface-container text-primary font-headline-sm font-semibold'
-                  : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
-              }`}
-            >
-              Đối soát Đề tài
+
+            <Link to="/templates" className={navLinkClass(isActive('/templates'))}>
+              <FileCheck className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
+              <span>Biểu Mẫu UTC</span>
             </Link>
+
+            <Link to="/search?tab=hub" className={navLinkClass(isTabActive('hub'))}>
+              <span>Sổ tay Học phần</span>
+            </Link>
+
+            <Link to="/search?tab=novelty" className={navLinkClass(isTabActive('novelty'))}>
+              <span>Đối soát Đề tài</span>
+            </Link>
+
             {isAuthenticated && (
-              <>
-                <Link to="/me/documents" className={navLinkClass('/me/documents')}>
-                  Tài liệu của tôi
-                </Link>
-                <Link to="/me/bookmarks" className={navLinkClass('/me/bookmarks')}>
-                  Đã lưu
-                </Link>
-              </>
+              <Link to="/collections" className={navLinkClass(isActive('/collections'))}>
+                <FolderArchive className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" />
+                <span>Bộ Sưu Tập</span>
+              </Link>
             )}
+
             {user?.role === 'ADMIN' && (
-              <Link to="/admin" className={navLinkClass('/admin')}>
-                Quản trị
+              <Link to="/admin" className={navLinkClass(isActive('/admin'))}>
+                <Shield className="w-3.5 h-3.5 text-rose-500" />
+                <span>Quản trị</span>
               </Link>
             )}
           </nav>
         </div>
 
-        {/* Action Buttons & User Menu */}
-        <div className="flex items-center gap-space-md">
+        {/* Right Actions */}
+        <div className="flex items-center gap-2.5">
+          {/* Dark Mode Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            title={theme === 'dark' ? 'Chuyển sang Giao diện Sáng' : 'Chuyển sang Giao diện Tối'}
+            type="button"
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-4 h-4 text-amber-400" />
+            ) : (
+              <Moon className="w-4 h-4 text-slate-600" />
+            )}
+          </button>
+
+          {/* In-app Notification Bell */}
+          {isAuthenticated && <NotificationBell />}
+
+          {/* Upload Document Button */}
           {isAuthenticated && (
             <Link
               to="/documents/upload"
-              className="inline-flex items-center gap-1.5 bg-primary text-on-primary hover:bg-primary-container px-3.5 py-2 rounded-lg font-headline-sm text-body-sm transition-all shadow-xs focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2"
+              className="hidden sm:inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-xl font-bold text-xs shadow-sm hover:shadow transition-all"
             >
-              <span className="material-symbols-outlined text-[18px]">upload_file</span>
-              <span className="font-semibold">+ Đăng tải tài liệu</span>
+              <Upload className="w-3.5 h-3.5" />
+              <span>+ Đăng tải học liệu</span>
             </Link>
           )}
 
+          {/* Auth State */}
           {!isAuthenticated ? (
             <div className="flex items-center gap-2">
               <Link
                 to="/login"
-                className="px-3.5 py-2 text-body-sm font-semibold text-primary hover:text-primary-container transition-colors"
+                className="px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-blue-600 transition-colors"
               >
                 Đăng nhập
               </Link>
               <Link
                 to="/register"
-                className="inline-flex items-center bg-primary text-on-primary hover:bg-primary-container px-4 py-2 rounded-lg font-semibold text-body-sm transition-all shadow-xs"
+                className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-xl font-bold text-xs shadow-sm transition-all"
               >
                 Đăng ký
               </Link>
             </div>
           ) : (
             <div className="relative" ref={dropdownRef}>
-              <div
+              <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-space-sm cursor-pointer py-1"
+                className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                type="button"
               >
-                <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-xs">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 text-white flex items-center justify-center font-extrabold text-xs shadow-xs">
                   {user?.fullName?.charAt(0) || 'U'}
                 </div>
                 <div className="hidden md:flex flex-col text-left">
-                  <span className="font-body-sm text-body-sm font-semibold text-on-surface leading-snug">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight">
                     {user?.fullName}
                   </span>
-                  <span className="font-label-code text-[11px] text-secondary font-medium leading-none">
-                    {user?.role === 'ADMIN' ? 'Ban Quản trị Khoa' : user?.studentCode || 'Sinh viên UTC'}
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    {user?.role === 'ADMIN' ? 'Ban Quản trị' : user?.studentCode || 'Sinh viên'}
                   </span>
                 </div>
-                <span className={`material-symbols-outlined text-on-surface-variant text-[18px] transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}>
-                  expand_more
-                </span>
-              </div>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
 
               {dropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 w-56 z-50 bg-surface-container-lowest rounded-xl shadow-[0_10px_25px_-5px_rgba(15,58,104,0.12),0_8px_10px_-6px_rgba(15,58,104,0.08)] border border-surface-container py-space-xs">
-                  <div className="px-space-md py-space-xs md:hidden bg-surface-container-low border-b border-surface-container">
-                    <p className="font-body-sm text-body-sm font-semibold text-on-surface">{user?.fullName}</p>
-                    <p className="font-label-code text-[11px] text-secondary">{user?.role === 'ADMIN' ? 'Admin Khoa' : user?.studentCode || 'Sinh viên'}</p>
+                <div className="absolute right-0 top-full mt-2 w-56 z-50 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-1.5 animate-in fade-in zoom-in-95 duration-100">
+                  <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 md:hidden">
+                    <p className="text-xs font-bold text-slate-900 dark:text-white">{user?.fullName}</p>
+                    <p className="text-[10px] text-slate-400 font-mono">{user?.studentCode || 'Sinh viên'}</p>
                   </div>
+
                   <Link
                     to="/profile"
                     onClick={() => setDropdownOpen(false)}
-                    className="flex items-center gap-space-sm px-space-md py-space-sm font-body-sm text-body-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"
+                    className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                   >
-                    <span className="material-symbols-outlined text-[18px]">badge</span>
-                    <span>Hồ sơ cá nhân</span>
+                    <UserIcon className="w-4 h-4 text-slate-400" />
+                    <span>Hồ sơ học tập</span>
                   </Link>
-                  <div className="my-1 border-t border-surface-container"></div>
+
+                  <Link
+                    to="/me/documents"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <FileText className="w-4 h-4 text-slate-400" />
+                    <span>Học liệu của tôi</span>
+                  </Link>
+
+                  <Link
+                    to="/me/bookmarks"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <Bookmark className="w-4 h-4 text-slate-400" />
+                    <span>Học liệu đã lưu</span>
+                  </Link>
+
+                  <Link
+                    to="/collections"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <FolderArchive className="w-4 h-4 text-slate-400" />
+                    <span>Bộ sưu tập cá nhân</span>
+                  </Link>
+
+                  <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
+
                   <button
                     onClick={() => {
-                      setDropdownOpen(false);
-                      logout();
+                      setDropdownOpen(false)
+                      logout()
                     }}
-                    className="flex items-center gap-space-sm w-full px-space-md py-space-sm font-body-sm text-body-sm text-error hover:bg-error-container/30 transition-colors text-left"
+                    className="flex items-center gap-2.5 w-full px-4 py-2 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors text-left cursor-pointer"
                   >
-                    <span className="material-symbols-outlined text-[18px]">logout</span>
+                    <LogOut className="w-4 h-4" />
                     <span>Đăng xuất</span>
                   </button>
                 </div>
@@ -178,7 +254,6 @@ export default function Navbar() {
         </div>
       </div>
     </header>
-  );
+  )
 }
-
-export { Navbar };
+export { Navbar }

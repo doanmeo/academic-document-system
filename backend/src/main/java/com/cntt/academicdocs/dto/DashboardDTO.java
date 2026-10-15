@@ -16,6 +16,7 @@ public class DashboardDTO {
     private List<DocumentSummaryDTO> topDocuments = new ArrayList<>();
     private List<DocumentSummaryDTO> topViewed = new ArrayList<>();
     private List<DocumentSummaryDTO> recentDocuments = new ArrayList<>();
+    private List<DocumentSummaryDTO> recentSubmissions = new ArrayList<>();
     private Map<String, Long> documentsBySubject = new java.util.LinkedHashMap<>();
     private Map<String, Long> documentsByMajor = new java.util.LinkedHashMap<>();
     private Map<String, Long> documentsByType = new java.util.LinkedHashMap<>();
@@ -54,6 +55,9 @@ public class DashboardDTO {
 
     public List<DocumentSummaryDTO> getRecentDocuments() { return recentDocuments; }
     public void setRecentDocuments(List<DocumentSummaryDTO> recentDocuments) { this.recentDocuments = recentDocuments; }
+
+    public List<DocumentSummaryDTO> getRecentSubmissions() { return recentSubmissions; }
+    public void setRecentSubmissions(List<DocumentSummaryDTO> recentSubmissions) { this.recentSubmissions = recentSubmissions; }
 
     public Map<String, Long> getDocumentsBySubject() { return documentsBySubject; }
     public void setDocumentsBySubject(Map<String, Long> documentsBySubject) { this.documentsBySubject = documentsBySubject; }

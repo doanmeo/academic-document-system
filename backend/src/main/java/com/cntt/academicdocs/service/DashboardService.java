@@ -61,6 +61,13 @@ public class DashboardService {
                 .map(d -> documentService.toSummaryDTO(d, null))
                 .collect(Collectors.toList());
 
+        List<Document> recentSubs = documentRepository.findTop10ByStatusInOrderByUpdatedAtDesc(
+                List.of(DocumentStatus.PENDING, DocumentStatus.REVISION_REQUIRED)
+        );
+        List<DocumentSummaryDTO> subDTOs = recentSubs.stream()
+                .map(d -> documentService.toSummaryDTO(d, null))
+                .collect(Collectors.toList());
+
         long totalDownloads = documentRepository.sumDownloadCount();
 
         // 1. Documents by Subject
@@ -131,6 +138,7 @@ public class DashboardService {
         dto.setTopDocuments(topDTOs);
         dto.setTopViewed(topDTOs);
         dto.setRecentDocuments(recentDTOs);
+        dto.setRecentSubmissions(subDTOs);
         dto.setDocumentsBySubject(subjectMap);
         dto.setDocumentsByMajor(majorMap);
         dto.setDocumentsByType(typeMap);

@@ -89,15 +89,11 @@ public class SupabaseStorageService implements FileStorageService {
                     return supabaseUrl + "/storage/v1" + signedUrlPath;
                 }
             }
-            throw new BusinessException(HttpStatus.INTERNAL_SERVER_ERROR, "STORAGE_SIGN_FAILED", "Không thể tạo liên kết tải tệp");
         } catch (Exception e) {
-            log.warn("Using placeholder/offline signed URL fallback: {}", e.getMessage());
-            // If running with placeholder or failed connection in demo, return static sample PDF for seamless viewer presentation
-            if (supabaseUrl == null || supabaseUrl.contains("placeholder.supabase.co") || supabaseUrl.contains("YOUR_PROJECT") || supabaseUrl.contains("test.supabase.co")) {
-                return "/sample.pdf";
-            }
-            return String.format("%s/storage/v1/object/public/%s/%s", supabaseUrl, bucketName, storageKey);
+            log.info("Signed URL negotiation returned: {}. Using public Supabase Storage URL instead.", e.getMessage());
         }
+        // Direct public object URL on Supabase
+        return String.format("%s/storage/v1/object/public/%s/%s", supabaseUrl, bucketName, storageKey);
     }
 
     @Override

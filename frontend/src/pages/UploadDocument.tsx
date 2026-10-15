@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/layout/Navbar'
 import Footer from '../components/layout/Footer'
-import { createDocument, submitDocument, checkSimilarity } from '../api/documentApi'
+import { createDocument, submitDocument, checkSimilarity, documentApi } from '../api/documentApi'
 import { uploadFile } from '../api/fileApi'
 import { getSubjects, getAcademicYears, getMajors, getTechnologies } from '../api/catalogApi'
 import type { DocumentTypeCode, RelatedDocument } from '../types/document'
@@ -10,6 +10,7 @@ import type { Subject, AcademicYear, Major, Technology } from '../types/catalog'
 import { getErrorMessage } from '../utils/errorMessages'
 import { useToast } from '../contexts/ToastContext'
 import CustomSelect from '../components/ui/CustomSelect'
+import { Sparkles, Loader2 } from 'lucide-react'
 
 export default function UploadDocument() {
   const navigate = useNavigate()
@@ -29,12 +30,16 @@ export default function UploadDocument() {
   const [subjectId, setSubjectId] = useState<number | ''>('')
   const [majorId, setMajorId] = useState<number | ''>('')
   const [academicYearId, setAcademicYearId] = useState<number | ''>('')
+  const [targetYear, setTargetYear] = useState<string>('YEAR_3')
   const [documentTypeCode, setDocumentTypeCode] = useState<DocumentTypeCode>('CAPSTONE')
   const [advisorName, setAdvisorName] = useState('')
   const [abstractText, setAbstractText] = useState('')
   const [githubUrl, setGithubUrl] = useState('')
   const [selectedTechIds, setSelectedTechIds] = useState<number[]>([])
   const [pledgeAccepted, setPledgeAccepted] = useState(false)
+
+  // AI Abstract generation state (F4)
+  const [generatingAiAbstract, setGeneratingAiAbstract] = useState(false)
 
   // Academic similarity & check states
   const [similarDocs, setSimilarDocs] = useState<RelatedDocument[]>([])
@@ -139,6 +144,37 @@ export default function UploadDocument() {
   const isPledgeValid = pledgeAccepted
   const isAllValid = isFileValid && isTitleValid && isSubjectValid && isYearValid && isAdvisorValid && isAbstractValid && isPledgeValid
 
+  // AI Generate Abstract (F4)
+  const handleGenerateAiAbstract = async () => {
+    if (!title.trim() || title.trim().length < 4) {
+      toast.warning('Cần tên đề tài', 'Vui lòng nhập Tên đề tài trước khi yêu cầu AI sinh tóm tắt.')
+      return
+    }
+    const currentSub = subjects.find((s) => s.id === Number(subjectId))
+    setGeneratingAiAbstract(true)
+    try {
+      const res = await documentApi.generateAbstract({
+        title: title.trim(),
+        subjectName: currentSub ? currentSub.name : undefined,
+        documentType: documentTypeCode,
+      })
+      if (res?.abstractText) {
+        setAbstractText(res.abstractText)
+        if (res.suggestedTargetYear) {
+          setTargetYear(res.suggestedTargetYear)
+        }
+        toast.success(
+          'Đã sinh gợi ý tóm tắt học thuật!',
+          'Hệ thống đã tự động soạn thảo tóm tắt theo chuẩn đề cương Khoa CNTT. Bạn có thể chỉnh sửa lại.'
+        )
+      }
+    } catch {
+      toast.error('Không thể sinh tóm tắt tự động', 'Vui lòng nhập tóm tắt thủ công.')
+    } finally {
+      setGeneratingAiAbstract(false)
+    }
+  }
+
   const handleFormSubmit = async (shouldSubmitToPending = true) => {
     if (shouldSubmitToPending) {
       if (!isFileValid) {
@@ -189,6 +225,7 @@ export default function UploadDocument() {
         subjectId: Number(subjectId),
         majorId: majorId ? Number(majorId) : undefined,
         academicYearId: Number(academicYearId),
+        targetYear: targetYear || undefined,
         documentTypeCode,
         advisorName: advisorName || undefined,
         abstractText: abstractText || `Học liệu môn học do sinh viên UTC thực hiện.`,
@@ -482,6 +519,27 @@ export default function UploadDocument() {
                   className="w-full"
                 />
               </div>
+
+              {/* F3: Target Year (Năm sinh viên) */}
+              <div>
+                <label className="block text-body-sm font-semibold text-on-surface mb-1">
+                  Phù hợp cho sinh viên năm
+                </label>
+                <CustomSelect
+                  value={targetYear}
+                  onChange={(val) => setTargetYear(val)}
+                  options={[
+                    { value: 'YEAR_1', label: 'Năm 1 (Đại cương & Nhập môn)' },
+                    { value: 'YEAR_2', label: 'Năm 2 (Cơ sở ngành)' },
+                    { value: 'YEAR_3', label: 'Năm 3 (Chuyên ngành)' },
+                    { value: 'YEAR_4', label: 'Năm 4 (Đồ án / Thực tập)' },
+                    { value: 'YEAR_5', label: 'Năm 5 (Khóa luận tốt nghiệp)' },
+                  ]}
+                  placeholder="Chọn năm sinh viên"
+                  icon="school"
+                  className="w-full"
+                />
+              </div>
             </div>
 
             {/* Advisor & Github */}
@@ -515,15 +573,38 @@ export default function UploadDocument() {
               </div>
             </div>
 
-            {/* Abstract */}
+            {/* Abstract with AI Assistant (F4) */}
             <div>
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
                 <label className="block text-body-sm font-semibold text-on-surface">
                   Tóm tắt nội dung (Abstract) <span className="text-error">* (Tối thiểu 15 ký tự)</span>
                 </label>
-                <span className={`text-[11px] ${abstractText.trim().length >= 15 ? 'text-emerald-600 font-semibold' : 'text-slate-400'}`}>
-                  {abstractText.trim().length} / 15 ký tự
-                </span>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleGenerateAiAbstract}
+                    disabled={generatingAiAbstract || !title.trim()}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs transition-colors disabled:opacity-50 cursor-pointer border border-indigo-200 shadow-2xs"
+                    title="Dùng trợ lý AI sinh tóm tắt học thuật tự động từ tên đề tài & môn học"
+                  >
+                    {generatingAiAbstract ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />
+                        <span>AI đang soạn thảo...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                        <span>✨ Gợi ý tóm tắt bằng AI</span>
+                      </>
+                    )}
+                  </button>
+
+                  <span className={`text-[11px] ${abstractText.trim().length >= 15 ? 'text-emerald-600 font-semibold' : 'text-slate-400'}`}>
+                    {abstractText.trim().length} / 15 ký tự
+                  </span>
+                </div>
               </div>
               <textarea
                 rows={3}

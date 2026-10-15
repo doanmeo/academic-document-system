@@ -33,6 +33,7 @@ public class DocumentService {
     private final AcademicYearRepository academicYearRepository;
     private final TechnologyRepository technologyRepository;
     private final LovValueRepository lovValueRepository;
+    private final NotificationService notificationService;
 
     public DocumentService(
             DocumentRepository documentRepository,
@@ -47,7 +48,8 @@ public class DocumentService {
             MajorRepository majorRepository,
             AcademicYearRepository academicYearRepository,
             TechnologyRepository technologyRepository,
-            LovValueRepository lovValueRepository
+            LovValueRepository lovValueRepository,
+            NotificationService notificationService
     ) {
         this.documentRepository = documentRepository;
         this.documentFileRepository = documentFileRepository;
@@ -62,6 +64,7 @@ public class DocumentService {
         this.academicYearRepository = academicYearRepository;
         this.technologyRepository = technologyRepository;
         this.lovValueRepository = lovValueRepository;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -95,6 +98,13 @@ public class DocumentService {
         document.setGitlabUrl(req.getGitlabUrl());
         document.setSharingScope(req.getSharingScope() != null && !req.getSharingScope().isBlank() ? req.getSharingScope() : "FACULTY_INTERNAL");
         document.setPledgeAccepted(req.getPledgeAccepted() != null ? req.getPledgeAccepted() : true);
+        document.setTargetYear(req.getTargetYear() != null && !req.getTargetYear().isBlank() ? req.getTargetYear() : "ALL");
+        document.setCodeLanguage(req.getCodeLanguage());
+        document.setSourceCodeSnippet(req.getSourceCodeSnippet());
+        document.setExamDifficulty(req.getExamDifficulty());
+        document.setExamSemester(req.getExamSemester());
+        document.setExamTips(req.getExamTips());
+        document.setHasSolution(req.getHasSolution());
         document.setViewCount(0);
         document.setDownloadCount(0);
         document.setAvgRating(0.0);
@@ -179,6 +189,13 @@ public class DocumentService {
         if (req.getSharingScope() != null && !req.getSharingScope().isBlank()) document.setSharingScope(req.getSharingScope());
         if (req.getPledgeAccepted() != null) document.setPledgeAccepted(req.getPledgeAccepted());
         if (req.getRevisionNote() != null) document.setRevisionNote(req.getRevisionNote());
+        if (req.getTargetYear() != null && !req.getTargetYear().isBlank()) document.setTargetYear(req.getTargetYear());
+        if (req.getCodeLanguage() != null) document.setCodeLanguage(req.getCodeLanguage());
+        if (req.getSourceCodeSnippet() != null) document.setSourceCodeSnippet(req.getSourceCodeSnippet());
+        if (req.getExamDifficulty() != null) document.setExamDifficulty(req.getExamDifficulty());
+        if (req.getExamSemester() != null) document.setExamSemester(req.getExamSemester());
+        if (req.getExamTips() != null) document.setExamTips(req.getExamTips());
+        if (req.getHasSolution() != null) document.setHasSolution(req.getHasSolution());
 
         if (req.getSubjectId() != null) {
             subjectRepository.findById(req.getSubjectId()).ifPresent(document::setSubject);
@@ -424,11 +441,26 @@ public class DocumentService {
 
             if (criteria.getDocumentTypeCode() != null && !criteria.getDocumentTypeCode().isBlank()) {
                 String typeCode = criteria.getDocumentTypeCode().trim().toUpperCase();
-                if ("PROJECT".equalsIgnoreCase(typeCode) || "CAPSTONE".equalsIgnoreCase(typeCode)) {
-                    predicates.add(root.get("documentTypeCode").in("PROJECT", "CAPSTONE"));
+                if ("CAPSTONE".equals(typeCode) || "PROJECT".equals(typeCode) || "BTL".equals(typeCode)) {
+                    predicates.add(root.get("documentTypeCode").in("CAPSTONE", "PROJECT", "BTL", "DO_AN"));
+                } else if ("SLIDE".equals(typeCode) || "LECTURE".equals(typeCode)) {
+                    predicates.add(root.get("documentTypeCode").in("SLIDE", "LECTURE"));
+                } else if ("LAB".equals(typeCode) || "EXERCISE".equals(typeCode)) {
+                    predicates.add(root.get("documentTypeCode").in("LAB", "EXERCISE"));
+                } else if ("EXAM".equals(typeCode) || "DE_THI".equals(typeCode)) {
+                    predicates.add(root.get("documentTypeCode").in("EXAM", "DE_THI"));
+                } else if ("REFERENCE".equals(typeCode) || "TAI_LIEU_THAM_KHAO".equals(typeCode)) {
+                    predicates.add(root.get("documentTypeCode").in("REFERENCE", "TAI_LIEU_THAM_KHAO", "GIAO_TRINH"));
                 } else {
                     predicates.add(cb.equal(cb.upper(root.get("documentTypeCode")), typeCode));
                 }
+            }
+
+            if (criteria.getTargetYear() != null && !criteria.getTargetYear().isBlank() && !"ALL".equalsIgnoreCase(criteria.getTargetYear().trim())) {
+                predicates.add(cb.or(
+                    cb.equal(root.get("targetYear"), criteria.getTargetYear().trim()),
+                    cb.equal(root.get("targetYear"), "ALL")
+                ));
             }
 
             if (criteria.getTechnologyId() != null) {
@@ -440,59 +472,29 @@ public class DocumentService {
                 predicates.add(cb.like(cb.lower(root.get("advisorName")), advPattern));
             }
 
+            // Keyword filter at database level
+            if (!rawKeyword.isEmpty()) {
+                String likePattern = "%" + keywordLower + "%";
+                List<Predicate> keywordOrList = new ArrayList<>();
+                keywordOrList.add(cb.like(cb.lower(root.get("title")), likePattern));
+                keywordOrList.add(cb.like(cb.lower(root.get("abstractText")), likePattern));
+                keywordOrList.add(cb.like(cb.lower(root.get("advisorName")), likePattern));
+                keywordOrList.add(cb.like(cb.lower(root.get("description")), likePattern));
+                keywordOrList.add(cb.like(cb.lower(root.get("subject").get("name")), likePattern));
+                keywordOrList.add(cb.like(cb.lower(root.get("uploader").get("fullName")), likePattern));
+
+                if (!keywordNoAccent.equals(keywordLower)) {
+                    String likeNoAccent = "%" + keywordNoAccent + "%";
+                    keywordOrList.add(cb.like(cb.lower(root.get("title")), likeNoAccent));
+                    keywordOrList.add(cb.like(cb.lower(root.get("abstractText")), likeNoAccent));
+                }
+                predicates.add(cb.or(keywordOrList.toArray(new Predicate[0])));
+            }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-        if (rawKeyword.isEmpty()) {
-            Page<Document> page = documentRepository.findAll(spec, pageable);
-            List<DocumentSummaryDTO> dtoList = page.getContent().stream()
-                    .map(doc -> toSummaryDTO(doc, currentUserId))
-                    .collect(Collectors.toList());
-            return PageResponse.of(page, dtoList);
-        }
-
-        // When keyword is present: Fetch matching status/filters, then filter in-memory with Vietnamese accent & unaccented support
-        List<Document> allCandidates = documentRepository.findAll(spec, pageable.getSort());
-        List<Document> matched = allCandidates.stream().filter(doc -> {
-            String title = doc.getTitle() != null ? doc.getTitle().toLowerCase() : "";
-            String abs = doc.getAbstractText() != null ? doc.getAbstractText().toLowerCase() : "";
-            String adv = doc.getAdvisorName() != null ? doc.getAdvisorName().toLowerCase() : "";
-            String sub = doc.getSubject() != null && doc.getSubject().getName() != null ? doc.getSubject().getName().toLowerCase() : "";
-            String desc = doc.getDescription() != null ? doc.getDescription().toLowerCase() : "";
-            String uploader = doc.getUploader() != null && doc.getUploader().getFullName() != null ? doc.getUploader().getFullName().toLowerCase() : "";
-            String members = doc.getMembers().stream()
-                    .map(m -> m.getUser() != null && m.getUser().getFullName() != null ? m.getUser().getFullName() : "")
-                    .collect(Collectors.joining(" ")).toLowerCase();
-
-            // 1. Direct match with accents
-            if (title.contains(keywordLower) || abs.contains(keywordLower) || adv.contains(keywordLower) 
-                    || sub.contains(keywordLower) || desc.contains(keywordLower) || uploader.contains(keywordLower) || members.contains(keywordLower)) {
-                return true;
-            }
-
-            // 2. Unaccented match (e.g. "mo" matches "Mô hình", "cau truc" matches "Cấu trúc")
-            String titleNoAccent = removeAccents(title);
-            String absNoAccent = removeAccents(abs);
-            String advNoAccent = removeAccents(adv);
-            String subNoAccent = removeAccents(sub);
-            String descNoAccent = removeAccents(desc);
-            String uploaderNoAccent = removeAccents(uploader);
-            String membersNoAccent = removeAccents(members);
-
-            return titleNoAccent.contains(keywordNoAccent)
-                    || absNoAccent.contains(keywordNoAccent)
-                    || advNoAccent.contains(keywordNoAccent)
-                    || subNoAccent.contains(keywordNoAccent)
-                    || descNoAccent.contains(keywordNoAccent)
-                    || uploaderNoAccent.contains(keywordNoAccent)
-                    || membersNoAccent.contains(keywordNoAccent);
-        }).collect(Collectors.toList());
-
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), matched.size());
-        List<Document> pagedList = start < matched.size() ? matched.subList(start, end) : java.util.Collections.emptyList();
-        org.springframework.data.domain.Page<Document> page = new org.springframework.data.domain.PageImpl<>(pagedList, pageable, matched.size());
-
+        Page<Document> page = documentRepository.findAll(spec, pageable);
         List<DocumentSummaryDTO> dtoList = page.getContent().stream()
                 .map(doc -> toSummaryDTO(doc, currentUserId))
                 .collect(Collectors.toList());
@@ -538,6 +540,17 @@ public class DocumentService {
         review.setComment(note != null ? note : "Hội đồng Khoa CNTT phê duyệt thông qua tài liệu");
         documentReviewRepository.save(review);
 
+        // In-app Notification
+        if (saved.getUploader() != null) {
+            notificationService.notifyUser(
+                    saved.getUploader().getId(),
+                    "DOCUMENT_APPROVED",
+                    "Tài liệu đã được phê duyệt",
+                    "Học liệu \"" + saved.getTitle() + "\" đã được Ban Quản trị phê duyệt và hiển thị trong kho học liệu Khoa.",
+                    "/documents/" + saved.getId()
+            );
+        }
+
         return toDetailDTO(saved, adminId);
     }
 
@@ -571,6 +584,17 @@ public class DocumentService {
         review.setComment(note);
         documentReviewRepository.save(review);
 
+        // In-app Notification
+        if (saved.getUploader() != null) {
+            notificationService.notifyUser(
+                    saved.getUploader().getId(),
+                    "DOCUMENT_REJECTED",
+                    "Học liệu bị từ chối duyệt",
+                    "Học liệu \"" + saved.getTitle() + "\" bị từ chối. Lý do: " + note,
+                    "/documents/" + saved.getId() + "/edit"
+            );
+        }
+
         return toDetailDTO(saved, adminId);
     }
 
@@ -599,6 +623,17 @@ public class DocumentService {
         review.setToStatus(DocumentStatus.REVISION_REQUIRED);
         review.setComment(note != null ? note : "Yêu cầu chỉnh sửa bổ sung tài liệu trước khi phê duyệt");
         documentReviewRepository.save(review);
+
+        // In-app Notification
+        if (saved.getUploader() != null) {
+            notificationService.notifyUser(
+                    saved.getUploader().getId(),
+                    "REVISION_REQUIRED",
+                    "Yêu cầu chỉnh sửa học liệu",
+                    "Hội đồng thẩm định yêu cầu chỉnh sửa \"" + saved.getTitle() + "\": " + (note != null ? note : "Bổ sung thông tin"),
+                    "/documents/" + saved.getId() + "/edit"
+            );
+        }
 
         return toDetailDTO(saved, adminId);
     }
@@ -652,11 +687,13 @@ public class DocumentService {
             isBookmarked = bookmarkRepository.existsByUser_IdAndDocument_Id(currentUserId, doc.getId());
         }
 
-        String primaryMime = doc.getFiles().stream()
+        DocumentFile primaryFile = doc.getFiles().stream()
                 .filter(DocumentFile::getIsPrimary)
-                .map(DocumentFile::getMimeType)
                 .findFirst()
-                .orElse("application/pdf");
+                .orElseGet(() -> doc.getFiles().stream().findFirst().orElse(null));
+
+        String primaryMime = primaryFile != null && primaryFile.getMimeType() != null 
+                ? primaryFile.getMimeType() : "application/pdf";
 
         DocumentSummaryDTO dto = new DocumentSummaryDTO();
         dto.setId(doc.getId());
@@ -665,6 +702,7 @@ public class DocumentService {
         dto.setStatus(doc.getStatus());
         dto.setDocumentTypeCode(doc.getDocumentTypeCode());
         dto.setDocumentTypeLabel(getDocumentTypeLabel(doc.getDocumentTypeCode()));
+        dto.setTargetYear(doc.getTargetYear() != null ? doc.getTargetYear() : "ALL");
         dto.setSubjectId(doc.getSubject() != null ? doc.getSubject().getId() : null);
         dto.setSubjectName(doc.getSubject() != null ? doc.getSubject().getName() : "");
         dto.setAcademicYearId(doc.getAcademicYear() != null ? doc.getAcademicYear().getId() : null);
@@ -677,6 +715,10 @@ public class DocumentService {
         dto.setAvgRating(doc.getAvgRating());
         dto.setRatingCount(doc.getRatingCount());
         dto.setPrimaryFileMimeType(primaryMime);
+        if (primaryFile != null) {
+            dto.setPrimaryFileId(primaryFile.getId());
+            dto.setPrimaryFileName(primaryFile.getFileName());
+        }
         dto.setBookmarked(isBookmarked);
         dto.setSharingScope(doc.getSharingScope());
         dto.setPledgeAccepted(doc.getPledgeAccepted());
@@ -684,6 +726,10 @@ public class DocumentService {
         dto.setRevisionNote(doc.getRevisionNote());
         dto.setCreatedAt(doc.getCreatedAt());
         dto.setApprovedAt(doc.getApprovedAt());
+        dto.setCodeLanguage(doc.getCodeLanguage());
+        dto.setExamDifficulty(doc.getExamDifficulty());
+        dto.setExamSemester(doc.getExamSemester());
+        dto.setHasSolution(doc.getHasSolution());
         return dto;
     }
 
@@ -745,6 +791,7 @@ public class DocumentService {
         dto.setStatus(doc.getStatus());
         dto.setDocumentTypeCode(doc.getDocumentTypeCode());
         dto.setDocumentTypeLabel(summary.getDocumentTypeLabel());
+        dto.setTargetYear(doc.getTargetYear() != null ? doc.getTargetYear() : "ALL");
         dto.setSharingScope(doc.getSharingScope());
         dto.setPledgeAccepted(doc.getPledgeAccepted());
         dto.setSubjectId(summary.getSubjectId());
@@ -773,6 +820,13 @@ public class DocumentService {
         dto.setMembers(memberDTOs);
         dto.setTechnologies(techDTOs);
 
+        dto.setCodeLanguage(doc.getCodeLanguage());
+        dto.setSourceCodeSnippet(doc.getSourceCodeSnippet());
+        dto.setExamDifficulty(doc.getExamDifficulty());
+        dto.setExamSemester(doc.getExamSemester());
+        dto.setExamTips(doc.getExamTips());
+        dto.setHasSolution(doc.getHasSolution());
+
         // Academic Integrity Seal & Lineage
         dto.setVerificationCode("UTC-FIT-" + (88000 + doc.getId()));
         dto.setFacultyUnit("Khoa Công nghệ Thông tin - Trường Đại học Giao thông Vận tải");
@@ -800,14 +854,59 @@ public class DocumentService {
         return switch (code.toUpperCase()) {
             case "THESIS", "DO_AN" -> "Khóa luận tốt nghiệp";
             case "CAPSTONE", "PROJECT", "BTL" -> "Bài tập lớn / Đồ án môn học";
-            case "LECTURE", "SLIDE" -> "Bài giảng / Slide";
-            case "EXAM", "DE_THI" -> "Đề thi & Đề cương ôn tập";
-            case "EXERCISE" -> "Bài tập & Thực hành";
-            case "LAB" -> "Tài liệu Thực hành Lab";
-            case "GIAO_TRINH" -> "Giáo trình & Sách chuyên ngành";
-            case "TAI_LIEU_THAM_KHAO" -> "Tài liệu tham khảo chuyên ngành";
+            case "SLIDE", "LECTURE" -> "Slide Bài giảng";
+            case "EXAM", "DE_THI" -> "Đề thi & Lời giải";
+            case "LAB", "EXERCISE" -> "Hướng dẫn Lab & Thực hành";
+            case "NOTE" -> "Ghi chú ôn tập";
+            case "REFERENCE", "TAI_LIEU_THAM_KHAO", "GIAO_TRINH" -> "Tài liệu tham khảo";
             default -> code;
         };
+    }
+
+    @Transactional(readOnly = true)
+    public CoverageMatrixDTO getCoverageMatrix() {
+        List<Subject> subjects = subjectRepository.findAllByActiveTrueOrderByCodeAsc();
+        List<CoverageMatrixDTO.SubjectItem> subjectItems = subjects.stream()
+                .map(s -> new CoverageMatrixDTO.SubjectItem(s.getId(), s.getCode(), s.getName()))
+                .collect(Collectors.toList());
+
+        List<CoverageMatrixDTO.TypeItem> typeItems = List.of(
+                new CoverageMatrixDTO.TypeItem("SLIDE", "Slide Bài giảng"),
+                new CoverageMatrixDTO.TypeItem("EXAM", "Đề thi & Lời giải"),
+                new CoverageMatrixDTO.TypeItem("LAB", "Hướng dẫn Lab"),
+                new CoverageMatrixDTO.TypeItem("CAPSTONE", "Đồ án / BTL"),
+                new CoverageMatrixDTO.TypeItem("THESIS", "Khóa luận tốt nghiệp"),
+                new CoverageMatrixDTO.TypeItem("REFERENCE", "Tài liệu tham khảo"),
+                new CoverageMatrixDTO.TypeItem("NOTE", "Ghi chú ôn tập")
+        );
+
+        List<Object[]> rawCounts = documentRepository.countCoverageMatrix();
+        java.util.Map<String, Integer> cellCounts = new java.util.HashMap<>();
+        int total = 0;
+
+        for (Object[] row : rawCounts) {
+            if (row[0] != null && row[3] != null && row[4] != null) {
+                Long subId = ((Number) row[0]).longValue();
+                String rawTypeCode = row[3].toString().toUpperCase();
+                int count = ((Number) row[4]).intValue();
+                total += count;
+
+                String normType = switch (rawTypeCode) {
+                    case "LECTURE", "SLIDE" -> "SLIDE";
+                    case "EXAM", "DE_THI" -> "EXAM";
+                    case "LAB", "EXERCISE" -> "LAB";
+                    case "PROJECT", "CAPSTONE", "BTL", "DO_AN" -> "CAPSTONE";
+                    case "THESIS" -> "THESIS";
+                    case "NOTE" -> "NOTE";
+                    default -> "REFERENCE";
+                };
+
+                String key = subId + "_" + normType;
+                cellCounts.put(key, cellCounts.getOrDefault(key, 0) + count);
+            }
+        }
+
+        return new CoverageMatrixDTO(subjectItems, typeItems, cellCounts, total);
     }
 
     // --- Academic Similarity & Duplicate Topic Prevention ---

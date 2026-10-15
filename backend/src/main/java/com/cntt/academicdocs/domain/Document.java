@@ -88,6 +88,27 @@ public class Document {
     @Column(name = "revision_note", columnDefinition = "TEXT")
     private String revisionNote;
 
+    @Column(name = "target_year", length = 20)
+    private String targetYear = "ALL";
+
+    @Column(name = "code_language", length = 50)
+    private String codeLanguage;
+
+    @Column(name = "source_code_snippet", columnDefinition = "TEXT")
+    private String sourceCodeSnippet;
+
+    @Column(name = "exam_difficulty", length = 30)
+    private String examDifficulty;
+
+    @Column(name = "exam_semester", length = 30)
+    private String examSemester;
+
+    @Column(name = "exam_tips", columnDefinition = "TEXT")
+    private String examTips;
+
+    @Column(name = "has_solution")
+    private Boolean hasSolution = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -106,6 +127,24 @@ public class Document {
     private List<DocumentTechnology> technologies = new ArrayList<>();
 
     public Document() {}
+
+    public String getCodeLanguage() { return codeLanguage; }
+    public void setCodeLanguage(String codeLanguage) { this.codeLanguage = codeLanguage; }
+
+    public String getSourceCodeSnippet() { return sourceCodeSnippet; }
+    public void setSourceCodeSnippet(String sourceCodeSnippet) { this.sourceCodeSnippet = sourceCodeSnippet; }
+
+    public String getExamDifficulty() { return examDifficulty; }
+    public void setExamDifficulty(String examDifficulty) { this.examDifficulty = examDifficulty; }
+
+    public String getExamSemester() { return examSemester; }
+    public void setExamSemester(String examSemester) { this.examSemester = examSemester; }
+
+    public String getExamTips() { return examTips; }
+    public void setExamTips(String examTips) { this.examTips = examTips; }
+
+    public Boolean getHasSolution() { return hasSolution; }
+    public void setHasSolution(Boolean hasSolution) { this.hasSolution = hasSolution; }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -175,6 +214,9 @@ public class Document {
 
     public String getRevisionNote() { return revisionNote; }
     public void setRevisionNote(String revisionNote) { this.revisionNote = revisionNote; }
+
+    public String getTargetYear() { return targetYear; }
+    public void setTargetYear(String targetYear) { this.targetYear = targetYear; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

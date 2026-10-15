@@ -15,6 +15,7 @@ public class DocumentDetailDTO {
     private DocumentStatus status;
     private String documentTypeCode;
     private String documentTypeLabel;
+    private String targetYear = "ALL";
     private String sharingScope = "FACULTY_INTERNAL";
     private Boolean pledgeAccepted = true;
     private Long subjectId;
@@ -45,11 +46,37 @@ public class DocumentDetailDTO {
     private String facultyUnit = "Khoa Công nghệ Thông tin - Trường Đại học Giao thông Vận tải";
     private String futureWorkSuggestions;
 
+    // Code & Exam Bank fields
+    private String codeLanguage;
+    private String sourceCodeSnippet;
+    private String examDifficulty;
+    private String examSemester;
+    private String examTips;
+    private Boolean hasSolution = false;
+
     private List<DocumentFileDTO> files = new ArrayList<>();
     private List<DocumentMemberDTO> members = new ArrayList<>();
     private List<DocumentTechnologyDTO> technologies = new ArrayList<>();
 
     public DocumentDetailDTO() {}
+
+    public String getCodeLanguage() { return codeLanguage; }
+    public void setCodeLanguage(String codeLanguage) { this.codeLanguage = codeLanguage; }
+
+    public String getSourceCodeSnippet() { return sourceCodeSnippet; }
+    public void setSourceCodeSnippet(String sourceCodeSnippet) { this.sourceCodeSnippet = sourceCodeSnippet; }
+
+    public String getExamDifficulty() { return examDifficulty; }
+    public void setExamDifficulty(String examDifficulty) { this.examDifficulty = examDifficulty; }
+
+    public String getExamSemester() { return examSemester; }
+    public void setExamSemester(String examSemester) { this.examSemester = examSemester; }
+
+    public String getExamTips() { return examTips; }
+    public void setExamTips(String examTips) { this.examTips = examTips; }
+
+    public Boolean getHasSolution() { return hasSolution; }
+    public void setHasSolution(Boolean hasSolution) { this.hasSolution = hasSolution; }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -71,6 +98,9 @@ public class DocumentDetailDTO {
 
     public String getDocumentTypeLabel() { return documentTypeLabel; }
     public void setDocumentTypeLabel(String documentTypeLabel) { this.documentTypeLabel = documentTypeLabel; }
+
+    public String getTargetYear() { return targetYear; }
+    public void setTargetYear(String targetYear) { this.targetYear = targetYear; }
 
     public Long getSubjectId() { return subjectId; }
     public void setSubjectId(Long subjectId) { this.subjectId = subjectId; }

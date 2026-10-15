@@ -26,6 +26,13 @@ public class DocumentSummaryDTO {
     private Double avgRating = 0.0;
     private Integer ratingCount = 0;
     private String primaryFileMimeType;
+    private Long primaryFileId;
+    private String primaryFileName;
+    private String targetYear = "ALL";
+    private String codeLanguage;
+    private String examDifficulty;
+    private String examSemester;
+    private Boolean hasSolution = false;
     private Boolean bookmarked = false;
     private String rejectionNote;
     private String revisionNote;
@@ -33,6 +40,18 @@ public class DocumentSummaryDTO {
     private LocalDateTime approvedAt;
 
     public DocumentSummaryDTO() {}
+
+    public String getCodeLanguage() { return codeLanguage; }
+    public void setCodeLanguage(String codeLanguage) { this.codeLanguage = codeLanguage; }
+
+    public String getExamDifficulty() { return examDifficulty; }
+    public void setExamDifficulty(String examDifficulty) { this.examDifficulty = examDifficulty; }
+
+    public String getExamSemester() { return examSemester; }
+    public void setExamSemester(String examSemester) { this.examSemester = examSemester; }
+
+    public Boolean getHasSolution() { return hasSolution; }
+    public void setHasSolution(Boolean hasSolution) { this.hasSolution = hasSolution; }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -87,6 +106,15 @@ public class DocumentSummaryDTO {
 
     public String getPrimaryFileMimeType() { return primaryFileMimeType; }
     public void setPrimaryFileMimeType(String primaryFileMimeType) { this.primaryFileMimeType = primaryFileMimeType; }
+
+    public Long getPrimaryFileId() { return primaryFileId; }
+    public void setPrimaryFileId(Long primaryFileId) { this.primaryFileId = primaryFileId; }
+
+    public String getPrimaryFileName() { return primaryFileName; }
+    public void setPrimaryFileName(String primaryFileName) { this.primaryFileName = primaryFileName; }
+
+    public String getTargetYear() { return targetYear; }
+    public void setTargetYear(String targetYear) { this.targetYear = targetYear; }
 
     public String getSharingScope() { return sharingScope; }
     public void setSharingScope(String sharingScope) { this.sharingScope = sharingScope; }

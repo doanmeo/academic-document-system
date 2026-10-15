@@ -14,4 +14,5 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     boolean existsByUser_IdAndDocument_Id(Long userId, Long documentId);
     void deleteByUser_IdAndDocument_Id(Long userId, Long documentId);
     Page<Bookmark> findByUser_IdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+    long countByUser_Id(Long userId);
 }

@@ -65,4 +65,28 @@ public interface DocumentRepository extends JpaRepository<Document, Long>, JpaSp
 
     @Query("SELECT d.advisorName, COUNT(d), COALESCE(AVG(d.avgRating), 0.0) FROM Document d WHERE d.advisorName IS NOT NULL AND TRIM(d.advisorName) <> '' GROUP BY d.advisorName ORDER BY COUNT(d) DESC")
     List<Object[]> countByAdvisorGroup();
+
+    // U3: Dashboard recent submissions
+    List<Document> findTop10ByStatusInOrderByUpdatedAtDesc(List<DocumentStatus> statuses);
+
+    // F1: Coverage Heatmap
+    @Query("SELECT d.subject.id, d.subject.code, d.subject.name, d.documentTypeCode, COUNT(d.id) " +
+           "FROM Document d WHERE d.status = 'APPROVED' AND d.subject IS NOT NULL " +
+           "GROUP BY d.subject.id, d.subject.code, d.subject.name, d.documentTypeCode")
+    List<Object[]> countCoverageMatrix();
+
+    // F5: Personal Stats for user
+    long countByUploader_IdAndStatus(Long uploaderId, DocumentStatus status);
+
+    @Query("SELECT COALESCE(SUM(d.viewCount), 0) FROM Document d WHERE d.uploader.id = :userId")
+    Long sumViewsByUploaderId(@Param("userId") Long userId);
+
+    @Query("SELECT COALESCE(SUM(d.downloadCount), 0) FROM Document d WHERE d.uploader.id = :userId")
+    Long sumDownloadsByUploaderId(@Param("userId") Long userId);
+
+    @Query("SELECT COALESCE(AVG(d.avgRating), 0.0) FROM Document d WHERE d.uploader.id = :userId AND d.ratingCount > 0")
+    Double avgRatingByUploaderId(@Param("userId") Long userId);
+
+    @Query("SELECT d.subject.name FROM Document d WHERE d.uploader.id = :userId AND d.subject IS NOT NULL GROUP BY d.subject.name ORDER BY COUNT(d.id) DESC LIMIT 1")
+    List<String> findTopSubjectByUploaderId(@Param("userId") Long userId);
 }

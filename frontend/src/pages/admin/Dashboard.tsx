@@ -8,10 +8,16 @@ import Badge from '../../components/ui/Badge'
 export default function Dashboard() {
   const [data, setData] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [recentTab, setRecentTab] = useState<'submissions' | 'all'>('submissions')
 
   useEffect(() => {
     getDashboard()
-      .then(setData)
+      .then((res) => {
+        setData(res)
+        if (!res.recentSubmissions || res.recentSubmissions.length === 0) {
+          setRecentTab('all')
+        }
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -213,18 +219,41 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Recent Documents Table (7 cols) */}
+        {/* Recent Documents & Submissions Table (7 cols) */}
         <div className="lg:col-span-7 bg-surface-container-lowest rounded-2xl shadow-xs border border-surface-container overflow-hidden flex flex-col">
-          <div className="p-4 md:px-6 border-b border-surface-container flex items-center justify-between bg-surface-container-low/40">
+          <div className="p-4 md:px-6 border-b border-surface-container flex flex-wrap items-center justify-between gap-2 bg-surface-container-low/40">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-secondary text-[22px]">history</span>
-              <h2 className="font-headline-sm font-bold text-primary">Tài liệu gửi gần đây</h2>
+              <div className="flex items-center gap-1 bg-slate-200/70 p-1 rounded-xl text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setRecentTab('submissions')}
+                  className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
+                    recentTab === 'submissions'
+                      ? 'bg-white text-primary shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Cần thẩm định ({data.recentSubmissions?.length ?? 0})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRecentTab('all')}
+                  className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
+                    recentTab === 'all'
+                      ? 'bg-white text-primary shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Tất cả gần đây ({data.recentDocuments.length})
+                </button>
+              </div>
             </div>
             <Link
-              to="/admin/documents"
+              to={recentTab === 'submissions' ? '/admin/pending' : '/admin/documents'}
               className="text-secondary hover:text-primary font-body-sm text-caption font-bold flex items-center gap-1 transition-colors"
             >
-              <span>Xem tất cả</span>
+              <span>{recentTab === 'submissions' ? 'Đến hàng đợi duyệt' : 'Xem tất cả'}</span>
               <span className="material-symbols-outlined text-[16px]">chevron_right</span>
             </Link>
           </div>
@@ -241,14 +270,22 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container">
-                {data.recentDocuments.length === 0 ? (
+                {((recentTab === 'submissions'
+                  ? (data.recentSubmissions ?? [])
+                  : data.recentDocuments
+                ).length === 0) ? (
                   <tr>
                     <td colSpan={5} className="py-8 text-center text-on-surface-variant">
-                      Chưa có tài liệu nào gần đây
+                      {recentTab === 'submissions'
+                        ? 'Không có tài liệu nào đang chờ duyệt'
+                        : 'Chưa có tài liệu nào gần đây'}
                     </td>
                   </tr>
                 ) : (
-                  data.recentDocuments.slice(0, 6).map((doc) => (
+                  (recentTab === 'submissions'
+                    ? (data.recentSubmissions ?? [])
+                    : data.recentDocuments
+                  ).slice(0, 6).map((doc) => (
                     <tr
                       key={doc.id}
                       className="hover:bg-surface-container-low/60 transition-colors"

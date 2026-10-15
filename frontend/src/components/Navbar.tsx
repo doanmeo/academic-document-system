@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import NotificationBell from './NotificationBell'
 
 export default function Navbar() {
   const { user, logout, isAdmin } = useAuth()
@@ -165,6 +166,9 @@ export default function Navbar() {
             </svg>
             <span className="hidden sm:inline">Đăng tải tài liệu</span>
           </Link>
+
+          {/* In-app Notification Bell (F2) */}
+          <NotificationBell />
 
           {/* User Profile Dropdown */}
           <div className="relative">

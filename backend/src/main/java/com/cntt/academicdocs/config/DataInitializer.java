@@ -114,15 +114,16 @@ public class DataInitializer implements CommandLineRunner {
             LovGroup visibility = lovGroupRepository.save(new LovGroup("VISIBILITY", "Phạm vi hiển thị", "Phạm vi người dùng có thể xem"));
             LovGroup reportReason = lovGroupRepository.save(new LovGroup("REPORT_REASON", "Lý do báo cáo", "Lý do sinh viên báo cáo vi phạm"));
             LovGroup reportStatus = lovGroupRepository.save(new LovGroup("REPORT_STATUS", "Trạng thái báo cáo", "Tiến độ xử lý báo cáo"));
+            LovGroup targetYearGroup = lovGroupRepository.save(new LovGroup("TARGET_YEAR", "Năm học sinh viên", "Phân loại theo năm đào tạo của sinh viên (Năm 1 đến Năm 5)"));
 
             createLovValue(docType, "THESIS", "Khóa luận tốt nghiệp", 1);
-            createLovValue(docType, "CAPSTONE", "Đồ án chuyên ngành", 2);
+            createLovValue(docType, "CAPSTONE", "Bài tập lớn / Đồ án môn học", 2);
             createLovValue(docType, "PROJECT", "Bài tập lớn", 3);
             createLovValue(docType, "LECTURE", "Bài giảng & Slide", 4);
             createLovValue(docType, "EXAM", "Đề thi & Lời giải", 5);
             createLovValue(docType, "EXERCISE", "Bài tập & Thực hành", 6);
-            createLovValue(docType, "LAB", "Hướng dẫn Lab", 7);
-            createLovValue(docType, "SLIDE", "Slide bài giảng", 8);
+            createLovValue(docType, "LAB", "Hướng dẫn Lab & Thực hành", 7);
+            createLovValue(docType, "SLIDE", "Slide Bài giảng", 8);
             createLovValue(docType, "NOTE", "Ghi chú ôn tập", 9);
             createLovValue(docType, "ASSIGNMENT", "Bài tập lớn", 10);
             createLovValue(docType, "REFERENCE", "Tài liệu tham khảo", 11);
@@ -135,6 +136,13 @@ public class DataInitializer implements CommandLineRunner {
             createLovValue(fileType, "ZIP", "ZIP", 5);
 
             createLovValue(visibility, "PUBLIC_INTERNAL", "Nội bộ Khoa", 1);
+
+            createLovValue(targetYearGroup, "ALL", "Tất cả các năm", 1);
+            createLovValue(targetYearGroup, "YEAR_1", "Năm thứ 1 (Đại cương)", 2);
+            createLovValue(targetYearGroup, "YEAR_2", "Năm thứ 2 (Cơ sở ngành)", 3);
+            createLovValue(targetYearGroup, "YEAR_3", "Năm thứ 3 (Chuyên ngành)", 4);
+            createLovValue(targetYearGroup, "YEAR_4", "Năm thứ 4 (Đồ án / Tốt nghiệp)", 5);
+            createLovValue(targetYearGroup, "YEAR_5", "Năm thứ 5 (Kỹ sư chuyên sâu)", 6);
 
             createLovValue(reportReason, "COPYRIGHT", "Vi phạm bản quyền", 1);
             createLovValue(reportReason, "INAPPROPRIATE", "Nội dung không phù hợp", 2);
@@ -231,7 +239,7 @@ public class DataInitializer implements CommandLineRunner {
                         "Tài liệu đồ án tốt nghiệp xuất sắc ngành Kỹ thuật Phần mềm UTC.",
                         "THESIS", DocumentStatus.APPROVED, student1, subDSA, y1, cs != null ? cs : se,
                         "PGS. TS. Đào Thị Lệ Thủy", "https://github.com/utc-fit/graph-louvain-opt",
-                        1280, 320, 4.9, 48, admin, "KLTN_GraphAlgorithms_AliceWang.pdf", "docs/1/graph-algorithms.pdf", 15400000L);
+                        1280, 320, 4.9, 48, admin, "graph-louvain.pdf", "docs/1/graph-louvain.pdf", 2677707L);
 
                 // 2. [BTL] Deep Learning & AI -> Khoa học máy tính (CS / Purple)
                 seedDoc("Mô hình Học sâu trong Thị giác máy",
@@ -239,7 +247,7 @@ public class DataInitializer implements CommandLineRunner {
                         "Đồ án chuyên ngành Thị giác máy tính.",
                         "CAPSTONE", DocumentStatus.APPROVED, student1, subAI, y1, cs != null ? cs : se,
                         "TS. Nguyễn Thị Mai", "https://github.com/utc-fit/deeplearning-medical-vision",
-                        1540, 410, 4.8, 36, admin, "DoAn_DeepLearning_Vision.pdf", "docs/2/deeplearning-vision.pdf", 22100000L);
+                        1540, 410, 4.8, 36, admin, "yolov8-traffic-signs.pdf", "docs/2/yolov8-traffic-signs.pdf", 978751L);
 
                 // 3. [KLTN] Mạng máy tính -> Mạng máy tính & TT (CN / Amber)
                 seedDoc("Tính toán Biên trong IoT Công nghiệp với K3s & MQTT",
@@ -247,7 +255,7 @@ public class DataInitializer implements CommandLineRunner {
                         "Đồ án tốt nghiệp ứng dụng Kubernetes tại biên.",
                         "THESIS", DocumentStatus.APPROVED, student1, subNet, y1, cn != null ? cn : se,
                         "PGS. TS. Trần Văn Hùng", "https://github.com/utc-fit/edge-iot-mesh",
-                        980, 210, 4.7, 19, admin, "KLTN_EdgeComputing_K3s.pdf", "docs/3/edge-iot.pdf", 8400000L);
+                        980, 210, 4.7, 19, admin, "chuong2-tim-kiem-toi-uu.pdf", "docs/3/chuong2-tim-kiem-toi-uu.pdf", 910777L);
 
                 // 4. [Slide] Cơ sở dữ liệu phân tán -> Hệ thống thông tin (IS / Emerald)
                 seedDoc("Slide Bài giảng: Thiết kế & Tối ưu Cơ sở Dữ liệu Phân tán",
@@ -255,7 +263,7 @@ public class DataInitializer implements CommandLineRunner {
                         "Slide bài giảng chính quy dành cho sinh viên năm 3 Khoa CNTT UTC.",
                         "LECTURE", DocumentStatus.APPROVED, student1, subDB, y1, is != null ? is : se,
                         "ThS. Lê Hoàng Nam", "https://github.com/utc-fit/sql-distributed-opt",
-                        2450, 580, 4.9, 58, admin, "Slide_CSDL_PhanTan.pdf", "docs/4/sql-opt.pdf", 14200000L);
+                        2450, 580, 4.9, 58, admin, "bai-01-java-oop.pdf", "docs/4/bai-01-java-oop.pdf", 1044870L);
 
                 // 5. [Đề thi] Lập trình Hướng đối tượng -> Kỹ thuật phần mềm (SE / Navy)
                 seedDoc("Bộ Đề thi & Lời giải mẫu Môn Lập trình Hướng đối tượng Java",
@@ -263,7 +271,7 @@ public class DataInitializer implements CommandLineRunner {
                         "Tài liệu ôn thi chính thức lưu hành nội bộ Khoa CNTT.",
                         "EXAM", DocumentStatus.APPROVED, student1, subOOP, y1, se,
                         "TS. Đào Thị Lệ Thủy", "https://github.com/utc-fit/java-oop-exams",
-                        3120, 890, 5.0, 92, admin, "DeThi_LoiGiai_OOP_Java.pdf", "docs/5/oop-exams.pdf", 9800000L);
+                        3120, 890, 5.0, 92, admin, "bai-tap-nhom-aes.pdf", "docs/5/bai-tap-nhom-aes.pdf", 253123L);
 
                 // 6. [Lab] An toàn thông tin -> Mạng máy tính & TT (CN / Amber)
                 seedDoc("Tài liệu Thực hành Lab: Kiểm thử An toàn Thông tin OWASP Top 10",
@@ -271,7 +279,7 @@ public class DataInitializer implements CommandLineRunner {
                         "Hướng dẫn thực hành phòng lab an toàn bảo mật thông tin.",
                         "LAB", DocumentStatus.APPROVED, student1, subSec, y1, cn != null ? cn : se,
                         "ThS. Nguyễn Duy Hưng", "https://github.com/utc-fit/owasp-security-lab",
-                        2150, 620, 4.9, 64, admin, "Lab_AnToanThongTin_OWASP.pdf", "docs/6/owasp-lab.pdf", 11600000L);
+                        2150, 620, 4.9, 64, admin, "bai-tap-nhom-rsa-elgamal.pdf", "docs/6/bai-tap-nhom-rsa-elgamal.pdf", 233317L);
 
                 // 7. [BTL] Phát triển PM mã nguồn mở -> Kỹ thuật phần mềm (SE / Navy)
                 seedDoc("Kiến trúc Micro-Frontend hiện đại",
@@ -279,7 +287,7 @@ public class DataInitializer implements CommandLineRunner {
                         "Đồ án môn học Phát triển PM Mã nguồn mở.",
                         "PROJECT", DocumentStatus.APPROVED, student1, subOSS, y1, se,
                         "ThS. Nguyễn Duy Hưng", "https://github.com/utc-fit/micro-frontends-react",
-                        2340, 620, 4.9, 52, admin, "BTL_MicroFrontend_React19.pdf", "docs/7/microfrontends.pdf", 8400000L);
+                        2340, 620, 4.9, 52, admin, "bai_tap_nhom_des.pdf", "docs/46/bai_tap_nhom_des.pdf", 277255L);
 
                 // 8. [Bài tập] Cấu trúc dữ liệu & GT -> Khoa học máy tính (CS / Purple)
                 seedDoc("Bài tập & Lời giải Thuật toán Quy hoạch động & Đồ thị",
@@ -287,7 +295,7 @@ public class DataInitializer implements CommandLineRunner {
                         "Tài liệu bài tập thực hành thuật toán chuẩn UTC.",
                         "EXERCISE", DocumentStatus.APPROVED, student1, subDSA, y1, cs != null ? cs : se,
                         "TS. Vũ Trọng Khang", "https://github.com/utc-fit/dsa-dynamic-programming",
-                        1430, 460, 4.8, 41, admin, "BaiTap_QuyHoachDong_DoThi.pdf", "docs/8/dsa-exercises.pdf", 7900000L);
+                        1430, 460, 4.8, 41, admin, "bai_tap_nhom_aes.pdf", "docs/45/bai_tap_nhom_aes.pdf", 253123L);
 
                 // 9. [Slide] Hệ thống thông tin -> Hệ thống thông tin (IS / Emerald)
                 seedDoc("Slide Bài giảng: Phân tích & Thiết kế Hệ thống Thông tin UML",
@@ -295,7 +303,7 @@ public class DataInitializer implements CommandLineRunner {
                         "Bài giảng đào tạo chính quy chuyên ngành HTTT.",
                         "LECTURE", DocumentStatus.APPROVED, student1, subIS, y1, is != null ? is : se,
                         "TS. Nguyễn Mạnh Hùng", "https://github.com/utc-fit/is-uml-design",
-                        1620, 390, 4.7, 33, admin, "Slide_PhanTichThietKe_HTTT.pdf", "docs/9/uml-lecture.pdf", 12500000L);
+                        1620, 390, 4.7, 33, admin, "gamedesignpatternjava.pdf", "docs/78/gamedesignpatternjava.pdf", 415780L);
 
                 // 10. [Đề thi] Mạng máy tính -> Mạng máy tính & TT (CN / Amber)
                 seedDoc("Đề thi Cuối kỳ & Đáp án Môn Mạng máy tính (2022-2025)",
@@ -303,7 +311,7 @@ public class DataInitializer implements CommandLineRunner {
                         "Bộ đề ôn tập kỳ thi kết thúc học phần.",
                         "EXAM", DocumentStatus.APPROVED, student1, subNet, y1, cn != null ? cn : se,
                         "PGS. TS. Trần Văn Hùng", "https://github.com/utc-fit/network-final-exams",
-                        2890, 750, 4.9, 75, admin, "DeThi_MangMayTinh_UTC.pdf", "docs/10/network-exams.pdf", 6800000L);
+                        2890, 750, 4.9, 75, admin, "bai_tap_nhom_ma_hoa_co_dien.pdf", "docs/47/bai_tap_nhom_ma_hoa_co_dien.pdf", 187189L);
 
                 // 11. [Lab] Mạng máy tính -> Mạng máy tính & TT (CN / Amber)
                 seedDoc("Tài liệu Hướng dẫn Cài đặt & Triển khai Docker, Kubernetes Lab",
@@ -396,6 +404,38 @@ public class DataInitializer implements CommandLineRunner {
         doc.setDownloadCount(downloads);
         doc.setAvgRating(rating);
         doc.setRatingCount(ratingCount);
+
+        String targetYear = "ALL";
+        if ("THESIS".equalsIgnoreCase(typeCode) || "CAPSTONE".equalsIgnoreCase(typeCode)) {
+            targetYear = "YEAR_4";
+        } else if (subject != null && subject.getCode() != null) {
+            String sc = subject.getCode();
+            if (sc.startsWith("INT1")) targetYear = "YEAR_1";
+            else if (sc.startsWith("INT2")) targetYear = "YEAR_2";
+            else if (sc.startsWith("INT3")) targetYear = "YEAR_3";
+        }
+        doc.setTargetYear(targetYear);
+
+        if ("EXAM".equalsIgnoreCase(typeCode) || "EXERCISE".equalsIgnoreCase(typeCode)) {
+            doc.setExamDifficulty("MEDIUM");
+            doc.setExamSemester("Kỳ 1 - 2024-2025");
+            doc.setHasSolution(true);
+            doc.setExamTips("Đọc kỹ yêu cầu đề bài; Chú ý cấu trúc dữ liệu tối ưu và định dạng xuất kết quả; Thầy cô thường chấm điểm theo test case biên và phân tích độ phức tạp O(N).");
+        }
+        if (title.contains("Java") || title.contains("OOP") || title.contains("Game")) {
+            doc.setCodeLanguage("java");
+            doc.setSourceCodeSnippet("// Java OOP Sample Pattern\npublic abstract class Vehicle {\n    protected String licensePlate;\n    public Vehicle(String licensePlate) { this.licensePlate = licensePlate; }\n    public abstract double calculateTax();\n}\n\npublic class ElectricCar extends Vehicle {\n    public ElectricCar(String plate) { super(plate); }\n    @Override\n    public double calculateTax() { return 0.05 * 50000; }\n}");
+        } else if (title.contains("Python") || title.contains("Học sâu") || title.contains("Louvain") || title.contains("AI")) {
+            doc.setCodeLanguage("python");
+            doc.setSourceCodeSnippet("# Python AI / Algorithm Snippet\nimport networkx as nx\nfrom community import community_louvain\n\ndef detect_communities(graph_nodes, edges):\n    G = nx.Graph()\n    G.add_edges_from(edges)\n    partition = community_louvain.best_partition(G)\n    modularity = community_louvain.modularity(partition, G)\n    print(f'Modularity Score: {modularity:.4f}')\n    return partition\n\nif __name__ == '__main__':\n    sample_edges = [(1, 2), (2, 3), (3, 1), (3, 4), (4, 5), (5, 6), (6, 4)]\n    print('Detected communities:', detect_communities(6, sample_edges))");
+        } else if (title.contains("Cơ sở Dữ liệu") || title.contains("SQL")) {
+            doc.setCodeLanguage("sql");
+            doc.setSourceCodeSnippet("-- Phân tích Execution Plan & Indexing trong CSDL phân tán\nEXPLAIN ANALYZE\nSELECT d.id, d.title, COUNT(f.id) AS file_count\nFROM documents d\nLEFT JOIN document_files f ON d.id = f.document_id\nWHERE d.status = 'APPROVED' AND d.subject_id = 4\nGROUP BY d.id, d.title\nORDER BY d.view_count DESC\nLIMIT 20;");
+        } else if (title.contains("Micro-Frontend") || title.contains("React")) {
+            doc.setCodeLanguage("typescript");
+            doc.setSourceCodeSnippet("// Module Federation Remote Micro-Frontend\nimport React from 'react';\n\nexport interface WidgetProps {\n  title: string;\n  status: 'ACTIVE' | 'ARCHIVED';\n}\n\nexport const AcademicWidget: React.FC<WidgetProps> = ({ title, status }) => {\n  return (\n    <div className=\"p-4 border rounded shadow-sm bg-white dark:bg-slate-800\">\n      <h3 className=\"font-bold text-blue-600\">{title}</h3>\n      <span className=\"text-xs px-2 py-0.5 rounded bg-green-100 text-green-700\">{status}</span>\n    </div>\n  );\n};");
+        }
+
         if (status == DocumentStatus.APPROVED) {
             doc.setApprovedBy(approvedBy);
             doc.setApprovedAt(java.time.LocalDateTime.now());

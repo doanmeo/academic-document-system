@@ -22,10 +22,51 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final MajorRepository majorRepository;
+    private final com.cntt.academicdocs.repository.DocumentRepository documentRepository;
+    private final com.cntt.academicdocs.repository.BookmarkRepository bookmarkRepository;
 
-    public UserService(UserRepository userRepository, MajorRepository majorRepository) {
+    public UserService(
+            UserRepository userRepository,
+            MajorRepository majorRepository,
+            com.cntt.academicdocs.repository.DocumentRepository documentRepository,
+            com.cntt.academicdocs.repository.BookmarkRepository bookmarkRepository
+    ) {
         this.userRepository = userRepository;
         this.majorRepository = majorRepository;
+        this.documentRepository = documentRepository;
+        this.bookmarkRepository = bookmarkRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public com.cntt.academicdocs.dto.UserStatsDTO getUserStats(Long userId) {
+        long approved = documentRepository.countByUploader_IdAndStatus(userId, com.cntt.academicdocs.domain.DocumentStatus.APPROVED);
+        long pending = documentRepository.countByUploader_IdAndStatus(userId, com.cntt.academicdocs.domain.DocumentStatus.PENDING);
+        long views = documentRepository.sumViewsByUploaderId(userId);
+        long downloads = documentRepository.sumDownloadsByUploaderId(userId);
+        double rating = documentRepository.avgRatingByUploaderId(userId);
+        double roundRating = Math.round(rating * 10.0) / 10.0;
+        long bookmarks = bookmarkRepository.countByUser_Id(userId);
+
+        List<String> topSubs = documentRepository.findTopSubjectByUploaderId(userId);
+        String topSubject = (topSubs != null && !topSubs.isEmpty()) ? topSubs.get(0) : "Chưa có";
+
+        // Calculate badges & rank
+        List<String> badges = new java.util.ArrayList<>();
+        if (approved >= 5) badges.add("Học giả Tích cực Khoa CNTT");
+        if (approved >= 1) badges.add("Người đóng góp Tri thức");
+        if (downloads >= 100) badges.add("Tác giả Học liệu Phổ biến");
+        if (views >= 500) badges.add("Top Lượt xem Tài liệu");
+        if (roundRating >= 4.5 && approved >= 2) badges.add("Chất lượng 5 Sao");
+        if (badges.isEmpty()) badges.add("Thành viên Mới Khoa CNTT");
+
+        String rank = approved >= 5 ? "Top 5% Tác giả Đóng góp Xuất sắc"
+                    : approved >= 2 ? "Top 15% Đóng góp Tích cực"
+                    : approved >= 1 ? "Top 30% Đóng góp Khoa CNTT"
+                    : "Đang tích lũy đóng góp";
+
+        return new com.cntt.academicdocs.dto.UserStatsDTO(
+                approved, pending, views, downloads, roundRating, bookmarks, topSubject, rank, badges
+        );
     }
 
     @Transactional(readOnly = true)

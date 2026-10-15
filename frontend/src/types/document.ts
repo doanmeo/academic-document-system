@@ -13,9 +13,13 @@ export type DocumentTypeCode =
   | 'CAPSTONE'
   | 'PROJECT'
   | 'LECTURE'
+  | 'SLIDE'
   | 'EXAM'
   | 'EXERCISE'
   | 'LAB'
+  | 'NOTE'
+  | 'REFERENCE'
+  | 'OTHER'
 
 // ─── Tóm tắt tài liệu (dùng trong danh sách / grid) ──────────────────────────
 export interface DocumentSummary {
@@ -25,6 +29,7 @@ export interface DocumentSummary {
   status: DocumentStatus
   documentTypeCode: DocumentTypeCode
   documentTypeLabel: string
+  targetYear?: string
   subjectId: number
   subjectName: string
   majorId?: number
@@ -37,6 +42,8 @@ export interface DocumentSummary {
   viewCount: number
   downloadCount: number
   primaryFileMimeType?: string
+  primaryFileId?: number
+  primaryFileName?: string
   bookmarked?: boolean
   isBookmarked?: boolean
   avgRating: number
@@ -49,6 +56,12 @@ export interface DocumentSummary {
   pledgeAccepted?: boolean
   sharingScope?: string
   technologies?: { id: number; name: string; usageNote?: string }[]
+  codeLanguage?: string | null
+  sourceCodeSnippet?: string | null
+  examDifficulty?: string | null
+  examSemester?: string | null
+  examTips?: string | null
+  hasSolution?: boolean | null
 }
 
 // ─── Chi tiết đầy đủ tài liệu ─────────────────────────────────────────────────
@@ -157,6 +170,7 @@ export interface CreateDocumentRequest {
   gitlabUrl?: string
   pledgeAccepted?: boolean
   sharingScope?: string
+  targetYear?: string
   fileIds?: number[]
   memberStudentCodes?: string[]
   technologyIds?: number[]
@@ -172,6 +186,7 @@ export interface SearchDocumentParams {
   advisorName?: string
   type?: string
   documentTypeCode?: string
+  targetYear?: string
   technologyId?: number
   status?: DocumentStatus
   sortBy?: 'newest' | 'views' | 'downloads' | 'rating' | string
@@ -236,7 +251,105 @@ export interface SignedUrlResponse {
 // ─── Citation format ───────────────────────────────────────────────────────────
 export type CitationFormat = 'APA' | 'IEEE' | 'BIBTEX'
 
+// ─── F1: Coverage Heatmap ──────────────────────────────────────────────────────
+export interface CoverageMatrix {
+  subjects: { id: number; code: string; name: string }[]
+  types: { code: string; label: string }[]
+  cellCounts: Record<string, number>
+  totalApprovedDocuments: number
+}
+
+// ─── F2: In-App Notification ──────────────────────────────────────────────────
+export interface InAppNotification {
+  id: number
+  type: string
+  title: string
+  body: string
+  link?: string
+  isRead: boolean
+  createdAt: string
+}
+
+// ─── F5: User Contribution Stats ──────────────────────────────────────────────
+export interface UserStats {
+  totalApproved: number
+  totalPending: number
+  totalViews: number
+  totalDownloads: number
+  avgRating: number
+  totalBookmarks: number
+  topSubject: string
+  contributorRank: string
+  badges: string[]
+}
+
 export interface CitationResponse {
   format: CitationFormat
   citation: string
+}
+
+// ─── Review Timeline & AI Generation ─────────────────────────────────────────
+export interface DocumentReviewHistory {
+  id: number
+  decision: string
+  comment: string
+  actionAt: string
+  reviewerName?: string
+}
+
+export interface GenerateAbstractRequest {
+  title: string
+  subjectName?: string
+  documentType?: string
+  keywords?: string[]
+}
+
+export interface GenerateAbstractResponse {
+  abstractText: string
+  keywords: string[]
+  suggestedTargetYear?: string
+}
+
+// ─── Inline Academic Q&A ──────────────────────────────────────────────────────
+export interface DocumentQA {
+  id: number
+  documentId: number
+  userId: number
+  userFullName: string
+  userStudentCode: string
+  parentId?: number | null
+  question: string
+  answer?: string | null
+  pageNumber?: number | null
+  upvotes: number
+  createdAt: string
+  replies?: DocumentQA[]
+}
+
+// ─── Study Collections ────────────────────────────────────────────────────────
+export interface CollectionItem {
+  id: number
+  collectionId: number
+  documentId: number
+  documentTitle: string
+  documentTypeCode: string
+  documentTypeLabel: string
+  subjectName: string
+  note?: string | null
+  sortOrder: number
+  createdAt: string
+}
+
+export interface Collection {
+  id: number
+  userId: number
+  userFullName: string
+  title: string
+  description?: string | null
+  isPublic: boolean
+  shareToken: string
+  itemCount: number
+  createdAt: string
+  updatedAt: string
+  items?: CollectionItem[]
 }

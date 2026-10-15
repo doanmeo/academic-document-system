@@ -72,8 +72,10 @@ public class SecurityConfig {
                                 "/api/documents",
                                 "/api/documents/*",
                                 "/api/documents/*/citation",
+                                "/api/documents/*/qa",
                                 "/api/documents/search",
-                                "/api/files/**"
+                                "/api/files/**",
+                                "/api/collections/public/**"
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
