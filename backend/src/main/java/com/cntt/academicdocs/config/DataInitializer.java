@@ -63,28 +63,78 @@ public class DataInitializer implements CommandLineRunner {
 
     private void initMajors() {
         if (majorRepository.count() == 0) {
-            majorRepository.save(new Major("SE", "Kỹ thuật phần mềm"));
-            majorRepository.save(new Major("IS", "Hệ thống thông tin"));
-            majorRepository.save(new Major("CS", "Khoa học máy tính"));
-            majorRepository.save(new Major("CN", "Mạng máy tính & Truyền thông"));
-            log.info("Initialized default majors.");
-        } else if (majorRepository.findByCode("CN").isEmpty()) {
-            majorRepository.save(new Major("CN", "Mạng máy tính & Truyền thông"));
+            majorRepository.save(new Major("CNTT", "Công nghệ thông tin (Đại trà & CLC Việt - Anh)"));
+            majorRepository.save(new Major("KHMT", "Khoa học máy tính"));
+            majorRepository.save(new Major("KTPM", "Kỹ thuật phần mềm"));
+            majorRepository.save(new Major("HTTT", "Hệ thống thông tin"));
+            majorRepository.save(new Major("MMT_ATTT", "Mạng máy tính & An toàn thông tin"));
+            majorRepository.save(new Major("AI_DS", "Trí tuệ nhân tạo và Khoa học dữ liệu"));
+            majorRepository.save(new Major("SE", "Kỹ thuật phần mềm (Chuyên ngành SE)"));
+            majorRepository.save(new Major("IS", "Hệ thống thông tin (Chuyên ngành IS)"));
+            majorRepository.save(new Major("CS", "Khoa học máy tính (Chuyên ngành CS)"));
+            majorRepository.save(new Major("CN", "Mạng máy tính & An toàn thông tin (Chuyên ngành CN)"));
+            log.info("Initialized default UTC FIT majors.");
         }
     }
 
     private void initSubjects() {
         if (subjectRepository.count() == 0) {
-            subjectRepository.save(new Subject("INT1001", "Nhập môn lập trình", "Kiến thức cơ sở lập trình"));
-            subjectRepository.save(new Subject("INT2001", "Cơ sở dữ liệu phân tán", "Hệ quản trị CSDL quan hệ và phân tán"));
-            subjectRepository.save(new Subject("INT2002", "Cấu trúc dữ liệu & GT", "Thuật toán và cấu trúc dữ liệu nâng cao"));
-            subjectRepository.save(new Subject("INT2003", "Lập trình Hướng đối tượng", "OOP với Java và C++"));
-            subjectRepository.save(new Subject("INT2004", "Mạng máy tính", "Kiến trúc mạng máy tính và truyền thông"));
-            subjectRepository.save(new Subject("INT3001", "Phát triển phần mềm mã nguồn mở", "Mã nguồn mở và quy trình phát triển"));
-            subjectRepository.save(new Subject("INT3002", "Deep Learning & AI", "Trí tuệ nhân tạo và học sâu"));
-            subjectRepository.save(new Subject("INT3003", "An toàn thông tin", "Bảo mật hệ thống và an ninh mạng"));
-            subjectRepository.save(new Subject("INT3004", "Hệ thống thông tin", "Phân tích và thiết kế hệ thống thông tin"));
-            log.info("Initialized default subjects.");
+            // 1. Đại cương & Toán - Khoa học
+            subjectRepository.save(new Subject("MATH101", "Giải tích 1", "Toán giải tích cơ sở đại cương"));
+            subjectRepository.save(new Subject("MATH102", "Giải tích 2", "Giải tích nhiều biến"));
+            subjectRepository.save(new Subject("MATH103", "Đại số tuyến tính", "Ma trận, định thức và không gian vector"));
+            subjectRepository.save(new Subject("MATH104", "Xác suất thống kê", "Lý thuyết xác suất và suy diễn thống kê"));
+            subjectRepository.save(new Subject("PHYS101", "Vật lý đại cương", "Cơ nhiệt điện quang"));
+            subjectRepository.save(new Subject("MATH105", "Toán rời rạc & Lý thuyết đồ thị", "Logic, tập hợp và thuật toán đồ thị"));
+            subjectRepository.save(new Subject("LLCT101", "Triết học Mác - Lênin", "Lý luận chính trị đại cương"));
+            subjectRepository.save(new Subject("LLCT102", "Kinh tế chính trị Mác - Lênin", "Kinh tế chính trị"));
+            subjectRepository.save(new Subject("LLCT103", "Chủ nghĩa xã hội khoa học", "CNXH khoa học"));
+            subjectRepository.save(new Subject("LLCT104", "Lịch sử Đảng Cộng sản Việt Nam", "Lịch sử Đảng"));
+            subjectRepository.save(new Subject("LLCT105", "Tư tưởng Hồ Chí Minh", "Tư tưởng HCM"));
+            subjectRepository.save(new Subject("ENG101", "Tiếng Anh cơ bản", "Ngoại ngữ cơ sở"));
+            subjectRepository.save(new Subject("ENG102", "Tiếng Anh chuyên ngành CNTT", "Ngoại ngữ chuyên ngành FIT"));
+            subjectRepository.save(new Subject("GDTC_QP", "Giáo dục quốc phòng & Giáo dục thể chất", "Thể chất & QP-AN"));
+
+            // 2. Cơ sở ngành CNTT
+            subjectRepository.save(new Subject("IT101", "Nhập môn Công nghệ thông tin / Tin học đại cương", "Nhập môn ngành CNTT"));
+            subjectRepository.save(new Subject("IT102", "Kỹ thuật lập trình (C/C++)", "Kỹ thuật lập trình cơ bản và nâng cao"));
+            subjectRepository.save(new Subject("IT201", "Lập trình hướng đối tượng (OOP) (Java / C++)", "Lập trình hướng đối tượng"));
+            subjectRepository.save(new Subject("IT202", "Cấu trúc dữ liệu và giải thuật", "DSA chuyên sâu"));
+            subjectRepository.save(new Subject("IT203", "Kiến trúc máy tính và Hợp ngữ", "Kiến trúc phần cứng và Assembly"));
+            subjectRepository.save(new Subject("IT204", "Nguyên lý Hệ điều hành (Linux / Windows)", "Process, Threads, Memory, File Systems"));
+            subjectRepository.save(new Subject("IT205", "Cơ sở dữ liệu (SQL, Thiết kế CSDL quan hệ)", "CSDL quan hệ và chuẩn hóa"));
+            subjectRepository.save(new Subject("IT206", "Hệ quản trị cơ sở dữ liệu (PostgreSQL, SQL Server, MySQL)", "Hệ quản trị CSDL"));
+            subjectRepository.save(new Subject("IT207", "Mạng máy tính & Truyền thông dữ liệu", "Mô hình OSI, TCP/IP, Socket"));
+            subjectRepository.save(new Subject("IT208", "Công nghệ phần mềm / Nhập môn Kỹ thuật phần mềm", "Quy trình phần mềm SDLC"));
+            subjectRepository.save(new Subject("IT209", "Tương tác người - máy (HCI)", "Thiết kế UI/UX và trải nghiệm"));
+
+            // 3. Chuyên ngành
+            subjectRepository.save(new Subject("SE301", "Lập trình Web (React / Spring Boot / Node.js)", "Fullstack Web Development"));
+            subjectRepository.save(new Subject("SE302", "Lập trình ứng dụng di động (Android / iOS / Flutter)", "Mobile Development"));
+            subjectRepository.save(new Subject("SE303", "Thiết kế & Kiến trúc phần mềm", "Design Patterns & Software Architecture"));
+            subjectRepository.save(new Subject("SE304", "Kiểm thử và đảm bảo chất lượng phần mềm (QA/QC)", "Software Testing & Quality Assurance"));
+            subjectRepository.save(new Subject("SE305", "Quản trị dự án CNTT (Agile / Scrum)", "Agile / Scrum & Quản trị dự án"));
+            subjectRepository.save(new Subject("SE306", "Điện toán đám mây & DevOps cơ bản (Docker, CI/CD)", "Cloud & DevOps pipeline"));
+
+            subjectRepository.save(new Subject("IS301", "Phân tích và thiết kế hệ thống thông tin", "UML, BPMN & Thiết kế hệ thống"));
+            subjectRepository.save(new Subject("IS302", "Khai phá dữ liệu (Data Mining) & Kho dữ liệu (Data Warehouse)", "Data Mining & Data Warehouse"));
+            subjectRepository.save(new Subject("IS303", "Cơ sở dữ liệu phân tán & NoSQL", "MongoDB, Redis, Distributed DB"));
+            subjectRepository.save(new Subject("IS304", "Phân tích dữ liệu lớn (Big Data)", "Hadoop, Spark & Big Data"));
+
+            subjectRepository.save(new Subject("CN301", "Quản trị mạng máy tính (Cisco / Linux Server)", "Quản trị hệ thống & mạng"));
+            subjectRepository.save(new Subject("CN302", "Định tuyến và chuyển mạch (Routing & Switching)", "Routing & Switching"));
+            subjectRepository.save(new Subject("CN303", "Cơ sở An toàn thông tin & Mật mã học", "Cryptography & Security Fundamentals"));
+            subjectRepository.save(new Subject("CN304", "An ninh mạng và điều tra số (Digital Forensics)", "Network Security & Digital Forensics"));
+
+            subjectRepository.save(new Subject("AI301", "Nhập môn Trí tuệ nhân tạo", "AI Fundamentals & Search"));
+            subjectRepository.save(new Subject("AI302", "Học máy (Machine Learning)", "Supervised, Unsupervised ML"));
+            subjectRepository.save(new Subject("AI303", "Học sâu (Deep Learning) & Thị giác máy tính / NLP", "CNN, RNN, Transformers, LLM"));
+
+            // 4. Tốt nghiệp & Thực tập
+            subjectRepository.save(new Subject("CAP401", "Thực tập cơ sở / Thực tập chuyên ngành tại doanh nghiệp", "Thực tập doanh nghiệp"));
+            subjectRepository.save(new Subject("CAP402", "Đồ án môn học (Đồ án CSDL / KTPM / Mạng)", "Đồ án chuyên ngành"));
+            subjectRepository.save(new Subject("CAP501", "Đồ án tốt nghiệp / Khóa luận tốt nghiệp Kỹ sư/Cử nhân CNTT", "Khóa luận tốt nghiệp"));
+            log.info("Initialized full UTC FIT curriculum subjects.");
         }
     }
 
@@ -109,25 +159,22 @@ public class DataInitializer implements CommandLineRunner {
 
     private void initLovs() {
         if (lovGroupRepository.count() == 0) {
-            LovGroup docType = lovGroupRepository.save(new LovGroup("DOCUMENT_TYPE", "Loại tài liệu", "Phân loại tài liệu học tập"));
+            LovGroup docType = lovGroupRepository.save(new LovGroup("DOCUMENT_TYPE", "Loại tài liệu", "Phân loại tài liệu học tập chuẩn không trùng lặp"));
             LovGroup fileType = lovGroupRepository.save(new LovGroup("FILE_TYPE", "Loại file", "Định dạng file đính kèm"));
             LovGroup visibility = lovGroupRepository.save(new LovGroup("VISIBILITY", "Phạm vi hiển thị", "Phạm vi người dùng có thể xem"));
             LovGroup reportReason = lovGroupRepository.save(new LovGroup("REPORT_REASON", "Lý do báo cáo", "Lý do sinh viên báo cáo vi phạm"));
             LovGroup reportStatus = lovGroupRepository.save(new LovGroup("REPORT_STATUS", "Trạng thái báo cáo", "Tiến độ xử lý báo cáo"));
             LovGroup targetYearGroup = lovGroupRepository.save(new LovGroup("TARGET_YEAR", "Năm học sinh viên", "Phân loại theo năm đào tạo của sinh viên (Năm 1 đến Năm 5)"));
 
-            createLovValue(docType, "THESIS", "Khóa luận tốt nghiệp", 1);
-            createLovValue(docType, "CAPSTONE", "Bài tập lớn / Đồ án môn học", 2);
-            createLovValue(docType, "PROJECT", "Bài tập lớn", 3);
-            createLovValue(docType, "LECTURE", "Bài giảng & Slide", 4);
-            createLovValue(docType, "EXAM", "Đề thi & Lời giải", 5);
-            createLovValue(docType, "EXERCISE", "Bài tập & Thực hành", 6);
-            createLovValue(docType, "LAB", "Hướng dẫn Lab & Thực hành", 7);
-            createLovValue(docType, "SLIDE", "Slide Bài giảng", 8);
-            createLovValue(docType, "NOTE", "Ghi chú ôn tập", 9);
-            createLovValue(docType, "ASSIGNMENT", "Bài tập lớn", 10);
-            createLovValue(docType, "REFERENCE", "Tài liệu tham khảo", 11);
-            createLovValue(docType, "OTHER", "Khác", 12);
+            // 8 Clean Non-duplicated Document Types
+            createLovValue(docType, "SLIDE", "Slide bài giảng", 1);
+            createLovValue(docType, "NOTE", "Ghi chú ôn tập", 2);
+            createLovValue(docType, "ASSIGNMENT", "Bài tập lớn (BTL) & Đồ án", 3);
+            createLovValue(docType, "SAMPLE_CODE", "Mã nguồn mẫu (GitHub/GitLab)", 4);
+            createLovValue(docType, "REFERENCE", "Tài liệu tham khảo & Giáo trình", 5);
+            createLovValue(docType, "THESIS", "Đồ án / Khóa luận tốt nghiệp", 6);
+            createLovValue(docType, "EXAM", "Đề thi & Đáp án (Past Papers)", 7);
+            createLovValue(docType, "LAB", "Hướng dẫn Lab & Thực hành", 8);
 
             createLovValue(fileType, "PDF", "PDF", 1);
             createLovValue(fileType, "DOCX", "DOCX", 2);
@@ -223,14 +270,14 @@ public class DataInitializer implements CommandLineRunner {
             Major cs = majorRepository.findByCode("CS").orElse(null);
             Major cn = majorRepository.findByCode("CN").orElse(null);
 
-            Subject subDSA = subjectRepository.findByCode("INT2002").orElse(null); // Cấu trúc dữ liệu & GT
-            Subject subOOP = subjectRepository.findByCode("INT2003").orElse(null); // Lập trình Hướng đối tượng
-            Subject subDB = subjectRepository.findByCode("INT2001").orElse(null);  // Cơ sở dữ liệu phân tán
-            Subject subNet = subjectRepository.findByCode("INT2004").orElse(null); // Mạng máy tính
-            Subject subOSS = subjectRepository.findByCode("INT3001").orElse(null); // Phát triển PM mã nguồn mở
-            Subject subAI = subjectRepository.findByCode("INT3002").orElse(null);  // Deep Learning & AI
-            Subject subSec = subjectRepository.findByCode("INT3003").orElse(null); // An toàn thông tin
-            Subject subIS = subjectRepository.findByCode("INT3004").orElse(null);  // Hệ thống thông tin
+            Subject subDSA = subjectRepository.findByCode("IT202").orElse(null); // Cấu trúc dữ liệu & GT
+            Subject subOOP = subjectRepository.findByCode("IT201").orElse(null); // Lập trình Hướng đối tượng
+            Subject subDB = subjectRepository.findByCode("IS303").orElse(null);  // Cơ sở dữ liệu phân tán
+            Subject subNet = subjectRepository.findByCode("IT207").orElse(null); // Mạng máy tính
+            Subject subOSS = subjectRepository.findByCode("SE301").orElse(null); // Phát triển PM mã nguồn mở
+            Subject subAI = subjectRepository.findByCode("AI303").orElse(null);  // Deep Learning & AI
+            Subject subSec = subjectRepository.findByCode("CN304").orElse(null); // An toàn thông tin
+            Subject subIS = subjectRepository.findByCode("IS301").orElse(null);  // Hệ thống thông tin
 
             if (student1 != null && y1 != null) {
                 // 1. [KLTN] Cấu trúc dữ liệu & GT -> Khoa học máy tính (CS / Purple)

@@ -29,7 +29,7 @@ function App() {
       {/* ─── Public ──────────────────────────────────────────────────────── */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/" element={<Search />} />
+      <Route path="/" element={<Home />} />
       <Route path="/search" element={<Search />} />
       <Route path="/exams" element={<ExamBank />} />
       <Route path="/templates" element={<TemplateCenter />} />

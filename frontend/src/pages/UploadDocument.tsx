@@ -134,7 +134,7 @@ export default function UploadDocument() {
   }
 
   // Checklist Validation Statuses
-  const isAdvisorRequired = ['THESIS', 'CAPSTONE', 'PROJECT'].includes(documentTypeCode)
+  const isAdvisorRequired = ['THESIS', 'ASSIGNMENT', 'CAPSTONE', 'PROJECT'].includes(documentTypeCode)
   const isAdvisorValid = !isAdvisorRequired || advisorName.trim().length > 0
   const isAbstractValid = abstractText.trim().length >= 15
   const isFileValid = !!file
@@ -270,11 +270,13 @@ export default function UploadDocument() {
   }
 
   const DOC_TYPE_OPTIONS: { value: DocumentTypeCode; label: string }[] = [
+    { value: 'SLIDE', label: '[Slide] Slide bài giảng' },
+    { value: 'NOTE', label: '[Ghi chú] Ghi chú ôn tập' },
+    { value: 'ASSIGNMENT', label: '[BTL] Bài tập lớn & Đồ án môn học' },
+    { value: 'SAMPLE_CODE', label: '[Source Code] Mã nguồn mẫu' },
+    { value: 'REFERENCE', label: '[Tham khảo] Tài liệu tham khảo & Giáo trình' },
     { value: 'THESIS', label: '[KLTN] Khóa luận tốt nghiệp' },
-    { value: 'CAPSTONE', label: '[BTL] Bài tập lớn / Đồ án môn học' },
-    { value: 'LECTURE', label: '[Slide] Slide Bài giảng' },
     { value: 'EXAM', label: '[Đề thi] Đề thi & Lời giải mẫu' },
-    { value: 'EXERCISE', label: '[Bài tập] Bài tập & Thực hành' },
     { value: 'LAB', label: '[Lab] Hướng dẫn thực hành Lab' },
   ]
 

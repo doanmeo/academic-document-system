@@ -427,11 +427,15 @@ export default function EditDocument() {
                         value={documentTypeCode}
                         onChange={(val) => setDocumentTypeCode(val as DocumentTypeCode)}
                         options={[
-                          { value: '', label: 'Chọn loại' },
-                          { value: 'THESIS', label: 'Khóa luận Tốt nghiệp (KLTN)' },
-                          { value: 'CAPSTONE', label: 'Đồ án Chuyên ngành' },
-                          { value: 'PROJECT', label: 'Bài tập lớn (BTL)' },
-                          { value: 'LECTURE', label: 'Giáo trình & Slide' },
+                          { value: '', label: 'Chọn loại tài liệu' },
+                          { value: 'SLIDE', label: 'Slide bài giảng' },
+                          { value: 'NOTE', label: 'Ghi chú ôn tập' },
+                          { value: 'ASSIGNMENT', label: 'Bài tập lớn (BTL) & Đồ án môn học' },
+                          { value: 'SAMPLE_CODE', label: 'Mã nguồn mẫu (GitHub/GitLab)' },
+                          { value: 'REFERENCE', label: 'Tài liệu tham khảo & Giáo trình' },
+                          { value: 'THESIS', label: 'Khóa luận tốt nghiệp (KLTN)' },
+                          { value: 'EXAM', label: 'Đề thi & Lời giải mẫu' },
+                          { value: 'LAB', label: 'Hướng dẫn thực hành Lab' },
                         ]}
                         placeholder="Chọn loại"
                         className="w-full"

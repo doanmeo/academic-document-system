@@ -9,17 +9,30 @@ export type DocumentStatus =
   | 'REVISION_REQUIRED'
 
 export type DocumentTypeCode =
+  | 'SLIDE'
+  | 'NOTE'
+  | 'ASSIGNMENT'
+  | 'SAMPLE_CODE'
+  | 'REFERENCE'
   | 'THESIS'
+  | 'EXAM'
+  | 'LAB'
   | 'CAPSTONE'
   | 'PROJECT'
   | 'LECTURE'
-  | 'SLIDE'
-  | 'EXAM'
   | 'EXERCISE'
-  | 'LAB'
-  | 'NOTE'
-  | 'REFERENCE'
   | 'OTHER'
+
+export const OFFICIAL_DOCUMENT_TYPES = [
+  { code: 'SLIDE' as const, label: 'Slide bài giảng', description: 'Slide trình chiếu bài giảng môn học của giảng viên', badgeClass: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' },
+  { code: 'NOTE' as const, label: 'Ghi chú ôn tập', description: 'Tóm tắt lý thuyết trọng tâm, mindmap & đề cương ôn thi', badgeClass: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800' },
+  { code: 'ASSIGNMENT' as const, label: 'Bài tập lớn (BTL)', description: 'Báo cáo bài tập lớn, đồ án môn học chuẩn format UTC', badgeClass: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' },
+  { code: 'SAMPLE_CODE' as const, label: 'Mã nguồn mẫu', description: 'Source code mẫu, demo thuật toán & link GitHub/GitLab', badgeClass: 'bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800' },
+  { code: 'REFERENCE' as const, label: 'Tài liệu tham khảo', description: 'Giáo trình chính thức, sách chuyên khảo & tài liệu đọc thêm', badgeClass: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800' },
+  { code: 'THESIS' as const, label: 'Đồ án / Khóa luận tốt nghiệp', description: 'Báo cáo khóa luận tốt nghiệp Kỹ sư/Cử nhân đạt điểm xuất sắc', badgeClass: 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800' },
+  { code: 'EXAM' as const, label: 'Đề thi & Lời giải', description: 'Tuyển tập đề thi kết thúc học phần, giữa kỳ kèm đáp án', badgeClass: 'bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800' },
+  { code: 'LAB' as const, label: 'Hướng dẫn Lab & Thực hành', description: 'Tài liệu hướng dẫn thực hành phòng máy, lab Cisco, Linux', badgeClass: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800' },
+]
 
 // ─── Tóm tắt tài liệu (dùng trong danh sách / grid) ──────────────────────────
 export interface DocumentSummary {

@@ -32,42 +32,62 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
   const typeConfig: Record<string, { label: string; badge: string; icon: React.ReactNode }> = {
     THESIS: {
       label: 'Khóa luận tốt nghiệp',
-      badge: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/40',
+      badge: 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200/80 dark:border-purple-800/40',
       icon: <GraduationCap className="w-3.5 h-3.5" />,
+    },
+    ASSIGNMENT: {
+      label: 'Bài tập lớn (BTL)',
+      badge: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200/80 dark:border-blue-800/40',
+      icon: <FileText className="w-3.5 h-3.5" />,
     },
     CAPSTONE: {
       label: 'Đồ án chuyên ngành',
-      badge: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-800/40',
-      icon: <Code2 className="w-3.5 h-3.5" />,
+      badge: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200/80 dark:border-blue-800/40',
+      icon: <FileText className="w-3.5 h-3.5" />,
     },
     PROJECT: {
       label: 'Bài tập lớn',
-      badge: 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200/80 dark:border-purple-800/40',
-      icon: <FileText className="w-3.5 h-3.5" />,
-    },
-    LECTURE: {
-      label: 'Slide bài giảng',
       badge: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200/80 dark:border-blue-800/40',
-      icon: <BookOpen className="w-3.5 h-3.5" />,
+      icon: <FileText className="w-3.5 h-3.5" />,
     },
     SLIDE: {
       label: 'Slide bài giảng',
-      badge: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200/80 dark:border-blue-800/40',
+      badge: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/40',
       icon: <BookOpen className="w-3.5 h-3.5" />,
     },
-    EXAM: {
-      label: 'Đề thi & Đề cương',
+    LECTURE: {
+      label: 'Slide bài giảng',
+      badge: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/40',
+      icon: <BookOpen className="w-3.5 h-3.5" />,
+    },
+    NOTE: {
+      label: 'Ghi chú ôn tập',
       badge: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200/80 dark:border-amber-800/40',
       icon: <FileText className="w-3.5 h-3.5" />,
     },
+    SAMPLE_CODE: {
+      label: 'Mã nguồn mẫu',
+      badge: 'bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border-cyan-200/80 dark:border-cyan-800/40',
+      icon: <Code2 className="w-3.5 h-3.5" />,
+    },
+    REFERENCE: {
+      label: 'Tài liệu tham khảo',
+      badge: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-800/40',
+      icon: <BookOpen className="w-3.5 h-3.5" />,
+    },
+    EXAM: {
+      label: 'Đề thi & Lời giải',
+      badge: 'bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 border-orange-200/80 dark:border-orange-800/40',
+      icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+    },
     EXERCISE: {
       label: 'Bài tập thực hành',
-      badge: 'bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border-cyan-200/80 dark:border-cyan-800/40',
+      badge: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200/80 dark:border-rose-800/40',
       icon: <Code2 className="w-3.5 h-3.5" />,
     },
     LAB: {
       label: 'Hướng dẫn Lab',
-      badge: 'bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 border-teal-200/80 dark:border-teal-800/40',
+      badge: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200/80 dark:border-rose-800/40',
       icon: <Code2 className="w-3.5 h-3.5" />,
     },
   }

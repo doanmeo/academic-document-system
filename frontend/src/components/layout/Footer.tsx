@@ -3,21 +3,21 @@ import { GraduationCap, ShieldCheck, FileCheck2, FileText, BookOpen, Heart } fro
 
 export default function Footer() {
   return (
-    <footer className="bg-white dark:bg-[#0e1424] border-t border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-xs transition-colors mt-auto">
+    <footer className="bg-[#fbfbfa] dark:bg-[#0c1017] border-t border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 text-xs transition-colors mt-auto font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand Info */}
           <div className="space-y-3 md:col-span-1">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black">
-                <GraduationCap className="w-5 h-5" />
+              <div className="w-8 h-8 rounded bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 flex items-center justify-center font-black">
+                <GraduationCap className="w-4 h-4" />
               </div>
               <div>
-                <span className="font-bold text-slate-900 dark:text-white tracking-tight text-sm block">FIT-UTC ACADEMIC</span>
-                <span className="text-[10px] text-slate-400 block -mt-0.5">Khoa Công nghệ Thông tin</span>
+                <span className="font-serif-academic font-bold text-stone-950 dark:text-stone-50 tracking-tight text-base block">UTC FIT ACADEMIC</span>
+                <span className="text-[10px] font-mono text-stone-500 block -mt-0.5">Khoa Công nghệ Thông tin</span>
               </div>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
               Hệ thống quản lý, lưu trữ và tra cứu học liệu số nội bộ có kiểm duyệt của Khoa CNTT - Trường Đại học Giao thông Vận tải.
             </p>
           </div>
