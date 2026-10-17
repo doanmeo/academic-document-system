@@ -113,24 +113,6 @@ export interface DocumentDetail extends DocumentSummary {
   futureWorkSuggestions?: string | null
 }
 
-// ─── Sổ tay học phần & Gói học liệu chuẩn Bộ môn (Course Hub) ─────────────────
-export interface CourseHub {
-  subject: {
-    id: number
-    code: string
-    name: string
-  }
-  totalDocuments: number
-  totalLectures: number
-  totalLabs: number
-  totalProjects: number
-  totalExams: number
-  lectures: DocumentSummary[]
-  labs: DocumentSummary[]
-  projects: DocumentSummary[]
-  exams: DocumentSummary[]
-  instructorAdvisors: string[]
-}
 
 // ─── Đối soát đề tài & Đánh giá tính mới ─────────────────────────────────────
 export interface TopicComparisonRequest {
@@ -139,6 +121,7 @@ export interface TopicComparisonRequest {
   majorId?: number
   advisorName?: string
   expectedMethodology?: string
+  description?: string
 }
 
 export interface MatchedDocumentDTO {
@@ -150,6 +133,18 @@ export interface MatchedDocumentDTO {
   similarityScore: number
   overlappingAspects: string
   githubUrl?: string
+  titleScore?: number
+  contentScore?: number
+  metadataScore?: number
+  subjectScore?: number
+  advisorScore?: number
+  majorScore?: number
+  keywordScore?: number
+  matchedTokens?: string[]
+  matchedContentTokens?: string[]
+  abstractSnippet?: string
+  jaccardSimilarity?: number
+  formulaCalculation?: string
 }
 
 export interface TopicComparisonResult {
@@ -158,6 +153,9 @@ export interface TopicComparisonResult {
   verdict: string
   matchedDocuments: MatchedDocumentDTO[]
   noveltyRecommendations: string[]
+  algorithmName?: string
+  formulaDefinition?: string
+  extractedTokens?: string[]
 }
 
 // ─── Phân trang ────────────────────────────────────────────────────────────────

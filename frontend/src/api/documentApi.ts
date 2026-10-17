@@ -278,16 +278,6 @@ export const checkSimilarity = async (
   return unwrap(res)
 }
 
-/**
- * GET /documents/course-hub/:subjectId
- * Lấy toàn bộ gói học liệu chuẩn bộ môn theo học phần (Course Hub)
- */
-export const getCourseHub = async (
-  subjectId: number
-): Promise<import('../types/document').CourseHub> => {
-  const res = await api.get(`/documents/course-hub/${subjectId}`)
-  return unwrap(res)
-}
 
 /**
  * POST /documents/compare-topics
@@ -341,7 +331,6 @@ export const documentApi = {
   getRelated: getRelatedDocuments,
   getRelatedDocuments,
   checkSimilarity,
-  getCourseHub,
   compareTopics,
   getCoverageMatrix,
   generateAbstract,

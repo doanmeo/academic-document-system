@@ -15,10 +15,10 @@ public class GeminiService {
 
     private static final Logger log = LoggerFactory.getLogger(GeminiService.class);
 
-    @Value("${app.gemini.api-key:FAKE_GEMINI_API_KEY_AI_DEV}")
+    @Value("${app.gemini.api-key:}")
     private String geminiApiKey;
 
-    @Value("${app.gemini.model:gemini-1.5-flash}")
+    @Value("${app.gemini.model:gemini-3.8-flash}")
     private String geminiModel;
 
     private final RestTemplate restTemplate;
@@ -27,14 +27,41 @@ public class GeminiService {
         this.restTemplate = new RestTemplate();
     }
 
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        if (geminiApiKey == null || geminiApiKey.isBlank() || geminiApiKey.contains("FAKE")) {
+            String envKey = System.getenv("GEMINI_API_KEY");
+            if (envKey != null && !envKey.isBlank()) {
+                this.geminiApiKey = envKey.trim();
+                return;
+            }
+            for (String pathStr : List.of(".env", "backend/.env", "../backend/.env")) {
+                try {
+                    java.nio.file.Path p = java.nio.file.Paths.get(pathStr);
+                    if (java.nio.file.Files.exists(p)) {
+                        for (String line : java.nio.file.Files.readAllLines(p)) {
+                            String trimmed = line.trim();
+                            if (trimmed.startsWith("GEMINI_API_KEY=") && !trimmed.startsWith("#")) {
+                                this.geminiApiKey = trimmed.substring("GEMINI_API_KEY=".length()).trim();
+                                log.info("Loaded Gemini API key from {}", pathStr);
+                                return;
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        }
+    }
+
     public String generateAcademicAbstract(GenerateAbstractRequest req) {
         String title = req.getTitle() != null ? req.getTitle().trim() : "Học liệu CNTT";
         String docType = req.getDocumentTypeCode() != null ? req.getDocumentTypeCode().trim() : "Tài liệu học tập";
         String subject = req.getSubjectName() != null ? req.getSubjectName().trim() : "Công nghệ Thông tin";
         String keywords = req.getKeywords() != null ? req.getKeywords().trim() : "";
 
-        // Nếu API key được thay thế bằng key thật (bắt đầu bằng AIza...)
-        if (geminiApiKey != null && geminiApiKey.startsWith("AIza") && !geminiApiKey.contains("FAKE")) {
+        // Kiểm tra API key thật (bỏ qua giá trị giả định hoặc trống)
+        if (geminiApiKey != null && !geminiApiKey.isBlank() && !geminiApiKey.contains("FAKE")) {
             try {
                 String response = callGeminiApi(title, docType, subject, keywords);
                 if (response != null && !response.isBlank()) {
@@ -84,9 +111,16 @@ public class GeminiService {
             if (candidates != null && !candidates.isEmpty()) {
                 Map<String, Object> candidate = candidates.get(0);
                 Map<String, Object> content = (Map<String, Object>) candidate.get("content");
-                List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
-                if (parts != null && !parts.isEmpty()) {
-                    return (String) parts.get(0).get("text");
+                if (content != null) {
+                    List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
+                    if (parts != null) {
+                        for (Map<String, Object> part : parts) {
+                            Object textObj = part.get("text");
+                            if (textObj instanceof String && !((String) textObj).isBlank()) {
+                                return (String) textObj;
+                            }
+                        }
+                    }
                 }
             }
         }

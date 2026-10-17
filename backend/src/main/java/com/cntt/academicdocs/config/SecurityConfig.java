@@ -74,8 +74,17 @@ public class SecurityConfig {
                                 "/api/documents/*/citation",
                                 "/api/documents/*/qa",
                                 "/api/documents/search",
+                                "/api/documents/coverage-matrix",
                                 "/api/files/**",
                                 "/api/collections/public/**"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/documents/*/qa",
+                                "/api/documents/qa/*/upvote",
+                                "/api/documents/*/rate",
+                                "/api/documents/compare-topics",
+                                "/api/documents/check-similarity",
+                                "/api/documents/generate-abstract"
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

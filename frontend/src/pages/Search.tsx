@@ -44,7 +44,6 @@ import CitationModal from '../components/CitationModal'
 import ReportModal from '../components/ReportModal'
 import CustomSelect from '../components/ui/CustomSelect'
 import Pagination from '../components/ui/Pagination'
-import CourseHubView from '../components/CourseHubView'
 import TopicNoveltyChecker from '../components/TopicNoveltyChecker'
 import CoverageHeatmap from '../components/CoverageHeatmap'
 
@@ -63,9 +62,9 @@ export default function Search() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const initialQ = searchParams.get('q') || ''
-  const initialTab = (searchParams.get('tab') as 'search' | 'hub' | 'novelty' | 'heatmap') || 'search'
+  const initialTab = (searchParams.get('tab') as 'search' | 'novelty' | 'heatmap') || 'search'
 
-  const [activeTab, setActiveTab] = useState<'search' | 'hub' | 'novelty' | 'heatmap'>(initialTab)
+  const [activeTab, setActiveTab] = useState<'search' | 'novelty' | 'heatmap'>(initialTab === 'hub' ? 'search' : initialTab)
   const [documents, setDocuments] = useState<DocumentSummary[]>([])
   const [selectedDoc, setSelectedDoc] = useState<DocumentSummary | null>(null)
   const [loading, setLoading] = useState(false)
@@ -307,61 +306,26 @@ export default function Search() {
       <Navbar />
 
       <main className="flex-grow pt-16 flex flex-col">
-        {/* ─── DEDICATED SUB-VIEW: COURSE HUB ──────────────────────────────── */}
-        {activeTab === 'hub' && (
-          <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-            <div className="mb-6 pb-4 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between">
-              <div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveTab('search')
-                    setSearchParams({})
-                  }}
-                  className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-blue-600 dark:text-blue-400 hover:underline mb-2 cursor-pointer"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Quay lại Tra cứu tài liệu</span>
-                </button>
-                <h1 className="font-serif-academic text-3xl font-bold text-stone-950 dark:text-stone-50">
-                  Sổ Tay Học Phần (Course Hub)
-                </h1>
-                <p className="text-xs font-mono text-stone-500 mt-0.5">
-                  Tập trung toàn bộ bài giảng, slide, đề thi và bài tập lab theo từng môn học
-                </p>
-              </div>
-            </div>
-            <CourseHubView
-              onSelectDoc={(doc) => setSelectedDoc(doc)}
-              onViewPdf={(doc) => setViewerModal({ isOpen: true, doc })}
-              initialSubjectId={selectedSubject ? Number(selectedSubject) : undefined}
-            />
-          </div>
-        )}
 
         {/* ─── DEDICATED SUB-VIEW: TOPIC NOVELTY CHECKER ───────────────────── */}
         {activeTab === 'novelty' && (
-          <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-            <div className="mb-6 pb-4 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between">
-              <div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveTab('search')
-                    setSearchParams({})
-                  }}
-                  className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-blue-600 dark:text-blue-400 hover:underline mb-2 cursor-pointer"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Quay lại Tra cứu tài liệu</span>
-                </button>
-                <h1 className="font-serif-academic text-3xl font-bold text-stone-950 dark:text-stone-50">
-                  Đối Soát Đề Tài &amp; Trùng Lặp Ý Tưởng
-                </h1>
-                <p className="text-xs font-mono text-stone-500 mt-0.5">
-                  Thuật toán so khớp Cosine Similarity và TF-IDF với toàn bộ KLTN các năm trước
-                </p>
-              </div>
+          <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-4">
+            <div className="pb-3 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('search')
+                  setSearchParams({})
+                }}
+                className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Quay lại Tra cứu tài liệu</span>
+              </button>
+
+              <span className="text-[11px] font-mono text-stone-500 dark:text-stone-400">
+                Chuyên mục: Thẩm định Đề cương &amp; Đồ án tốt nghiệp
+              </span>
             </div>
             <TopicNoveltyChecker />
           </div>

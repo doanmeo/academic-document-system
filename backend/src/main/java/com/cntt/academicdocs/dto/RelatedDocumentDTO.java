@@ -63,4 +63,54 @@ public class RelatedDocumentDTO {
 
     public int getSimilarityScore() { return similarityScore; }
     public void setSimilarityScore(int similarityScore) { this.similarityScore = similarityScore; }
+
+    private int subjectScore;
+    private int advisorScore;
+    private int majorScore;
+    private int keywordScore;
+    private java.util.List<String> matchedTokens;
+    private double jaccardSimilarity;
+    private String formulaCalculation;
+
+    public int getSubjectScore() { return subjectScore; }
+    public void setSubjectScore(int subjectScore) { this.subjectScore = subjectScore; }
+
+    public int getAdvisorScore() { return advisorScore; }
+    public void setAdvisorScore(int advisorScore) { this.advisorScore = advisorScore; }
+
+    public int getMajorScore() { return majorScore; }
+    public void setMajorScore(int majorScore) { this.majorScore = majorScore; }
+
+    public int getKeywordScore() { return keywordScore; }
+    public void setKeywordScore(int keywordScore) { this.keywordScore = keywordScore; }
+
+    public java.util.List<String> getMatchedTokens() { return matchedTokens; }
+    public void setMatchedTokens(java.util.List<String> matchedTokens) { this.matchedTokens = matchedTokens; }
+
+    public double getJaccardSimilarity() { return jaccardSimilarity; }
+    public void setJaccardSimilarity(double jaccardSimilarity) { this.jaccardSimilarity = jaccardSimilarity; }
+
+    public String getFormulaCalculation() { return formulaCalculation; }
+    public void setFormulaCalculation(String formulaCalculation) { this.formulaCalculation = formulaCalculation; }
+
+    private int titleScore;
+    private int contentScore;
+    private int metadataScore;
+    private String abstractSnippet;
+    private java.util.List<String> matchedContentTokens;
+
+    public int getTitleScore() { return titleScore; }
+    public void setTitleScore(int titleScore) { this.titleScore = titleScore; }
+
+    public int getContentScore() { return contentScore; }
+    public void setContentScore(int contentScore) { this.contentScore = contentScore; }
+
+    public int getMetadataScore() { return metadataScore; }
+    public void setMetadataScore(int metadataScore) { this.metadataScore = metadataScore; }
+
+    public String getAbstractSnippet() { return abstractSnippet; }
+    public void setAbstractSnippet(String abstractSnippet) { this.abstractSnippet = abstractSnippet; }
+
+    public java.util.List<String> getMatchedContentTokens() { return matchedContentTokens; }
+    public void setMatchedContentTokens(java.util.List<String> matchedContentTokens) { this.matchedContentTokens = matchedContentTokens; }
 }

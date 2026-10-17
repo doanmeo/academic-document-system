@@ -788,10 +788,10 @@ export default function Home() {
               <div className="mt-6 pt-4 border-t border-dashed border-stone-200 dark:border-stone-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-stone-500">
                 <span>QUY CHUẨN ĐÀO TẠO TÍN CHỈ KHOA CÔNG NGHỆ THÔNG TIN · UTC</span>
                 <Link
-                  to="/search?tab=hub"
+                  to="/search"
                   className="font-bold text-blue-700 dark:text-blue-400 hover:underline flex items-center gap-1 uppercase"
                 >
-                  <span>Mở Sổ tay Học phần (Course Hub) →</span>
+                  <span>Tra cứu toàn bộ môn học →</span>
                 </Link>
               </div>
             </div>
@@ -993,28 +993,28 @@ export default function Home() {
                 </Link>
               </div>
 
-              {/* Feature 3: Course Hub — Warm Amber Tone */}
+              {/* Feature 3: Exam Bank & Matrix — Warm Amber Tone */}
               <div className="bg-gradient-to-b from-amber-50/70 via-white to-white dark:from-amber-950/20 dark:via-stone-900 dark:to-stone-900 rounded-2xl p-6 border-2 border-amber-200 dark:border-amber-800/80 hover:border-amber-500 transition-all flex flex-col justify-between shadow-xs">
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <span className="font-mono text-xs text-amber-700 dark:text-amber-400 font-bold">TOOL // 03</span>
                     <div className="w-9 h-9 rounded-lg bg-amber-600 text-white flex items-center justify-center shadow-xs">
-                      <Compass className="w-5 h-5" />
+                      <BookOpen className="w-5 h-5" />
                     </div>
                   </div>
                   <h3 className="font-serif-academic text-xl font-bold text-stone-950 dark:text-stone-50 mb-2">
-                    Sổ Tay Học Phần (Course Hub)
+                    Kho Đề Thi &amp; Ma Trận Ôn Tập
                   </h3>
                   <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed font-sans mb-4">
-                    Gom toàn bộ tài liệu của từng môn học trong một bảng tra cứu duy nhất: đề cương, slide giảng bài, bài tập thực hành lab và kho đề thi.
+                    Lưu trữ đề thi kết thúc học phần (KTHP) và giữa kỳ các năm học kèm đáp án chi tiết, phân cấp theo thang điểm B / A / A+ và cẩm nang bẫy thi.
                   </p>
                 </div>
 
                 <Link
-                  to="/search?tab=hub"
+                  to="/exams"
                   className="pt-3 border-t border-dashed border-amber-200 dark:border-amber-800 text-xs font-mono font-bold uppercase text-amber-700 dark:text-amber-400 hover:underline flex items-center justify-between"
                 >
-                  <span>Mở Sổ tay môn học</span>
+                  <span>Mở Kho Đề Thi FIT</span>
                   <ChevronRight className="w-4 h-4" />
                 </Link>
               </div>

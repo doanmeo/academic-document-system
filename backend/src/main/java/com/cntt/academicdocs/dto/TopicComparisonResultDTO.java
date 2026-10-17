@@ -8,6 +8,9 @@ public class TopicComparisonResultDTO {
     private String verdict;
     private List<MatchedDocumentDTO> matchedDocuments;
     private List<String> noveltyRecommendations;
+    private String algorithmName;
+    private String formulaDefinition;
+    private List<String> extractedTokens;
 
     public TopicComparisonResultDTO() {}
 
@@ -20,6 +23,15 @@ public class TopicComparisonResultDTO {
         private int similarityScore;
         private String overlappingAspects;
         private String githubUrl;
+
+        // Algorithmic breakdown
+        private int subjectScore;
+        private int advisorScore;
+        private int majorScore;
+        private int keywordScore;
+        private List<String> matchedTokens;
+        private double jaccardSimilarity;
+        private String formulaCalculation;
 
         public MatchedDocumentDTO() {}
 
@@ -46,6 +58,48 @@ public class TopicComparisonResultDTO {
 
         public String getGithubUrl() { return githubUrl; }
         public void setGithubUrl(String githubUrl) { this.githubUrl = githubUrl; }
+
+        public int getSubjectScore() { return subjectScore; }
+        public void setSubjectScore(int subjectScore) { this.subjectScore = subjectScore; }
+
+        public int getAdvisorScore() { return advisorScore; }
+        public void setAdvisorScore(int advisorScore) { this.advisorScore = advisorScore; }
+
+        public int getMajorScore() { return majorScore; }
+        public void setMajorScore(int majorScore) { this.majorScore = majorScore; }
+
+        public int getKeywordScore() { return keywordScore; }
+        public void setKeywordScore(int keywordScore) { this.keywordScore = keywordScore; }
+
+        public List<String> getMatchedTokens() { return matchedTokens; }
+        public void setMatchedTokens(List<String> matchedTokens) { this.matchedTokens = matchedTokens; }
+
+        public double getJaccardSimilarity() { return jaccardSimilarity; }
+        public void setJaccardSimilarity(double jaccardSimilarity) { this.jaccardSimilarity = jaccardSimilarity; }
+
+        public String getFormulaCalculation() { return formulaCalculation; }
+        public void setFormulaCalculation(String formulaCalculation) { this.formulaCalculation = formulaCalculation; }
+
+        private int titleScore;
+        private int contentScore;
+        private int metadataScore;
+        private String abstractSnippet;
+        private List<String> matchedContentTokens;
+
+        public int getTitleScore() { return titleScore; }
+        public void setTitleScore(int titleScore) { this.titleScore = titleScore; }
+
+        public int getContentScore() { return contentScore; }
+        public void setContentScore(int contentScore) { this.contentScore = contentScore; }
+
+        public int getMetadataScore() { return metadataScore; }
+        public void setMetadataScore(int metadataScore) { this.metadataScore = metadataScore; }
+
+        public String getAbstractSnippet() { return abstractSnippet; }
+        public void setAbstractSnippet(String abstractSnippet) { this.abstractSnippet = abstractSnippet; }
+
+        public List<String> getMatchedContentTokens() { return matchedContentTokens; }
+        public void setMatchedContentTokens(List<String> matchedContentTokens) { this.matchedContentTokens = matchedContentTokens; }
     }
 
     public double getOverallOverlapScore() { return overallOverlapScore; }
@@ -62,4 +116,13 @@ public class TopicComparisonResultDTO {
 
     public List<String> getNoveltyRecommendations() { return noveltyRecommendations; }
     public void setNoveltyRecommendations(List<String> noveltyRecommendations) { this.noveltyRecommendations = noveltyRecommendations; }
+
+    public String getAlgorithmName() { return algorithmName; }
+    public void setAlgorithmName(String algorithmName) { this.algorithmName = algorithmName; }
+
+    public String getFormulaDefinition() { return formulaDefinition; }
+    public void setFormulaDefinition(String formulaDefinition) { this.formulaDefinition = formulaDefinition; }
+
+    public List<String> getExtractedTokens() { return extractedTokens; }
+    public void setExtractedTokens(List<String> extractedTokens) { this.extractedTokens = extractedTokens; }
 }

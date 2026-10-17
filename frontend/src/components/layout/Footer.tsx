@@ -45,9 +45,9 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/search?tab=hub" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5">
-                  <GraduationCap className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>Sổ tay Học phần (Course Hub)</span>
+                <Link to="/search?tab=heatmap" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5">
+                  <GraduationCap className="w-3.5 h-3.5 text-indigo-500" />
+                  <span>Bản đồ Độ phủ Học liệu (Heatmap)</span>
                 </Link>
               </li>
             </ul>

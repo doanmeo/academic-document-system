@@ -50,17 +50,43 @@ export default function PdfViewerModal({
         setLoading(true)
         setError(null)
         const response = await fetch(targetUrl)
-        if (!response.ok) throw new Error('Không thể tải tệp PDF')
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`)
+        }
+        const contentType = response.headers.get('content-type') || ''
+        if (contentType.includes('application/json') || contentType.includes('text/html')) {
+          const text = await response.text()
+          if (text.includes('NoSuchKey') || text.includes('not_found') || text.includes('error')) {
+            throw new Error('Học liệu này chưa sẵn sàng trên đám mây')
+          }
+        }
         const blob = await response.blob()
         if (!active) return
         const pdfBlob = new Blob([blob], { type: 'application/pdf' })
         currentBlobUrl = URL.createObjectURL(pdfBlob)
         setBlobUrl(currentBlobUrl)
       } catch (err) {
-        console.warn('PDF fetch as blob warning:', err)
+        console.warn('PDF fetch warning:', err)
         if (!active) return
-        // If fetch failed (e.g. cross-origin without CORS), fallback to resolvedUrl
-        setBlobUrl(targetUrl)
+        // If targetUrl failed and is not already /sample.pdf, fallback to bundled /sample.pdf
+        if (targetUrl !== '/sample.pdf') {
+          try {
+            const fallbackResp = await fetch('/sample.pdf')
+            if (fallbackResp.ok) {
+              const fbBlob = await fallbackResp.blob()
+              if (!active) return
+              const pdfBlob = new Blob([fbBlob], { type: 'application/pdf' })
+              currentBlobUrl = URL.createObjectURL(pdfBlob)
+              setBlobUrl(currentBlobUrl)
+              setLoading(false)
+              return
+            }
+          } catch {
+            // Ignore fallback fetch error
+          }
+        }
+        setBlobUrl(null)
+        setError('Không thể mở tệp học liệu trực tuyến lúc này. Vui lòng thử lại hoặc tải về máy.')
       } finally {
         if (active) setLoading(false)
       }

@@ -14,7 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +37,11 @@ public class DocumentService {
     private final TechnologyRepository technologyRepository;
     private final LovValueRepository lovValueRepository;
     private final NotificationService notificationService;
+
+    private static final Set<String> STOP_WORDS = Set.of(
+            "cua", "va", "cac", "nhung", "cho", "trong", "tren", "voi", "bang", "theo", "mot", "nhu",
+            "he", "thong", "nghien", "cuu", "xay", "dung", "phat", "trien", "ung", "de", "tai"
+    );
 
     public DocumentService(
             DocumentRepository documentRepository,
@@ -939,7 +947,24 @@ public class DocumentService {
     private List<RelatedDocumentDTO> calculateSimilarities(SimilarityCheckRequest req, List<Document> candidates, int limit) {
         String targetTitleNoAccent = removeAccents(req.getTitle() != null ? req.getTitle().toLowerCase() : "");
         String targetAdvisorNoAccent = removeAccents(req.getAdvisorName() != null ? req.getAdvisorName().toLowerCase() : "");
-        String[] titleTokens = targetTitleNoAccent.split("\\s+");
+        String targetAbstractNoAccent = removeAccents(req.getAbstractText() != null ? req.getAbstractText().toLowerCase() : "");
+
+        String[] rawTitleTokens = targetTitleNoAccent.split("[^a-zA-Z0-9]+");
+        List<String> targetTitleTokens = new ArrayList<>();
+        for (String t : rawTitleTokens) {
+            if (t.length() >= 3 && !STOP_WORDS.contains(t) && !targetTitleTokens.contains(t)) {
+                targetTitleTokens.add(t);
+            }
+        }
+
+        // Target content tokens (from title + abstract)
+        String[] rawAbstractTokens = (targetTitleNoAccent + " " + targetAbstractNoAccent).split("[^a-zA-Z0-9]+");
+        List<String> targetContentTokens = new ArrayList<>();
+        for (String t : rawAbstractTokens) {
+            if (t.length() >= 3 && !STOP_WORDS.contains(t) && !targetContentTokens.contains(t)) {
+                targetContentTokens.add(t);
+            }
+        }
 
         List<RelatedDocumentDTO> results = new ArrayList<>();
 
@@ -948,55 +973,109 @@ public class DocumentService {
                 continue; // Skip comparing against self
             }
 
-            int score = 0;
-            List<String> matchReasons = new ArrayList<>();
+            int titleScore = 0;
+            int contentScore = 0;
+            int metadataScore = 0;
+            int subjectScore = 0;
+            int advisorScore = 0;
+            int majorScore = 0;
 
-            // 1. Same Subject (+35 pts)
-            if (req.getSubjectId() != null && cand.getSubject() != null && req.getSubjectId().equals(cand.getSubject().getId())) {
-                score += 35;
-                matchReasons.add("Cùng môn: " + cand.getSubject().getName());
+            List<String> matchReasons = new ArrayList<>();
+            List<String> matchedTitleTokens = new ArrayList<>();
+            List<String> matchedContentTokens = new ArrayList<>();
+
+            // ── 1. TITLE OVERLAP (Max 45 points, ~45% of total score) ──
+            String candTitleNoAccent = removeAccents(cand.getTitle() != null ? cand.getTitle().toLowerCase() : "");
+            for (String token : targetTitleTokens) {
+                if (candTitleNoAccent.contains(token)) {
+                    if (!matchedTitleTokens.contains(token)) {
+                        matchedTitleTokens.add(token);
+                    }
+                }
             }
 
-            // 2. Same Advisor (+30 pts)
+            int matchedTitleCount = matchedTitleTokens.size();
+            if (matchedTitleCount >= 3) {
+                titleScore = 45;
+                matchReasons.add("Trùng " + matchedTitleCount + " từ khóa tên đề tài (+45đ)");
+            } else if (matchedTitleCount == 2) {
+                titleScore = 30;
+                matchReasons.add("Trùng 2 từ khóa tên đề tài (+30đ)");
+            } else if (matchedTitleCount == 1) {
+                titleScore = 15;
+                matchReasons.add("Trùng 1 từ khóa tên đề tài (+15đ)");
+            }
+
+            // ── 2. CONTENT & ABSTRACT SEMANTIC OVERLAP (Max 40 points, ~40% of total score) ──
+            String candAbstract = cand.getAbstractText() != null ? cand.getAbstractText() : (cand.getDescription() != null ? cand.getDescription() : "");
+            String candAbstractNoAccent = removeAccents(candAbstract.toLowerCase());
+
+            for (String token : targetContentTokens) {
+                if (candAbstractNoAccent.contains(token)) {
+                    if (!matchedContentTokens.contains(token)) {
+                        matchedContentTokens.add(token);
+                    }
+                }
+            }
+
+            int matchedAbstractCount = matchedContentTokens.size();
+            if (matchedAbstractCount >= 4) {
+                contentScore = 40;
+                matchReasons.add("Khớp " + matchedAbstractCount + " thuật ngữ trong tóm tắt KLTN (+40đ)");
+            } else if (matchedAbstractCount == 3) {
+                contentScore = 30;
+                matchReasons.add("Khớp 3 thuật ngữ trong tóm tắt nội dung (+30đ)");
+            } else if (matchedAbstractCount == 2) {
+                contentScore = 20;
+                matchReasons.add("Khớp 2 thuật ngữ trong tóm tắt nội dung (+20đ)");
+            } else if (matchedAbstractCount == 1) {
+                contentScore = 10;
+                matchReasons.add("Khớp 1 thuật ngữ trong tóm tắt nội dung (+10đ)");
+            }
+
+            // ── 3. ACADEMIC METADATA CONTEXT (Max 20 points, < 20% total weight) ──
+            if (req.getSubjectId() != null && cand.getSubject() != null && req.getSubjectId().equals(cand.getSubject().getId())) {
+                subjectScore = 8;
+                metadataScore += 8;
+                matchReasons.add("Cùng môn học (+8đ)");
+            }
+
             if (!targetAdvisorNoAccent.isBlank() && cand.getAdvisorName() != null && !cand.getAdvisorName().isBlank()) {
                 String candAdvNoAccent = removeAccents(cand.getAdvisorName().toLowerCase());
                 if (targetAdvisorNoAccent.contains(candAdvNoAccent) || candAdvNoAccent.contains(targetAdvisorNoAccent)) {
-                    score += 30;
-                    matchReasons.add("Cùng GVHD: " + cand.getAdvisorName());
+                    advisorScore = 7;
+                    metadataScore += 7;
+                    matchReasons.add("Cùng GVHD (+7đ)");
                 }
             }
 
-            // 3. Same Major (+15 pts)
             if (req.getMajorId() != null && cand.getMajor() != null && req.getMajorId().equals(cand.getMajor().getId())) {
-                score += 15;
+                majorScore = 5;
+                metadataScore += 5;
+                matchReasons.add("Cùng chuyên ngành (+5đ)");
             }
 
-            // 4. Same Document Type (+10 pts)
-            if (req.getDocumentTypeCode() != null && cand.getDocumentTypeCode() != null &&
-                    req.getDocumentTypeCode().equalsIgnoreCase(cand.getDocumentTypeCode())) {
-                score += 10;
-                matchReasons.add("Cùng loại: " + getDocumentTypeLabel(cand.getDocumentTypeCode()));
-            }
+            int totalScore = Math.min(100, titleScore + contentScore + metadataScore);
 
-            // 5. Keyword Overlap in Title (+10 - +30 pts)
-            String candTitleNoAccent = removeAccents(cand.getTitle() != null ? cand.getTitle().toLowerCase() : "");
-            int matchedTokens = 0;
-            for (String token : titleTokens) {
-                if (token.length() >= 3 && candTitleNoAccent.contains(token)) {
-                    matchedTokens++;
+            // Jaccard similarity between target and candidate abstract
+            Set<String> setA = new HashSet<>(targetContentTokens);
+            Set<String> setB = new HashSet<>();
+            for (String t : (candTitleNoAccent + " " + candAbstractNoAccent).split("[^a-zA-Z0-9]+")) {
+                if (t.length() >= 3 && !STOP_WORDS.contains(t)) {
+                    setB.add(t);
                 }
             }
-            if (matchedTokens >= 3) {
-                score += 25;
-                matchReasons.add("Hướng đề tài tương đồng");
-            } else if (matchedTokens >= 2) {
-                score += 15;
-                matchReasons.add("Từ khóa chủ đề gần gũi");
-            } else if (matchedTokens == 1 && titleTokens.length <= 4) {
-                score += 10;
-            }
+            Set<String> union = new HashSet<>(setA);
+            union.addAll(setB);
+            Set<String> intersection = new HashSet<>(setA);
+            intersection.retainAll(setB);
+            double jaccard = union.isEmpty() ? 0.0 : Math.round(((double) intersection.size() / union.size()) * 100.0) / 100.0;
 
-            if (score >= 25) {
+            String formula = String.format("%d (Tiêu đề) + %d (Nội dung tóm tắt) + %d (Môn/GVHD) = %d%%",
+                    titleScore, contentScore, metadataScore, totalScore);
+
+            // Only consider meaningful matches (avoid showing matches with 0 title and 0 content similarity)
+            if (titleScore > 0 || contentScore >= 20 || (totalScore >= 25 && contentScore > 0)) {
                 RelatedDocumentDTO dto = new RelatedDocumentDTO();
                 dto.setId(cand.getId());
                 dto.setTitle(cand.getTitle());
@@ -1011,8 +1090,25 @@ public class DocumentService {
                 dto.setAvgRating(cand.getAvgRating());
                 dto.setViewCount(cand.getViewCount());
                 dto.setDownloadCount(cand.getDownloadCount());
-                dto.setSimilarityScore(Math.min(score, 100));
+                dto.setSimilarityScore(totalScore);
                 dto.setMatchReason(String.join(" • ", matchReasons));
+                dto.setSubjectScore(subjectScore);
+                dto.setAdvisorScore(advisorScore);
+                dto.setMajorScore(majorScore);
+                dto.setKeywordScore(titleScore);
+                dto.setTitleScore(titleScore);
+                dto.setContentScore(contentScore);
+                dto.setMetadataScore(metadataScore);
+                dto.setMatchedTokens(matchedTitleTokens);
+                dto.setMatchedContentTokens(matchedContentTokens);
+                dto.setJaccardSimilarity(jaccard);
+                dto.setFormulaCalculation(formula);
+
+                if (candAbstract != null && !candAbstract.isBlank()) {
+                    String snippet = candAbstract.length() > 160 ? candAbstract.substring(0, 160) + "..." : candAbstract;
+                    dto.setAbstractSnippet(snippet);
+                }
+
                 results.add(dto);
             }
         }
@@ -1094,8 +1190,9 @@ public class DocumentService {
         simReq.setMajorId(req.getMajorId());
         simReq.setAdvisorName(req.getAdvisorName());
         simReq.setDocumentTypeCode("CAPSTONE");
+        simReq.setAbstractText(req.getDescription());
 
-        List<RelatedDocumentDTO> similar = calculateSimilarities(simReq, documentRepository.findByStatus(DocumentStatus.APPROVED), 4);
+        List<RelatedDocumentDTO> similar = calculateSimilarities(simReq, documentRepository.findByStatus(DocumentStatus.APPROVED), 5);
         List<TopicComparisonResultDTO.MatchedDocumentDTO> matched = new ArrayList<>();
         int maxScore = 0;
 
@@ -1108,6 +1205,18 @@ public class DocumentService {
             m.setSubjectName(s.getSubjectName());
             m.setSimilarityScore(s.getSimilarityScore());
             m.setOverlappingAspects(s.getMatchReason());
+            m.setSubjectScore(s.getSubjectScore());
+            m.setAdvisorScore(s.getAdvisorScore());
+            m.setMajorScore(s.getMajorScore());
+            m.setKeywordScore(s.getKeywordScore());
+            m.setTitleScore(s.getTitleScore());
+            m.setContentScore(s.getContentScore());
+            m.setMetadataScore(s.getMetadataScore());
+            m.setAbstractSnippet(s.getAbstractSnippet());
+            m.setMatchedTokens(s.getMatchedTokens());
+            m.setMatchedContentTokens(s.getMatchedContentTokens());
+            m.setJaccardSimilarity(s.getJaccardSimilarity());
+            m.setFormulaCalculation(s.getFormulaCalculation());
 
             // Attach githubUrl if available
             documentRepository.findById(s.getId()).ifPresent(doc -> m.setGithubUrl(doc.getGithubUrl()));
@@ -1120,6 +1229,19 @@ public class DocumentService {
 
         result.setOverallOverlapScore(maxScore);
         result.setMatchedDocuments(matched);
+        result.setAlgorithmName("Nội Dung Tóm Tắt & Tiêu Đề Đề Tài (80%) + Bối Cảnh Học Thuật (20%)");
+        result.setFormulaDefinition("Score = min(100, S_tieu_de(45đ) + S_noi_dung_tom_tat(40đ) + W_mon_gvhd(20đ))");
+
+        String targetTitleNoAccent = removeAccents(req.getTitle().toLowerCase());
+        String targetDescNoAccent = removeAccents(req.getDescription() != null ? req.getDescription().toLowerCase() : "");
+        String[] rawTokens = (targetTitleNoAccent + " " + targetDescNoAccent).split("[^a-zA-Z0-9]+");
+        List<String> cleanTokens = new ArrayList<>();
+        for (String t : rawTokens) {
+            if (t.length() >= 3 && !STOP_WORDS.contains(t) && !cleanTokens.contains(t)) {
+                cleanTokens.add(t);
+            }
+        }
+        result.setExtractedTokens(cleanTokens);
 
         List<String> recommendations = new ArrayList<>();
         if (maxScore >= 65) {

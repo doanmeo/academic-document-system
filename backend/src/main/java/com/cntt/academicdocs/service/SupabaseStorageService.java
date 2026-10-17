@@ -69,6 +69,11 @@ public class SupabaseStorageService implements FileStorageService {
 
     @Override
     public String createSignedUrl(String storageKey, int expirySeconds) {
+        // For public buckets or when using anon/publishable key, use the direct public Supabase Storage URL
+        if (serviceRoleKey == null || serviceRoleKey.contains("anon") || serviceRoleKey.startsWith("sb_publishable")) {
+            return String.format("%s/storage/v1/object/public/%s/%s", supabaseUrl, bucketName, storageKey);
+        }
+
         try {
             int ttl = expirySeconds > 0 ? expirySeconds : defaultExpirySeconds;
             String url = String.format("%s/storage/v1/object/sign/%s/%s", supabaseUrl, bucketName, storageKey);

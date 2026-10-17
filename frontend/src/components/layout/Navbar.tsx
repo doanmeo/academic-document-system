@@ -17,6 +17,7 @@ import {
   FileText,
   Bookmark,
   Map,
+  Sparkles,
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
@@ -111,11 +112,8 @@ export default function Navbar() {
               <span>Biểu Mẫu UTC</span>
             </Link>
 
-            <Link to="/search?tab=hub" className={navLinkClass(isTabActive('hub'))}>
-              <span>Sổ tay Học phần</span>
-            </Link>
-
             <Link to="/search?tab=novelty" className={navLinkClass(isTabActive('novelty'))}>
+              <Sparkles className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
               <span>Đối soát Đề tài</span>
             </Link>
 

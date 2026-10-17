@@ -41,6 +41,9 @@ app:
   upload:
     max-size: ${MAX_FILE_SIZE_MB:20}
     allowed-mime: ${ALLOWED_MIME_TYPES:application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip}
+  gemini:
+    api-key: ${GEMINI_API_KEY:}
+    model: ${GEMINI_MODEL:gemini-3.8-flash}
 
 springdoc:
   api-docs:

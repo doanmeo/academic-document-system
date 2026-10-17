@@ -1,46 +1,51 @@
 import React, { useState, useEffect } from 'react'
-import type { Subject, Major, TopicComparisonResult } from '../types'
+import {
+  Sparkles,
+  Search,
+  RotateCcw,
+  BookOpen,
+  Eye,
+  ExternalLink,
+  CheckCircle2,
+  AlertTriangle,
+  Info,
+  Wand2,
+} from 'lucide-react'
+import type { Subject, Major, TopicComparisonResult, TopicComparisonRequest } from '../types'
 import { documentApi } from '../api/documentApi'
 import { catalogApi } from '../api/catalogApi'
 import LoadingSpinner from './LoadingSpinner'
 import CustomSelect from './ui/CustomSelect'
+import PdfViewerModal from './PdfViewerModal'
 
 export default function TopicNoveltyChecker() {
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [majors, setMajors] = useState<Major[]>([])
   const [advisors, setAdvisors] = useState<string[]>([])
 
-  // Inputs
+  // Main Topic & Content Inputs
   const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+
+  // Secondary Metadata Inputs (<= 20% weight)
   const [subjectId, setSubjectId] = useState<number | ''>('')
   const [majorId, setMajorId] = useState<number | ''>('')
   const [advisorName, setAdvisorName] = useState('')
-  const [expectedMethodology, setExpectedMethodology] = useState('')
 
   // State
   const [loading, setLoading] = useState(false)
+  const [generatingAbstract, setGeneratingAbstract] = useState(false)
   const [result, setResult] = useState<TopicComparisonResult | null>(null)
   const [hasSearched, setHasSearched] = useState(false)
 
-  // Quick sample topics to test
-  const SAMPLE_TOPICS = [
-    {
-      title: 'Phát hiện mã độc và tấn công mạng DDoS bằng thuật toán Random Forest',
-      subjectName: 'An toàn và bảo mật thông tin',
-      advisor: 'TS. Nguyễn Đức Hiếu',
-    },
-    {
-      title: 'Hệ thống nhận diện biển số xe tự động phục vụ trạm thu phí ETC',
-      subjectName: 'Trí tuệ nhân tạo',
-      advisor: 'PGS. TS. Trần Nguyên Hưng',
-    },
-    {
-      title: 'Xây dựng website bán linh kiện máy tính bằng Spring Boot và React',
-      subjectName: 'Phát triển phần mềm mã nguồn mở',
-      advisor: 'ThS. Hoàng Thị Phương',
-    },
-  ]
+  // PDF Preview Modal
+  const [pdfModal, setPdfModal] = useState<{
+    isOpen: boolean
+    docId?: number
+    title?: string
+  }>({ isOpen: false })
 
+  // Catalog loading
   useEffect(() => {
     Promise.all([catalogApi.getSubjects(), catalogApi.getMajors(), catalogApi.getAdvisors()])
       .then(([subRes, majRes, advRes]: any[]) => {
@@ -48,8 +53,29 @@ export default function TopicNoveltyChecker() {
         setMajors(Array.isArray(majRes) ? majRes : majRes?.data || [])
         setAdvisors(Array.isArray(advRes) ? advRes : advRes?.data || [])
       })
-      .catch(console.error)
+      .catch((err) => console.error('Lỗi tải danh mục tra cứu:', err))
   }, [])
+
+  // AI-assisted Abstract Generation
+  const handleGenerateAbstract = async () => {
+    if (!title.trim() || title.trim().length < 4) return
+    setGeneratingAbstract(true)
+    try {
+      const selectedSub = subjects.find((s) => s.id === subjectId)
+      const res = await documentApi.generateAbstract({
+        title: title.trim(),
+        subjectName: selectedSub ? selectedSub.name : 'Công nghệ Thông tin',
+        documentTypeCode: 'THESIS',
+      })
+      if (res && res.abstractText) {
+        setDescription(res.abstractText)
+      }
+    } catch (err) {
+      console.error('Lỗi sinh tóm tắt đề cương AI:', err)
+    } finally {
+      setGeneratingAbstract(false)
+    }
+  }
 
   const handleAnalyze = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
@@ -58,13 +84,14 @@ export default function TopicNoveltyChecker() {
     setLoading(true)
     setHasSearched(true)
     try {
-      const data = await documentApi.compareTopics({
+      const payload: TopicComparisonRequest = {
         title: title.trim(),
+        description: description.trim() || undefined,
         subjectId: subjectId ? Number(subjectId) : undefined,
         majorId: majorId ? Number(majorId) : undefined,
         advisorName: advisorName.trim() || undefined,
-        expectedMethodology: expectedMethodology.trim() || undefined,
-      })
+      }
+      const data = await documentApi.compareTopics(payload)
       setResult(data)
     } catch (err) {
       console.error('Lỗi phân tích tính mới:', err)
@@ -74,327 +101,424 @@ export default function TopicNoveltyChecker() {
     }
   }
 
-  const handleSelectSample = (sample: (typeof SAMPLE_TOPICS)[0]) => {
-    setTitle(sample.title)
-    setAdvisorName(sample.advisor)
-    const matchSub = subjects.find((s) => s.name.toLowerCase().includes(sample.subjectName.toLowerCase()))
-    if (matchSub) setSubjectId(matchSub.id)
+  const handleReset = () => {
+    setTitle('')
+    setDescription('')
+    setSubjectId('')
+    setMajorId('')
+    setAdvisorName('')
+    setResult(null)
+    setHasSearched(false)
   }
 
-  const getRiskBadge = (level: string) => {
+  const getRiskDisplay = (level: string) => {
     if (level === 'HIGH_DUPLICATION_RISK') {
       return {
         label: 'CẢNH BÁO TRÙNG LẶP CAO',
-        color: 'bg-red-50 text-red-700 border-red-200',
-        badge: 'bg-red-600 text-white',
-        desc: 'Đề tài có độ trùng lớn với đồ án khóa trước. Cần đổi công nghệ lõi hoặc đổi phạm vi đối tượng khảo sát.',
+        badge: 'bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800',
+        textColor: 'text-rose-600 dark:text-rose-400',
+        desc: 'Đề tài và nội dung tóm tắt có sự trùng khớp lớn với đồ án đã bảo vệ các khóa trước tại Khoa. Cần đổi mới bài toán hoặc phương pháp giải quyết.',
+        icon: AlertTriangle,
       }
     }
-    if (level === 'MEDIUM_SIMILARITY') {
+    if (level === 'MEDIUM_SIMILARITY' || level === 'MODERATE_OVERLAP') {
       return {
-        label: 'TRÙNG LẶP TRUNG BÌNH (CÓ THỂ KẾ THỪA)',
-        color: 'bg-amber-50 text-amber-700 border-amber-200',
-        badge: 'bg-amber-600 text-white',
-        desc: 'Có điểm tương đồng về chủ đề hoặc công nghệ. Bạn nên tham khảo mã nguồn khóa trước và bổ sung các tính năng nâng cao.',
+        label: 'TRÙNG LẶP MỨC TRUNG BÌNH',
+        badge: 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800',
+        textColor: 'text-amber-600 dark:text-amber-400',
+        desc: 'Đề tài có nét tương đồng về bài toán hoặc công nghệ. Sinh viên nên kế thừa và mở rộng thêm các tính năng đột phá mới.',
+        icon: Info,
       }
     }
     return {
-      label: 'TÍNH MỚI CAO / Ý TƯỞNG ĐỘC LẬP',
-      color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      badge: 'bg-emerald-600 text-white',
-      desc: 'Ý tưởng đề tài có hướng tiếp cận riêng biệt, ít bị trùng lặp với cơ sở dữ liệu đồ án đã nghiệm thu trong Khoa.',
+      label: 'TÍNH MỚI HỌC THUẬT CAO',
+      badge: 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800',
+      textColor: 'text-emerald-600 dark:text-emerald-400',
+      desc: 'Ý tưởng đề tài có hướng tiếp cận riêng biệt, chưa có đồ án trùng lặp đáng kể trong kho lưu trữ của Khoa.',
+      icon: CheckCircle2,
     }
   }
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 rounded-2xl p-6 text-white border border-indigo-900/50 shadow-md">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
-                BẢN ĐỒ KẾ THỪA HỌC THUẬT
-              </span>
-              <span className="text-xs text-slate-300">Khoa CNTT · ĐH Giao thông Vận tải</span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-              <span>Công cụ Đánh giá Tính mới &amp; Chống Trùng Đề tài</span>
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
-              Hệ thống đối soát tự động tên đề tài, môn học và hướng nghiên cứu với toàn bộ kho Khóa luận tốt nghiệp &amp; Đồ án mẫu đã nghiệm thu của Khoa để tìm góc tiếp cận đột phá.
-            </p>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-xs px-4 py-3 rounded-xl border border-white/10 text-center shrink-0">
-            <span className="text-[11px] text-indigo-200 block font-medium">Cơ sở dữ liệu đối soát</span>
-            <span className="text-lg font-bold text-white block mt-0.5">50+ Đồ án &amp; KLTN</span>
-            <span className="text-[10px] text-slate-300">Khoa CNTT - UTC</span>
-          </div>
+      {/* ── CLEAN TOP HEADER (NO FORMULA TUTORIALS) ─────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200 dark:border-stone-800">
+        <div>
+          <h1 className="font-serif-academic text-2xl sm:text-3xl font-bold text-stone-950 dark:text-stone-50 tracking-tight">
+            Đối Soát Đề Tài &amp; Tính Mới
+          </h1>
+          <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-1 font-sans">
+            Đối chiếu nội dung tóm tắt và tên đề tài với kho Khóa luận &amp; Đồ án tốt nghiệp của Khoa CNTT - ĐH Giao thông Vận tải.
+          </p>
         </div>
 
-        {/* Quick Sample Links */}
-        <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-white/10 text-xs">
-          <span className="text-slate-300 text-[11px] font-medium">Thử nhanh đề tài mẫu:</span>
-          {SAMPLE_TOPICS.map((s, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => handleSelectSample(s)}
-              className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-slate-200 rounded-lg text-[11px] transition-colors cursor-pointer text-left"
-            >
-              {s.title.slice(0, 38)}...
-            </button>
-          ))}
+        {/* Total Documents in Archive Counter */}
+        <div className="px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 font-mono text-xs text-stone-700 dark:text-stone-300 self-start sm:self-auto shrink-0">
+          Kho lưu trữ: <span className="font-bold text-blue-600 dark:text-blue-400">50+ Đồ án &amp; KLTN</span>
         </div>
       </div>
 
-      {/* Main Grid: Input Form + Result Analysis */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Form: 5 cols */}
-        <div className="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-            <span className="material-symbols-outlined text-[18px] text-indigo-600">tune</span>
-            <span>Thông tin Đề tài dự kiến</span>
-          </h3>
+      {/* ── WORKSPACE GRID: FORM (5 COLS) + RESULTS (7 COLS) ────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left: Input Form (5 cols) */}
+        <div className="lg:col-span-5 bg-white dark:bg-stone-900 rounded-2xl border-2 border-stone-300 dark:border-stone-800 p-5 sm:p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-stone-200 dark:border-stone-800">
+            <span className="text-xs font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wide font-sans">
+              Thông tin đề tài cần kiểm tra
+            </span>
 
-          <form onSubmit={handleAnalyze} className="space-y-3.5">
+            {title.trim().length > 0 && (
+              <button
+                type="button"
+                onClick={handleReset}
+                className="text-[11px] font-mono text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 flex items-center gap-1 cursor-pointer"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Làm mới</span>
+              </button>
+            )}
+          </div>
+
+          <form onSubmit={handleAnalyze} className="space-y-4">
+            {/* 1. Title Input (Core) */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Tên đề tài / Hướng nghiên cứu <span className="text-red-500">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1">
+                  <span>Tên đề tài / Khóa luận dự kiến</span>
+                  <span className="text-rose-500">*</span>
+                </label>
+                <span className="text-[10px] font-mono text-stone-400">
+                  {title.trim().length} ký tự
+                </span>
+              </div>
               <textarea
                 rows={3}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Ví dụ: Xây dựng hệ thống phát hiện tấn công mạng DDoS sử dụng mô hình học sâu CNN-LSTM..."
-                className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-600 focus:outline-hidden resize-none"
+                placeholder="Ví dụ: Nghiên cứu kỹ thuật phòng thủ tấn công DDoS trên mạng SDN sử dụng mô hình học máy..."
+                className="w-full p-3 text-xs font-sans bg-stone-50 dark:bg-stone-800/80 border border-stone-300 dark:border-stone-700 rounded-xl focus:bg-white dark:focus:bg-stone-800 focus:ring-2 focus:ring-blue-600 focus:outline-none resize-none leading-relaxed text-stone-900 dark:text-stone-100 transition-all"
               />
-              <span className="text-[10px] text-slate-400">Tối thiểu 5 ký tự để phân tích.</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Môn học / Học phần
+            {/* 2. Abstract / Description Input (Core) with AI Generator */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1">
+                  <span>Mô tả nội dung / Tóm tắt đề cương</span>
+                  <span className="text-[10px] text-stone-400 font-normal">(Rất quan trọng)</span>
                 </label>
-                <CustomSelect
-                  value={subjectId ? String(subjectId) : ''}
-                  onChange={(val) => setSubjectId(val ? Number(val) : '')}
-                  options={[
-                    { value: '', label: '-- Tất cả môn học --' },
-                    ...subjects.map((s) => ({ value: String(s.id), label: s.name })),
-                  ]}
-                  placeholder="Chọn môn học"
-                  className="w-full text-xs"
-                />
+
+                {/* AI Draft Button */}
+                <button
+                  type="button"
+                  onClick={handleGenerateAbstract}
+                  disabled={generatingAbstract || title.trim().length < 4}
+                  title="Nhấn để AI tự động soạn tóm tắt đề cương học thuật dựa trên tên đề tài"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900 border border-purple-200 dark:border-purple-800 transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  {generatingAbstract ? (
+                    <>
+                      <span className="w-2.5 h-2.5 border border-purple-600 border-t-transparent rounded-full animate-spin" />
+                      <span>AI đang soạn...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                      <span>✨ AI sinh tóm tắt</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <textarea
+                rows={4}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Mô tả tóm tắt bài toán nghiên cứu, công nghệ áp dụng, tập dữ liệu hoặc bấm '✨ AI sinh tóm tắt' ở trên để hệ thống tự động soạn thảo..."
+                className="w-full p-3 text-xs font-sans bg-stone-50 dark:bg-stone-800/80 border border-stone-300 dark:border-stone-700 rounded-xl focus:bg-white dark:focus:bg-stone-800 focus:ring-2 focus:ring-blue-600 focus:outline-none resize-none leading-relaxed text-stone-900 dark:text-stone-100 transition-all"
+              />
+              <span className="text-[10px] text-stone-400 block mt-1">
+                Thuật toán sẽ so sánh ngữ nghĩa nội dung tóm tắt này với bản tóm tắt học thuật của các KLTN đã bảo vệ.
+              </span>
+            </div>
+
+            {/* 3. Secondary Context Options (< 20% weight) */}
+            <div className="pt-2 border-t border-stone-200 dark:border-stone-800 space-y-3">
+              <span className="text-[11px] font-mono font-bold text-stone-500 uppercase block">
+                Thông tin bổ trợ (tùy chọn):
+              </span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-stone-700 dark:text-stone-300 mb-1">
+                    Môn học
+                  </label>
+                  <CustomSelect
+                    value={subjectId ? String(subjectId) : ''}
+                    onChange={(val) => setSubjectId(val ? Number(val) : '')}
+                    options={[
+                      { value: '', label: '-- Môn học (tất cả) --' },
+                      ...subjects.map((s) => ({ value: String(s.id), label: s.name })),
+                    ]}
+                    placeholder="Chọn môn học"
+                    className="w-full text-xs font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-stone-700 dark:text-stone-300 mb-1">
+                    Chuyên ngành
+                  </label>
+                  <CustomSelect
+                    value={majorId ? String(majorId) : ''}
+                    onChange={(val) => setMajorId(val ? Number(val) : '')}
+                    options={[
+                      { value: '', label: '-- Chuyên ngành (tất cả) --' },
+                      ...majors.map((m) => ({ value: String(m.id), label: `${m.name} (${m.code})` })),
+                    ]}
+                    placeholder="Chọn chuyên ngành"
+                    className="w-full text-xs font-mono"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Chuyên ngành
+                <label className="block text-[11px] font-semibold text-stone-700 dark:text-stone-300 mb-1">
+                  Giảng viên hướng dẫn dự kiến
                 </label>
                 <CustomSelect
-                  value={majorId ? String(majorId) : ''}
-                  onChange={(val) => setMajorId(val ? Number(val) : '')}
+                  value={advisorName}
+                  onChange={(val) => setAdvisorName(val)}
                   options={[
-                    { value: '', label: '-- Chọn chuyên ngành --' },
-                    ...majors.map((m) => ({ value: String(m.id), label: `${m.name} (${m.code})` })),
+                    { value: '', label: '-- Giảng viên hướng dẫn (tất cả) --' },
+                    ...advisors.map((adv) => ({ value: adv, label: adv })),
                   ]}
-                  placeholder="Chọn chuyên ngành"
-                  className="w-full text-xs"
+                  placeholder="Chọn GVHD"
+                  className="w-full text-xs font-mono"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Giảng viên hướng dẫn dự kiến
-              </label>
-              <CustomSelect
-                value={advisorName}
-                onChange={(val) => setAdvisorName(val)}
-                options={[
-                  { value: '', label: '-- Chọn GVHD (hoặc để trống) --' },
-                  ...advisors.map((adv) => ({ value: adv, label: adv })),
-                ]}
-                placeholder="Chọn GVHD"
-                className="w-full text-xs"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Phương pháp kỹ thuật / Công nghệ dự kiến (tùy chọn)
-              </label>
-              <input
-                type="text"
-                value={expectedMethodology}
-                onChange={(e) => setExpectedMethodology(e.target.value)}
-                placeholder="Ví dụ: React, Spring Boot, PyTorch, YOLOv8..."
-                className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
-              />
-            </div>
-
+            {/* Submit Action Button */}
             <button
               type="submit"
               disabled={loading || title.trim().length < 4}
-              className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 text-white font-bold text-xs font-mono uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer mt-2"
             >
               {loading ? (
                 <>
-                  <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Đang đối soát kho học liệu Khoa...</span>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Đang đối soát kho học liệu...</span>
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[18px]">verified</span>
-                  <span>Phân tích Tính mới &amp; Đối soát Trùng lặp</span>
+                  <Search className="w-4 h-4 text-blue-200" />
+                  <span>Kiểm Tra Mức Độ Trùng Lặp</span>
                 </>
               )}
             </button>
           </form>
         </div>
 
-        {/* Right Content: 7 cols */}
-        <div className="lg:col-span-7 space-y-4">
+        {/* Right: Results View (7 cols) */}
+        <div className="lg:col-span-7 space-y-5">
           {!hasSearched && (
-            <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center space-y-3">
-              <span className="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto text-xl font-bold">
-                💡
-              </span>
-              <h4 className="text-sm font-bold text-slate-800">Sẵn sàng đối soát ý tưởng đề tài</h4>
-              <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
-                Nhập tên đề tài của bạn ở biểu mẫu bên trái hoặc bấm chọn nhanh một trong các đề tài mẫu để nhận báo cáo đối soát độ trùng lặp và các góc tiếp cận mới.
-              </p>
+            <div className="bg-white dark:bg-stone-900 border-2 border-dashed border-stone-300 dark:border-stone-800 rounded-2xl p-8 sm:p-12 text-center space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto border border-blue-200 dark:border-blue-800 shadow-sm">
+                <Sparkles className="w-7 h-7" />
+              </div>
+              <div className="space-y-1 max-w-md mx-auto">
+                <h3 className="font-serif-academic text-lg font-bold text-stone-900 dark:text-stone-100">
+                  Đối Soát Tính Mới &amp; Tránh Trùng Đề Tài
+                </h3>
+                <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed font-sans">
+                  Nhập tên đề tài và nội dung tóm tắt ở cột bên trái (hoặc bấm <strong>✨ AI sinh tóm tắt</strong>) rồi bấm <strong>Kiểm Tra Mức Độ Trùng Lặp</strong> để hệ thống đối chiếu với kho đồ án tốt nghiệp của Khoa.
+                </p>
+              </div>
             </div>
           )}
 
           {loading && (
-            <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center space-y-3 shadow-xs">
+            <div className="bg-white dark:bg-stone-900 p-12 rounded-2xl border-2 border-stone-300 dark:border-stone-800 text-center space-y-4 shadow-sm">
               <LoadingSpinner />
-              <p className="text-xs font-semibold text-slate-700">Đang quét cơ sở dữ liệu khóa luận &amp; đồ án...</p>
-              <p className="text-[11px] text-slate-400">Đang so khớp ngữ nghĩa môn học, giảng viên và từ khóa kỹ thuật</p>
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-stone-900 dark:text-stone-100 font-sans">
+                  Đang đối chiếu ngữ nghĩa tên đề tài và nội dung tóm tắt...
+                </p>
+                <p className="text-xs font-mono text-stone-500 dark:text-stone-400">
+                  So khớp từ khóa cốt lõi • Đối chiếu bản tóm tắt học thuật KLTN
+                </p>
+              </div>
             </div>
           )}
 
           {!loading && result && (
-            <div className="space-y-4">
-              {/* Verdict Card */}
+            <div className="space-y-5">
+              {/* Verdict Summary Card */}
               {(() => {
-                const badge = getRiskBadge(result.riskLevel)
+                const risk = getRiskDisplay(result.riskLevel)
+                const Icon = risk.icon
                 const noveltyScore = Math.max(0, 100 - result.overallOverlapScore)
+
                 return (
-                  <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-                      <div>
-                        <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase ${badge.badge}`}>
-                          {badge.label}
-                        </span>
-                        <h4 className="text-sm font-bold text-slate-900 mt-2">{result.verdict}</h4>
+                  <div className="bg-white dark:bg-stone-900 rounded-2xl border-2 border-stone-300 dark:border-stone-800 p-5 sm:p-6 shadow-sm space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200 dark:border-stone-800">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-3 py-1 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider border flex items-center gap-1.5 ${risk.badge}`}
+                          >
+                            <Icon className="w-3.5 h-3.5" />
+                            <span>{risk.label}</span>
+                          </span>
+                        </div>
+                        <h3 className="font-serif-academic text-lg font-bold text-stone-950 dark:text-stone-50">
+                          {result.verdict}
+                        </h3>
+                        <p className="text-xs text-stone-600 dark:text-stone-400 font-sans">
+                          {risk.desc}
+                        </p>
                       </div>
 
-                      {/* Novelty Gauge */}
-                      <div className="flex items-center gap-3 shrink-0 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                        <div className="text-center">
-                          <span className="text-[10px] text-slate-500 block">Độ trùng lặp</span>
-                          <span className="text-base font-bold text-red-600">{result.overallOverlapScore}%</span>
+                      {/* Scores */}
+                      <div className="flex items-center gap-3 shrink-0 bg-stone-50 dark:bg-stone-800/80 p-3 rounded-xl border border-stone-200 dark:border-stone-700">
+                        <div className="text-center px-2">
+                          <span className="text-[10px] font-mono text-stone-500 uppercase block">Độ trùng lặp</span>
+                          <span className={`text-2xl font-mono font-bold block mt-0.5 ${risk.textColor}`}>
+                            {result.overallOverlapScore}%
+                          </span>
                         </div>
-                        <div className="h-6 w-px bg-slate-200" />
-                        <div className="text-center">
-                          <span className="text-[10px] text-slate-500 block">Chỉ số tính mới</span>
-                          <span className="text-base font-bold text-emerald-600">{noveltyScore}%</span>
+                        <div className="h-8 w-px bg-stone-300 dark:bg-stone-700" />
+                        <div className="text-center px-2">
+                          <span className="text-[10px] font-mono text-stone-500 uppercase block">Chỉ số tính mới</span>
+                          <span className="text-2xl font-mono font-bold text-emerald-600 dark:text-emerald-400 block mt-0.5">
+                            {noveltyScore}%
+                          </span>
                         </div>
                       </div>
                     </div>
 
-                    <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">
-                      {badge.desc}
-                    </p>
-
-                    {/* Novelty Suggestions */}
-                    {result.noveltyRecommendations && result.noveltyRecommendations.length > 0 && (
-                      <div className="space-y-2 pt-1">
-                        <span className="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
-                          <span className="text-indigo-600">🚀</span>
-                          <span>Gợi ý tạo đột phá &amp; góc tiếp cận khác biệt từ Khoa:</span>
-                        </span>
-                        <div className="space-y-1.5">
-                          {result.noveltyRecommendations.map((rec, idx) => (
-                            <div
-                              key={idx}
-                              className="p-2.5 bg-indigo-50/50 rounded-xl border border-indigo-100 text-xs text-indigo-950 flex items-start gap-2"
-                            >
-                              <span className="font-bold text-indigo-600">#{idx + 1}</span>
-                              <span className="leading-relaxed">{rec}</span>
-                            </div>
-                          ))}
-                        </div>
+                    {/* Matched Highlights */}
+                    {result.extractedTokens && result.extractedTokens.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5 text-xs font-mono">
+                        <span className="text-stone-500 text-[11px]">Từ khóa nhận diện:</span>
+                        {result.extractedTokens.map((tok, i) => (
+                          <span
+                            key={i}
+                            className="px-2 py-0.5 rounded text-[11px] bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300 border border-stone-200 dark:border-stone-700"
+                          >
+                            {tok}
+                          </span>
+                        ))}
                       </div>
                     )}
                   </div>
                 )
               })()}
 
-              {/* Matched Past Theses */}
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-3">
+              {/* ── MATCHED PAST THESES LIST ─────────────────────────────────── */}
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                    <span className="text-slate-500">📑</span>
-                    <span>Đồ án / Khóa luận tiền nhiệm liên quan ({result.matchedDocuments.length})</span>
+                  <h4 className="text-sm font-bold font-sans text-stone-900 dark:text-stone-100 flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <span>Đồ án / Khóa luận tương đồng trong kho lưu trữ ({result.matchedDocuments.length})</span>
                   </h4>
-                  <span className="text-[11px] text-slate-400">Tham khảo kế thừa học thuật</span>
                 </div>
 
                 {result.matchedDocuments.length === 0 ? (
-                  <p className="text-xs text-slate-500 py-3 text-center">
-                    Không tìm thấy đề tài nào có độ trùng đáng kể trong kho học liệu. Ý tưởng hoàn toàn độc lập!
-                  </p>
+                  <div className="p-6 text-center rounded-xl bg-white dark:bg-stone-900 border-2 border-stone-300 dark:border-stone-800 space-y-2">
+                    <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
+                    <p className="text-xs font-bold text-stone-800 dark:text-stone-200 font-sans">
+                      Không tìm thấy công trình nào trùng lặp đáng kể!
+                    </p>
+                    <p className="text-[11px] text-stone-500 dark:text-stone-400 max-w-md mx-auto">
+                      Đề tài và nội dung nghiên cứu của bạn có tính mới học thuật cao, chưa từng có đồ án tương tự được bảo vệ tại Khoa.
+                    </p>
+                  </div>
                 ) : (
-                  <div className="space-y-2.5">
+                  <div className="space-y-3">
                     {result.matchedDocuments.map((m) => (
                       <div
                         key={m.id}
-                        className="p-3.5 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-200 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                        className="bg-white dark:bg-stone-900 rounded-xl border-2 border-stone-300 dark:border-stone-800 p-4 sm:p-5 shadow-xs space-y-3"
                       >
-                        <div className="space-y-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-800 text-[10px] font-bold rounded">
-                              REF: #{88000 + m.id}
-                            </span>
-                            <span className="text-xs font-bold text-slate-900 truncate block">
+                        {/* Title and Overlap Score */}
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                          <div className="space-y-1 min-w-0">
+                            <h5 className="text-xs sm:text-sm font-bold font-serif-academic text-stone-950 dark:text-stone-50 leading-snug">
                               {m.title}
+                            </h5>
+
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-mono text-stone-500 dark:text-stone-400">
+                              <span>Môn: <strong>{m.subjectName || 'Chung'}</strong></span>
+                              {m.academicYearName && <span>• {m.academicYearName}</span>}
+                              {m.advisorName && (
+                                <span className="text-blue-600 dark:text-blue-400">
+                                  • GVHD: <strong>{m.advisorName}</strong>
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="shrink-0 self-start">
+                            <span className="px-2.5 py-1 bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-200 font-mono font-bold text-xs rounded-lg border border-amber-300 dark:border-amber-800">
+                              {m.similarityScore}% trùng khớp
                             </span>
                           </div>
-                          <p className="text-[11px] text-slate-500">
-                            {m.subjectName} • {m.academicYearName} {m.advisorName ? `• GVHD: ${m.advisorName}` : ''}
-                          </p>
-                          <p className="text-[11px] text-amber-700 font-medium">
-                            Điểm giao thoa: {m.overlappingAspects}
-                          </p>
                         </div>
 
-                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                          <span className="px-2 py-1 bg-amber-100 text-amber-900 font-bold text-[10px] rounded-lg">
-                            {m.similarityScore}% trùng
-                          </span>
+                        {/* Abstract Snippet from Matched Thesis */}
+                        {m.abstractSnippet && (
+                          <div className="p-3 rounded-lg bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700/80 text-xs font-sans text-stone-700 dark:text-stone-300 leading-relaxed space-y-1">
+                            <span className="text-[10px] font-mono uppercase font-bold text-stone-500 block">
+                              Trích dẫn tóm tắt nội dung khóa trước:
+                            </span>
+                            <p className="italic text-stone-600 dark:text-stone-400">
+                              "{m.abstractSnippet}"
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Matched Keywords & Overlapping Aspects */}
+                        <div className="flex flex-wrap items-center gap-1.5 text-xs font-mono text-amber-700 dark:text-amber-300">
+                          <span className="text-stone-500 text-[11px]">Điểm giao thoa:</span>
+                          <span>{m.overlappingAspects}</span>
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="flex items-center justify-between pt-2 border-t border-stone-200 dark:border-stone-700">
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setPdfModal({ isOpen: true, docId: m.id, title: m.title })}
+                              className="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900 text-[11px] font-mono font-bold transition-colors flex items-center gap-1 cursor-pointer"
+                            >
+                              <Eye className="w-3 h-3" />
+                              <span>Xem Đề cương PDF</span>
+                            </button>
+
+                            <a
+                              href={`/documents/${m.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-2.5 py-1 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white text-[11px] font-mono transition-colors flex items-center gap-1"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              <span>Chi tiết tài liệu</span>
+                            </a>
+                          </div>
+
                           {m.githubUrl && (
                             <a
                               href={m.githubUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="px-2.5 py-1 bg-slate-900 text-white hover:bg-indigo-600 text-[11px] font-bold rounded-lg transition-colors flex items-center gap-1"
+                              className="px-2.5 py-1 rounded-lg bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 hover:bg-blue-600 text-[11px] font-mono font-bold transition-colors flex items-center gap-1"
                             >
-                              <span>GitHub</span>
+                              <span>Mã nguồn GitHub</span>
                               <span className="text-[10px]">↗</span>
                             </a>
                           )}
-                          <a
-                            href={`/documents/${m.id}`}
-                            className="px-2.5 py-1 bg-white border border-slate-300 text-slate-700 hover:text-indigo-600 text-[11px] font-medium rounded-lg transition-colors"
-                          >
-                            Xem chi tiết
-                          </a>
                         </div>
                       </div>
                     ))}
@@ -405,6 +529,14 @@ export default function TopicNoveltyChecker() {
           )}
         </div>
       </div>
+
+      {/* ── PDF PREVIEW MODAL ─────────────────────────────────────────────────── */}
+      <PdfViewerModal
+        isOpen={pdfModal.isOpen}
+        onClose={() => setPdfModal({ isOpen: false })}
+        title={pdfModal.title || 'Đề cương Đồ án Tốt nghiệp'}
+        fileId={pdfModal.docId}
+      />
     </div>
   )
 }
