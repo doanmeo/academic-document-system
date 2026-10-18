@@ -11,6 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.cntt.academicdocs.util.SecurityUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -40,7 +41,10 @@ public class DocumentService {
 
     private static final Set<String> STOP_WORDS = Set.of(
             "cua", "va", "cac", "nhung", "cho", "trong", "tren", "voi", "bang", "theo", "mot", "nhu",
-            "he", "thong", "nghien", "cuu", "xay", "dung", "phat", "trien", "ung", "de", "tai"
+            "he", "thong", "nghien", "cuu", "xay", "dung", "phat", "trien", "ung", "tai",
+            "khoa", "luan", "tot", "nghiep", "do", "an", "bai", "tap", "lon", "lieu", "tim",
+            "hieu", "thiet", "ke", "khai", "ve", "nhom", "sinh", "vien", "giang",
+            "truong", "dai", "hoc", "cntt", "utc", "phuc", "vu", "ho", "tro", "mo", "hinh"
     );
 
     public DocumentService(
@@ -182,8 +186,12 @@ public class DocumentService {
             throw new BusinessException(HttpStatus.FORBIDDEN, "NOT_DOCUMENT_OWNER", "Bạn không có quyền chỉnh sửa tài liệu này");
         }
 
-        if (document.getStatus() != DocumentStatus.DRAFT && document.getStatus() != DocumentStatus.REJECTED && document.getStatus() != DocumentStatus.REVISION_REQUIRED) {
-            throw new BusinessException(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_STATUS_TRANSITION", "Chỉ có thể chỉnh sửa tài liệu ở trạng thái Nháp, Từ chối hoặc Yêu cầu bổ sung");
+        if (document.getStatus() != DocumentStatus.DRAFT 
+                && document.getStatus() != DocumentStatus.PENDING 
+                && document.getStatus() != DocumentStatus.REJECTED 
+                && document.getStatus() != DocumentStatus.REVISION_REQUIRED 
+                && !SecurityUtils.isAdmin()) {
+            throw new BusinessException(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_STATUS_TRANSITION", "Chỉ có thể chỉnh sửa tài liệu ở trạng thái Nháp, Chờ duyệt, Từ chối hoặc Yêu cầu bổ sung");
         }
 
         if (req.getTitle() != null && !req.getTitle().isBlank()) document.setTitle(req.getTitle());
@@ -301,6 +309,32 @@ public class DocumentService {
         review.setComment("Sinh viên gửi yêu cầu thẩm định tài liệu");
         documentReviewRepository.save(review);
 
+        // In-app Notification cho Sinh viên
+        notificationService.notifyUser(
+                userId,
+                "DOCUMENT_SUBMITTED",
+                "Gửi duyệt tài liệu thành công",
+                "Học liệu \"" + saved.getTitle() + "\" đã được gửi tới Ban Quản trị và đang chờ thẩm định.",
+                "/documents/" + saved.getId()
+        );
+
+        // In-app Notification cho tất cả Admin
+        try {
+            List<User> admins = userRepository.findByRole(UserRole.ADMIN);
+            for (User admin : admins) {
+                if (!admin.getId().equals(userId)) {
+                    notificationService.notifyUser(
+                            admin.getId(),
+                            "NEW_SUBMISSION",
+                            "Tài liệu mới chờ thẩm định",
+                            "Sinh viên " + (saved.getUploader() != null ? saved.getUploader().getFullName() : "") +
+                                    " vừa nộp tài liệu: \"" + saved.getTitle() + "\"",
+                            "/admin/pending"
+                    );
+                }
+            }
+        } catch (Exception ignored) {}
+
         return toDetailDTO(saved, userId);
     }
 
@@ -336,6 +370,32 @@ public class DocumentService {
         review.setToStatus(DocumentStatus.PENDING);
         review.setComment(revisionNote != null && !revisionNote.isBlank() ? revisionNote.trim() : "Sinh viên nộp lại bản sửa đổi");
         documentReviewRepository.save(review);
+
+        // In-app Notification cho Sinh viên
+        notificationService.notifyUser(
+                userId,
+                "DOCUMENT_SUBMITTED",
+                "Nộp lại tài liệu thành công",
+                "Bản chỉnh sửa học liệu \"" + saved.getTitle() + "\" đã được gửi lại tới Ban Quản trị.",
+                "/documents/" + saved.getId()
+        );
+
+        // In-app Notification cho tất cả Admin
+        try {
+            List<User> admins = userRepository.findByRole(UserRole.ADMIN);
+            for (User admin : admins) {
+                if (!admin.getId().equals(userId)) {
+                    notificationService.notifyUser(
+                            admin.getId(),
+                            "NEW_SUBMISSION",
+                            "Tài liệu cập nhật chờ thẩm định",
+                            "Sinh viên " + (saved.getUploader() != null ? saved.getUploader().getFullName() : "") +
+                                    " vừa cập nhật và nộp lại tài liệu: \"" + saved.getTitle() + "\"",
+                            "/admin/pending"
+                    );
+                }
+            }
+        } catch (Exception ignored) {}
 
         return toDetailDTO(saved, userId);
     }
@@ -871,52 +931,6 @@ public class DocumentService {
         };
     }
 
-    @Transactional(readOnly = true)
-    public CoverageMatrixDTO getCoverageMatrix() {
-        List<Subject> subjects = subjectRepository.findAllByActiveTrueOrderByCodeAsc();
-        List<CoverageMatrixDTO.SubjectItem> subjectItems = subjects.stream()
-                .map(s -> new CoverageMatrixDTO.SubjectItem(s.getId(), s.getCode(), s.getName()))
-                .collect(Collectors.toList());
-
-        List<CoverageMatrixDTO.TypeItem> typeItems = List.of(
-                new CoverageMatrixDTO.TypeItem("SLIDE", "Slide Bài giảng"),
-                new CoverageMatrixDTO.TypeItem("EXAM", "Đề thi & Lời giải"),
-                new CoverageMatrixDTO.TypeItem("LAB", "Hướng dẫn Lab"),
-                new CoverageMatrixDTO.TypeItem("CAPSTONE", "Đồ án / BTL"),
-                new CoverageMatrixDTO.TypeItem("THESIS", "Khóa luận tốt nghiệp"),
-                new CoverageMatrixDTO.TypeItem("REFERENCE", "Tài liệu tham khảo"),
-                new CoverageMatrixDTO.TypeItem("NOTE", "Ghi chú ôn tập")
-        );
-
-        List<Object[]> rawCounts = documentRepository.countCoverageMatrix();
-        java.util.Map<String, Integer> cellCounts = new java.util.HashMap<>();
-        int total = 0;
-
-        for (Object[] row : rawCounts) {
-            if (row[0] != null && row[3] != null && row[4] != null) {
-                Long subId = ((Number) row[0]).longValue();
-                String rawTypeCode = row[3].toString().toUpperCase();
-                int count = ((Number) row[4]).intValue();
-                total += count;
-
-                String normType = switch (rawTypeCode) {
-                    case "LECTURE", "SLIDE" -> "SLIDE";
-                    case "EXAM", "DE_THI" -> "EXAM";
-                    case "LAB", "EXERCISE" -> "LAB";
-                    case "PROJECT", "CAPSTONE", "BTL", "DO_AN" -> "CAPSTONE";
-                    case "THESIS" -> "THESIS";
-                    case "NOTE" -> "NOTE";
-                    default -> "REFERENCE";
-                };
-
-                String key = subId + "_" + normType;
-                cellCounts.put(key, cellCounts.getOrDefault(key, 0) + count);
-            }
-        }
-
-        return new CoverageMatrixDTO(subjectItems, typeItems, cellCounts, total);
-    }
-
     // --- Academic Similarity & Duplicate Topic Prevention ---
 
     @Transactional(readOnly = true)
@@ -944,27 +958,23 @@ public class DocumentService {
         return calculateSimilarities(req, allApproved, 5);
     }
 
+    public static Set<String> extractKeywords(String text) {
+        if (text == null || text.isBlank()) return Set.of();
+        String noAccent = removeAccents(text.toLowerCase());
+        String[] words = noAccent.split("[^a-zA-Z0-9]+");
+        Set<String> result = new HashSet<>();
+        for (String w : words) {
+            if (w.length() >= 3 && !STOP_WORDS.contains(w)) {
+                result.add(w);
+            }
+        }
+        return result;
+    }
+
     private List<RelatedDocumentDTO> calculateSimilarities(SimilarityCheckRequest req, List<Document> candidates, int limit) {
-        String targetTitleNoAccent = removeAccents(req.getTitle() != null ? req.getTitle().toLowerCase() : "");
+        Set<String> targetTitleKeywords = extractKeywords(req.getTitle());
+        Set<String> targetContentKeywords = extractKeywords(req.getAbstractText());
         String targetAdvisorNoAccent = removeAccents(req.getAdvisorName() != null ? req.getAdvisorName().toLowerCase() : "");
-        String targetAbstractNoAccent = removeAccents(req.getAbstractText() != null ? req.getAbstractText().toLowerCase() : "");
-
-        String[] rawTitleTokens = targetTitleNoAccent.split("[^a-zA-Z0-9]+");
-        List<String> targetTitleTokens = new ArrayList<>();
-        for (String t : rawTitleTokens) {
-            if (t.length() >= 3 && !STOP_WORDS.contains(t) && !targetTitleTokens.contains(t)) {
-                targetTitleTokens.add(t);
-            }
-        }
-
-        // Target content tokens (from title + abstract)
-        String[] rawAbstractTokens = (targetTitleNoAccent + " " + targetAbstractNoAccent).split("[^a-zA-Z0-9]+");
-        List<String> targetContentTokens = new ArrayList<>();
-        for (String t : rawAbstractTokens) {
-            if (t.length() >= 3 && !STOP_WORDS.contains(t) && !targetContentTokens.contains(t)) {
-                targetContentTokens.add(t);
-            }
-        }
 
         List<RelatedDocumentDTO> results = new ArrayList<>();
 
@@ -981,90 +991,107 @@ public class DocumentService {
             int majorScore = 0;
 
             List<String> matchReasons = new ArrayList<>();
-            List<String> matchedTitleTokens = new ArrayList<>();
-            List<String> matchedContentTokens = new ArrayList<>();
 
             // ── 1. TITLE OVERLAP (Max 45 points, ~45% of total score) ──
-            String candTitleNoAccent = removeAccents(cand.getTitle() != null ? cand.getTitle().toLowerCase() : "");
-            for (String token : targetTitleTokens) {
-                if (candTitleNoAccent.contains(token)) {
-                    if (!matchedTitleTokens.contains(token)) {
-                        matchedTitleTokens.add(token);
-                    }
-                }
-            }
+            Set<String> candTitleKeywords = extractKeywords(cand.getTitle());
+            Set<String> matchedTitleTokens = new HashSet<>(targetTitleKeywords);
+            matchedTitleTokens.retainAll(candTitleKeywords);
 
-            int matchedTitleCount = matchedTitleTokens.size();
-            if (matchedTitleCount >= 3) {
+            int matchTitleCount = matchedTitleTokens.size();
+            int maxTitleCount = Math.max(targetTitleKeywords.size(), candTitleKeywords.size());
+            double titleRatio = maxTitleCount > 0 ? (double) matchTitleCount / maxTitleCount : 0.0;
+
+            if (titleRatio >= 0.70 && matchTitleCount >= 2) {
                 titleScore = 45;
-                matchReasons.add("Trùng " + matchedTitleCount + " từ khóa tên đề tài (+45đ)");
-            } else if (matchedTitleCount == 2) {
-                titleScore = 30;
-                matchReasons.add("Trùng 2 từ khóa tên đề tài (+30đ)");
-            } else if (matchedTitleCount == 1) {
-                titleScore = 15;
-                matchReasons.add("Trùng 1 từ khóa tên đề tài (+15đ)");
+                matchReasons.add("Trùng khớp tiêu đề (" + matchTitleCount + "/" + maxTitleCount + " từ khóa: " + String.join(", ", matchedTitleTokens) + ", +45đ)");
+            } else if (titleRatio >= 0.45 && matchTitleCount >= 2) {
+                titleScore = 32;
+                matchReasons.add("Trùng nhiều từ khóa tiêu đề (" + String.join(", ", matchedTitleTokens) + ", +32đ)");
+            } else if (titleRatio >= 0.25 || matchTitleCount >= 2) {
+                titleScore = 18;
+                matchReasons.add("Trùng một số từ khóa tiêu đề (" + String.join(", ", matchedTitleTokens) + ", +18đ)");
+            } else if (matchTitleCount == 1 && maxTitleCount <= 3) {
+                titleScore = 10;
+                matchReasons.add("Trùng 1 từ khóa tiêu đề (" + String.join(", ", matchedTitleTokens) + ", +10đ)");
+            } else if (matchTitleCount == 1) {
+                titleScore = 5;
+                matchReasons.add("Trùng 1 từ khóa phụ (" + String.join(", ", matchedTitleTokens) + ", +5đ)");
             }
 
             // ── 2. CONTENT & ABSTRACT SEMANTIC OVERLAP (Max 40 points, ~40% of total score) ──
             String candAbstract = cand.getAbstractText() != null ? cand.getAbstractText() : (cand.getDescription() != null ? cand.getDescription() : "");
-            String candAbstractNoAccent = removeAccents(candAbstract.toLowerCase());
+            Set<String> candContentKeywords = extractKeywords(candAbstract);
+            Set<String> matchedContentTokens = new HashSet<>();
 
-            for (String token : targetContentTokens) {
-                if (candAbstractNoAccent.contains(token)) {
-                    if (!matchedContentTokens.contains(token)) {
-                        matchedContentTokens.add(token);
-                    }
+            if (!targetContentKeywords.isEmpty() && !candContentKeywords.isEmpty()) {
+                matchedContentTokens.addAll(targetContentKeywords);
+                matchedContentTokens.retainAll(candContentKeywords);
+
+                int contentMatchCount = matchedContentTokens.size();
+                int targetContentSize = targetContentKeywords.size();
+                double contentRatio = (double) contentMatchCount / Math.max(1, targetContentSize);
+
+                if (contentRatio >= 0.35 && contentMatchCount >= 4) {
+                    contentScore = 40;
+                    matchReasons.add("Trùng khớp chuyên sâu tóm tắt học thuật (" + contentMatchCount + " thuật ngữ, +40đ)");
+                } else if (contentRatio >= 0.22 && contentMatchCount >= 3) {
+                    contentScore = 26;
+                    matchReasons.add("Khớp nhiều thuật ngữ trong tóm tắt nội dung (+26đ)");
+                } else if (contentRatio >= 0.12 && contentMatchCount >= 2) {
+                    contentScore = 15;
+                    matchReasons.add("Tương đồng một số thuật ngữ nội dung đề tài (+15đ)");
+                } else if (contentMatchCount >= 2) {
+                    contentScore = 8;
+                    matchReasons.add("Khớp một phần thuật ngữ nội dung (+8đ)");
                 }
-            }
+            } else if (targetContentKeywords.isEmpty() && !targetTitleKeywords.isEmpty() && !candContentKeywords.isEmpty()) {
+                // Người dùng chưa nhập tóm tắt: so khớp từ khóa tiêu đề với abstract ứng viên (tối đa 15đ)
+                matchedContentTokens.addAll(targetTitleKeywords);
+                matchedContentTokens.retainAll(candContentKeywords);
 
-            int matchedAbstractCount = matchedContentTokens.size();
-            if (matchedAbstractCount >= 4) {
-                contentScore = 40;
-                matchReasons.add("Khớp " + matchedAbstractCount + " thuật ngữ trong tóm tắt KLTN (+40đ)");
-            } else if (matchedAbstractCount == 3) {
-                contentScore = 30;
-                matchReasons.add("Khớp 3 thuật ngữ trong tóm tắt nội dung (+30đ)");
-            } else if (matchedAbstractCount == 2) {
-                contentScore = 20;
-                matchReasons.add("Khớp 2 thuật ngữ trong tóm tắt nội dung (+20đ)");
-            } else if (matchedAbstractCount == 1) {
-                contentScore = 10;
-                matchReasons.add("Khớp 1 thuật ngữ trong tóm tắt nội dung (+10đ)");
+                if (matchedContentTokens.size() >= 3) {
+                    contentScore = 15;
+                    matchReasons.add("Tên đề tài khớp " + matchedContentTokens.size() + " thuật ngữ trong tóm tắt KLTN (+15đ)");
+                } else if (matchedContentTokens.size() >= 2) {
+                    contentScore = 10;
+                    matchReasons.add("Tên đề tài xuất hiện trong tóm tắt KLTN (+10đ)");
+                } else if (matchedContentTokens.size() == 1) {
+                    contentScore = 5;
+                }
             }
 
             // ── 3. ACADEMIC METADATA CONTEXT (Max 20 points, < 20% total weight) ──
-            if (req.getSubjectId() != null && cand.getSubject() != null && req.getSubjectId().equals(cand.getSubject().getId())) {
-                subjectScore = 8;
-                metadataScore += 8;
-                matchReasons.add("Cùng môn học (+8đ)");
-            }
-
-            if (!targetAdvisorNoAccent.isBlank() && cand.getAdvisorName() != null && !cand.getAdvisorName().isBlank()) {
-                String candAdvNoAccent = removeAccents(cand.getAdvisorName().toLowerCase());
-                if (targetAdvisorNoAccent.contains(candAdvNoAccent) || candAdvNoAccent.contains(targetAdvisorNoAccent)) {
-                    advisorScore = 7;
-                    metadataScore += 7;
-                    matchReasons.add("Cùng GVHD (+7đ)");
+            // QUAN TRỌNG: Chỉ cộng điểm metadata khi đề tài có sự tương đồng nội dung hoặc tiêu đề (tránh thổi phồng tỷ lệ)
+            if (titleScore > 0 || contentScore > 0) {
+                if (req.getSubjectId() != null && cand.getSubject() != null && req.getSubjectId().equals(cand.getSubject().getId())) {
+                    subjectScore = 8;
+                    metadataScore += 8;
+                    matchReasons.add("Cùng môn học (+8đ)");
                 }
-            }
 
-            if (req.getMajorId() != null && cand.getMajor() != null && req.getMajorId().equals(cand.getMajor().getId())) {
-                majorScore = 5;
-                metadataScore += 5;
-                matchReasons.add("Cùng chuyên ngành (+5đ)");
+                if (!targetAdvisorNoAccent.isBlank() && cand.getAdvisorName() != null && !cand.getAdvisorName().isBlank()) {
+                    String candAdvNoAccent = removeAccents(cand.getAdvisorName().toLowerCase());
+                    if (targetAdvisorNoAccent.contains(candAdvNoAccent) || candAdvNoAccent.contains(targetAdvisorNoAccent)) {
+                        advisorScore = 7;
+                        metadataScore += 7;
+                        matchReasons.add("Cùng GVHD (+7đ)");
+                    }
+                }
+
+                if (req.getMajorId() != null && cand.getMajor() != null && req.getMajorId().equals(cand.getMajor().getId())) {
+                    majorScore = 5;
+                    metadataScore += 5;
+                    matchReasons.add("Cùng chuyên ngành (+5đ)");
+                }
             }
 
             int totalScore = Math.min(100, titleScore + contentScore + metadataScore);
 
-            // Jaccard similarity between target and candidate abstract
-            Set<String> setA = new HashSet<>(targetContentTokens);
-            Set<String> setB = new HashSet<>();
-            for (String t : (candTitleNoAccent + " " + candAbstractNoAccent).split("[^a-zA-Z0-9]+")) {
-                if (t.length() >= 3 && !STOP_WORDS.contains(t)) {
-                    setB.add(t);
-                }
-            }
+            // Jaccard similarity
+            Set<String> setA = new HashSet<>(targetTitleKeywords);
+            setA.addAll(targetContentKeywords);
+            Set<String> setB = new HashSet<>(candTitleKeywords);
+            setB.addAll(candContentKeywords);
             Set<String> union = new HashSet<>(setA);
             union.addAll(setB);
             Set<String> intersection = new HashSet<>(setA);
@@ -1074,8 +1101,8 @@ public class DocumentService {
             String formula = String.format("%d (Tiêu đề) + %d (Nội dung tóm tắt) + %d (Môn/GVHD) = %d%%",
                     titleScore, contentScore, metadataScore, totalScore);
 
-            // Only consider meaningful matches (avoid showing matches with 0 title and 0 content similarity)
-            if (titleScore > 0 || contentScore >= 20 || (totalScore >= 25 && contentScore > 0)) {
+            // Chỉ hiển thị các đề tài có độ tương đồng thực sự (tổng điểm >= 18 và có từ 2 từ khóa hoặc nội dung tương đồng)
+            if (totalScore >= 18 && (titleScore >= 10 || contentScore >= 10)) {
                 RelatedDocumentDTO dto = new RelatedDocumentDTO();
                 dto.setId(cand.getId());
                 dto.setTitle(cand.getTitle());
@@ -1099,8 +1126,8 @@ public class DocumentService {
                 dto.setTitleScore(titleScore);
                 dto.setContentScore(contentScore);
                 dto.setMetadataScore(metadataScore);
-                dto.setMatchedTokens(matchedTitleTokens);
-                dto.setMatchedContentTokens(matchedContentTokens);
+                dto.setMatchedTokens(new ArrayList<>(matchedTitleTokens));
+                dto.setMatchedContentTokens(new ArrayList<>(matchedContentTokens));
                 dto.setJaccardSimilarity(jaccard);
                 dto.setFormulaCalculation(formula);
 
@@ -1232,33 +1259,28 @@ public class DocumentService {
         result.setAlgorithmName("Nội Dung Tóm Tắt & Tiêu Đề Đề Tài (80%) + Bối Cảnh Học Thuật (20%)");
         result.setFormulaDefinition("Score = min(100, S_tieu_de(45đ) + S_noi_dung_tom_tat(40đ) + W_mon_gvhd(20đ))");
 
-        String targetTitleNoAccent = removeAccents(req.getTitle().toLowerCase());
-        String targetDescNoAccent = removeAccents(req.getDescription() != null ? req.getDescription().toLowerCase() : "");
-        String[] rawTokens = (targetTitleNoAccent + " " + targetDescNoAccent).split("[^a-zA-Z0-9]+");
-        List<String> cleanTokens = new ArrayList<>();
-        for (String t : rawTokens) {
-            if (t.length() >= 3 && !STOP_WORDS.contains(t) && !cleanTokens.contains(t)) {
-                cleanTokens.add(t);
-            }
+        Set<String> cleanTokens = new HashSet<>(extractKeywords(req.getTitle()));
+        if (req.getDescription() != null && !req.getDescription().isBlank()) {
+            cleanTokens.addAll(extractKeywords(req.getDescription()));
         }
-        result.setExtractedTokens(cleanTokens);
+        result.setExtractedTokens(new ArrayList<>(cleanTokens));
 
         List<String> recommendations = new ArrayList<>();
-        if (maxScore >= 65) {
+        if (maxScore >= 60) {
             result.setRiskLevel("HIGH_DUPLICATION_RISK");
-            result.setVerdict("Cảnh báo trùng lặp hướng nghiên cứu: Đề tài có sự trùng khớp cao với các công trình khóa trước đã bảo vệ tại Khoa.");
+            result.setVerdict("Cảnh báo trùng lặp hướng nghiên cứu: Đề tài có tỷ lệ trùng khớp đáng kể (" + maxScore + "%) với các công trình khóa trước.");
             recommendations.add("Đổi mới bài toán nghiệp vụ: Thay vì làm lại mô hình cũ, hãy mở rộng sang giải quyết bài toán thực tế mới trong trường ĐH GTVT.");
             recommendations.add("Nâng cấp kiến trúc công nghệ: Đưa vào các kỹ thuật mới như Event-driven, Microservices hoặc AI Agent.");
             recommendations.add("Trao đổi trực tiếp với GVHD để xác định rõ ranh giới nghiên cứu (Scope) tránh bị hội đồng trừ điểm trùng lặp.");
-        } else if (maxScore >= 35) {
+        } else if (maxScore >= 30) {
             result.setRiskLevel("MODERATE_OVERLAP");
-            result.setVerdict("Mức độ tương đồng trung bình: Đề tài có nét tương đồng về bối cảnh nhưng hoàn toàn có thể phát triển tiếp.");
+            result.setVerdict("Mức độ tương đồng vừa phải: Đề tài có nét tương đồng về bối cảnh hoặc công nghệ (" + maxScore + "%), hoàn toàn có thể kế thừa và phát triển thêm.");
             recommendations.add("Kế thừa có chọn lọc các kết quả nghiên cứu trước và tập trung giải quyết các hạn chế (Future Work) của khóa trước.");
             recommendations.add("Bổ sung thực nghiệm đánh giá hiệu năng (Benchmark định lượng) để khẳng định tính vượt trội.");
             recommendations.add("Đóng gói mã nguồn sạch, cấu hình Docker Container và viết tài liệu hướng dẫn triển khai hoàn chỉnh.");
         } else {
             result.setRiskLevel("LOW_DUPLICATION");
-            result.setVerdict("Ý tưởng mới mẻ: Chưa phát hiện trùng lặp đáng kể với các đề tài đã lưu trữ trong Khoa CNTT.");
+            result.setVerdict("Ý tưởng mới mẻ: Chưa phát hiện trùng lặp đáng kể với các đề tài đã lưu trữ trong Khoa CNTT (Điểm trùng lặp: " + maxScore + "% - An toàn).");
             recommendations.add("Đề tài có tiềm năng tốt, đủ điều kiện bảo vệ đề cương với Bộ môn.");
             recommendations.add("Nên bám sát chuẩn trích dẫn IEEE/APA và ký cam kết liêm chính học thuật khi hoàn thiện báo cáo.");
         }

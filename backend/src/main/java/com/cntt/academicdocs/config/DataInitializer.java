@@ -258,10 +258,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void initDocuments() {
-        if (documentRepository.count() < 18) {
-            if (documentRepository.count() > 0) {
-                documentRepository.deleteAll();
-            }
+        if (documentRepository.count() == 0) {
             User student1 = userRepository.findByEmail("sv01@cntt.local").orElse(null);
             User admin = userRepository.findByEmail("admin@cntt.local").orElse(null);
             AcademicYear y1 = academicYearRepository.findByCode("2024-2025").orElse(null);

@@ -45,7 +45,6 @@ import ReportModal from '../components/ReportModal'
 import CustomSelect from '../components/ui/CustomSelect'
 import Pagination from '../components/ui/Pagination'
 import TopicNoveltyChecker from '../components/TopicNoveltyChecker'
-import CoverageHeatmap from '../components/CoverageHeatmap'
 
 const HOT_SUBJECTS = [
   { name: 'Kỹ thuật phần mềm', color: 'border-blue-300 dark:border-blue-800 text-blue-700 dark:text-blue-300 bg-blue-50/70 dark:bg-blue-950/40' },
@@ -62,9 +61,10 @@ export default function Search() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const initialQ = searchParams.get('q') || ''
-  const initialTab = (searchParams.get('tab') as 'search' | 'novelty' | 'heatmap') || 'search'
+  const paramTab = searchParams.get('tab')
+  const initialTab: 'search' | 'novelty' = paramTab === 'novelty' ? 'novelty' : 'search'
 
-  const [activeTab, setActiveTab] = useState<'search' | 'novelty' | 'heatmap'>(initialTab === 'hub' ? 'search' : initialTab)
+  const [activeTab, setActiveTab] = useState<'search' | 'novelty'>(initialTab)
   const [documents, setDocuments] = useState<DocumentSummary[]>([])
   const [selectedDoc, setSelectedDoc] = useState<DocumentSummary | null>(null)
   const [loading, setLoading] = useState(false)
@@ -127,9 +127,9 @@ export default function Search() {
     if (q !== null && q !== keyword) {
       setKeyword(q)
     }
-    const t = searchParams.get('tab') as 'search' | 'hub' | 'novelty' | 'heatmap'
-    if (t && ['search', 'hub', 'novelty', 'heatmap'].includes(t)) {
-      setActiveTab(t)
+    const t = searchParams.get('tab')
+    if (t === 'novelty') {
+      setActiveTab('novelty')
     } else {
       setActiveTab('search')
     }
@@ -328,34 +328,6 @@ export default function Search() {
               </span>
             </div>
             <TopicNoveltyChecker />
-          </div>
-        )}
-
-        {/* ─── DEDICATED SUB-VIEW: COVERAGE HEATMAP ────────────────────────── */}
-        {activeTab === 'heatmap' && (
-          <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-            <div className="mb-6 pb-4 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between">
-              <div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveTab('search')
-                    setSearchParams({})
-                  }}
-                  className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-blue-600 dark:text-blue-400 hover:underline mb-2 cursor-pointer"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Quay lại Tra cứu tài liệu</span>
-                </button>
-                <h1 className="font-serif-academic text-3xl font-bold text-stone-950 dark:text-stone-50">
-                  Bản Đồ Độ Phủ Học Liệu Bộ Môn
-                </h1>
-                <p className="text-xs font-mono text-stone-500 mt-0.5">
-                  Ma trận đánh giá mức độ đầy đủ tài liệu học tập của 55 môn học trong Khoa
-                </p>
-              </div>
-            </div>
-            <CoverageHeatmap />
           </div>
         )}
 

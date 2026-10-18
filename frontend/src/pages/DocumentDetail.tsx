@@ -143,22 +143,27 @@ export default function DocumentDetail() {
           .then((res) => setReviews(res || []))
           .catch(() => setReviews([]))
 
-        // Automatically resolve primary PDF for direct viewing
+        // Automatically resolve primary file for direct viewing
         const primary = data.files.find((f) => f.isPrimary) ?? data.files[0]
         if (primary) {
           setActiveFileId(primary.id)
-          try {
-            const previewRes = await getPreviewUrl(primary.id)
-            if (previewRes?.url && !previewRes.url.includes('YOUR_PROJECT.supabase.co')) {
-              setPdfUrl(previewRes.url)
-            } else {
-              setPdfUrl('/sample.pdf')
+          const lowerName = (primary.fileName || '').toLowerCase()
+          if (lowerName.endsWith('.pdf')) {
+            try {
+              const previewRes = await getPreviewUrl(primary.id)
+              if (previewRes?.url) {
+                setPdfUrl(previewRes.url)
+              } else {
+                setPdfUrl(null)
+              }
+            } catch {
+              setPdfUrl(null)
             }
-          } catch {
-            setPdfUrl('/sample.pdf')
+          } else {
+            setPdfUrl(null)
           }
         } else {
-          setPdfUrl('/sample.pdf')
+          setPdfUrl(null)
         }
       } catch (err) {
         setError(getErrorMessage(err))
@@ -197,25 +202,8 @@ export default function DocumentDetail() {
       } catch (err) {
         console.warn('PDF fetch warning on DocumentDetail:', err)
         if (!active) return
-        // If targetUrl is not /sample.pdf, fallback to bundled /sample.pdf smoothly
-        if (targetUrl !== '/sample.pdf') {
-          try {
-            const fallbackResp = await fetch('/sample.pdf')
-            if (fallbackResp.ok) {
-              const fbBlob = await fallbackResp.blob()
-              if (!active) return
-              const pdfBlob = new Blob([fbBlob], { type: 'application/pdf' })
-              currentBlobUrl = URL.createObjectURL(pdfBlob)
-              setBlobUrl(currentBlobUrl)
-              setPdfLoading(false)
-              return
-            }
-          } catch {
-            // ignore
-          }
-        }
         setBlobUrl(null)
-        setPdfError('Học liệu số trực tuyến đang được đồng bộ. Bạn có thể sử dụng nút Tải về máy.')
+        setPdfError('Học liệu số trực tuyến đang được đồng bộ hoặc bảo mật. Bạn có thể sử dụng nút Tải về máy bên dưới.')
       } finally {
         if (active) setPdfLoading(false)
       }
@@ -249,15 +237,21 @@ export default function DocumentDetail() {
   const handleSelectFile = async (fileId: number) => {
     setActiveFileId(fileId)
     setActiveTab('reader')
-    try {
-      const res = await getPreviewUrl(fileId)
-      if (res?.url && !res.url.includes('YOUR_PROJECT.supabase.co')) {
-        setPdfUrl(res.url)
-      } else {
-        setPdfUrl('/sample.pdf')
+    const target = doc?.files.find((f) => f.id === fileId)
+    const lowerName = (target?.fileName || '').toLowerCase()
+    if (lowerName.endsWith('.pdf')) {
+      try {
+        const res = await getPreviewUrl(fileId)
+        if (res?.url) {
+          setPdfUrl(res.url)
+        } else {
+          setPdfUrl(null)
+        }
+      } catch {
+        setPdfUrl(null)
       }
-    } catch {
-      setPdfUrl('/sample.pdf')
+    } else {
+      setPdfUrl(null)
     }
     viewerContainerRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -273,19 +267,16 @@ export default function DocumentDetail() {
     setDlLoading(true)
     try {
       const { url } = await getDownloadUrl(targetFile.id)
-      const downloadTarget = url && !url.includes('YOUR_PROJECT.supabase.co') ? url : '/sample.pdf'
+      if (!url) throw new Error('Không thể tạo liên kết tải xuống an toàn')
       const a = document.createElement('a')
-      a.href = downloadTarget
+      a.href = url
       a.download = targetFile.fileName || `${doc.title}.pdf`
       a.target = '_blank'
       a.click()
-      toast.success('Bắt đầu tải xuống tài liệu chính thức!', `Tệp: ${targetFile.fileName}`)
-    } catch {
-      const a = document.createElement('a')
-      a.href = '/sample.pdf'
-      a.download = targetFile.fileName || `${doc.title}.pdf`
-      a.click()
-      toast.info('Đang tải văn bản mẫu lưu chiểu.', 'Lượt tải đã được ghi nhận.')
+      toast.success('Bắt đầu tải xuống tệp chính thức!', `Tệp: ${targetFile.fileName}`)
+      setDoc((prev) => (prev ? { ...prev, downloadCount: prev.downloadCount + 1 } : null))
+    } catch (err) {
+      toast.error('Lỗi khi tải tệp', getErrorMessage(err))
     } finally {
       setDlLoading(false)
     }
@@ -497,6 +488,7 @@ export default function DocumentDetail() {
   }
 
   const primaryFile = doc.files.find((f) => f.isPrimary) ?? doc.files[0]
+  const currentActiveFile = doc.files.find((f) => f.id === activeFileId) ?? primaryFile
   const totalFileSize = doc.files.reduce((acc, f) => acc + (f.fileSize || 0), 0)
   const repoUrl = doc.githubUrl || doc.repositoryUrl
 
@@ -903,7 +895,108 @@ export default function DocumentDetail() {
                           transition: 'transform 0.15s ease-out',
                         }}
                       >
-                        {pdfLoading ? (
+                        {!currentActiveFile ? (
+                          <div className="w-full h-[540px] flex flex-col items-center justify-center p-8 text-center bg-stone-50 dark:bg-slate-900/60 rounded-xl border border-dashed border-stone-300 dark:border-slate-800 gap-4">
+                            <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 flex items-center justify-center shadow-xs">
+                              <FileText className="w-8 h-8" />
+                            </div>
+                            <div className="max-w-md">
+                              <h4 className="font-serif-academic text-lg font-bold text-stone-900 dark:text-white">
+                                Hồ sơ tài liệu chưa đính kèm tệp
+                              </h4>
+                              <p className="text-xs text-stone-500 dark:text-slate-400 mt-1 leading-relaxed">
+                                Tài liệu này hiện được tạo dưới dạng bản thảo hồ sơ. Người đăng có thể bổ sung tệp toàn văn (PDF, Word, PowerPoint) trong mục Chỉnh sửa.
+                              </p>
+                            </div>
+                            {(canEdit || canAdmin) && (
+                              <Link
+                                to={`/documents/${doc.id}/edit`}
+                                className="px-4 py-2 bg-primary hover:bg-primary/90 text-white font-semibold text-xs rounded-xl shadow-xs inline-flex items-center gap-2 transition-colors"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">upload_file</span>
+                                <span>Chỉnh sửa &amp; Tải tệp lên</span>
+                              </Link>
+                            )}
+                          </div>
+                        ) : (currentActiveFile.fileName || '').toLowerCase().endsWith('.pptx') || (currentActiveFile.fileName || '').toLowerCase().endsWith('.ppt') ? (
+                          <div className="w-full h-[580px] flex flex-col items-center justify-center p-8 text-center bg-stone-50 dark:bg-slate-900/60 rounded-xl gap-5">
+                            <div className="w-20 h-20 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center shadow-sm ring-8 ring-amber-500/5">
+                              <span className="material-symbols-outlined text-[44px]">slideshow</span>
+                            </div>
+                            <div className="max-w-lg space-y-2">
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-mono text-[11px] font-bold uppercase tracking-wider">
+                                Bản trình chiếu bài giảng / Slide báo cáo (PowerPoint)
+                              </span>
+                              <h4 className="font-serif-academic text-xl font-bold text-stone-900 dark:text-white break-words">
+                                {currentActiveFile.fileName}
+                              </h4>
+                              <p className="text-xs font-mono text-stone-500 dark:text-slate-400">
+                                Định dạng Microsoft PowerPoint • Dung lượng: {formatFileSize(currentActiveFile.fileSize || 0)}
+                              </p>
+                            </div>
+                            <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
+                              <button
+                                onClick={() => handleDownload(currentActiveFile.id)}
+                                className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-mono font-bold text-xs rounded-xl shadow-sm inline-flex items-center gap-2 cursor-pointer transition-all"
+                              >
+                                <Download className="w-4 h-4" />
+                                <span>Tải slide bài giảng (.pptx)</span>
+                              </button>
+                            </div>
+                          </div>
+                        ) : (currentActiveFile.fileName || '').toLowerCase().endsWith('.docx') || (currentActiveFile.fileName || '').toLowerCase().endsWith('.doc') ? (
+                          <div className="w-full h-[580px] flex flex-col items-center justify-center p-8 text-center bg-stone-50 dark:bg-slate-900/60 rounded-xl gap-5">
+                            <div className="w-20 h-20 rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center shadow-sm ring-8 ring-blue-500/5">
+                              <span className="material-symbols-outlined text-[44px]">description</span>
+                            </div>
+                            <div className="max-w-lg space-y-2">
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 font-mono text-[11px] font-bold uppercase tracking-wider">
+                                Tài liệu soạn thảo học thuật (Microsoft Word)
+                              </span>
+                              <h4 className="font-serif-academic text-xl font-bold text-stone-900 dark:text-white break-words">
+                                {currentActiveFile.fileName}
+                              </h4>
+                              <p className="text-xs font-mono text-stone-500 dark:text-slate-400">
+                                Định dạng Word Document • Dung lượng: {formatFileSize(currentActiveFile.fileSize || 0)}
+                              </p>
+                            </div>
+                            <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
+                              <button
+                                onClick={() => handleDownload(currentActiveFile.id)}
+                                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-mono font-bold text-xs rounded-xl shadow-sm inline-flex items-center gap-2 cursor-pointer transition-all"
+                              >
+                                <Download className="w-4 h-4" />
+                                <span>Tải văn bản Word (.docx)</span>
+                              </button>
+                            </div>
+                          </div>
+                        ) : (currentActiveFile.fileName || '').toLowerCase().endsWith('.zip') ? (
+                          <div className="w-full h-[580px] flex flex-col items-center justify-center p-8 text-center bg-stone-50 dark:bg-slate-900/60 rounded-xl gap-5">
+                            <div className="w-20 h-20 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shadow-sm ring-8 ring-emerald-500/5">
+                              <span className="material-symbols-outlined text-[44px]">folder_zip</span>
+                            </div>
+                            <div className="max-w-lg space-y-2">
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-mono text-[11px] font-bold uppercase tracking-wider">
+                                Gói mã nguồn &amp; Dữ liệu nén (ZIP)
+                              </span>
+                              <h4 className="font-serif-academic text-xl font-bold text-stone-900 dark:text-white break-words">
+                                {currentActiveFile.fileName}
+                              </h4>
+                              <p className="text-xs font-mono text-stone-500 dark:text-slate-400">
+                                Tệp nén lưu trữ • Dung lượng: {formatFileSize(currentActiveFile.fileSize || 0)}
+                              </p>
+                            </div>
+                            <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
+                              <button
+                                onClick={() => handleDownload(currentActiveFile.id)}
+                                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-mono font-bold text-xs rounded-xl shadow-sm inline-flex items-center gap-2 cursor-pointer transition-all"
+                              >
+                                <Download className="w-4 h-4" />
+                                <span>Tải gói nén (.zip)</span>
+                              </button>
+                            </div>
+                          </div>
+                        ) : pdfLoading ? (
                           <div className="w-full h-[680px] sm:h-[760px] flex flex-col items-center justify-center p-8 text-center text-stone-500 dark:text-slate-400 bg-white dark:bg-slate-900">
                             <span className="w-8 h-8 border-3 border-amber-600 dark:border-sky-400 border-t-transparent rounded-full animate-spin mb-3" />
                             <p className="text-xs font-mono font-medium">Đang kết nối học liệu số FIT-UTC...</p>
@@ -918,7 +1011,7 @@ export default function DocumentDetail() {
                               {pdfError}
                             </p>
                             <button
-                              onClick={() => handleDownload()}
+                              onClick={() => handleDownload(currentActiveFile.id)}
                               className="mt-2 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-mono font-bold text-xs rounded-lg uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-xs"
                             >
                               <Download className="w-4 h-4" />
@@ -934,7 +1027,7 @@ export default function DocumentDetail() {
                         ) : (
                           <div className="w-full h-[680px] sm:h-[760px] flex flex-col items-center justify-center p-8 text-center text-stone-400 bg-white dark:bg-slate-900">
                             <span className="w-8 h-8 border-3 border-amber-600 border-t-transparent rounded-full animate-spin mb-3" />
-                            <p className="text-xs font-mono">Chuẩn bị trang học liệu số...</p>
+                            <p className="text-xs font-mono">Đang nạp dữ liệu xem trước...</p>
                           </div>
                         )}
                       </div>

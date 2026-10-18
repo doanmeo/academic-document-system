@@ -60,7 +60,10 @@ export default function UploadDocument() {
         setTechnologies(techs || [])
         if (subs && subs.length > 0) setSubjectId(subs[0].id)
         if (majs && majs.length > 0) setMajorId(majs[0].id)
-        if (ays && ays.length > 0) setAcademicYearId(ays[0].id)
+        if (ays && ays.length > 0) {
+          const newest = ays.find((y) => y.name?.includes('2026') || y.startYear === 2026) || ays[0]
+          setAcademicYearId(newest.id)
+        }
       })
       .catch(console.error)
   }, [])
@@ -144,47 +147,69 @@ export default function UploadDocument() {
   const isPledgeValid = pledgeAccepted
   const isAllValid = isFileValid && isTitleValid && isSubjectValid && isYearValid && isAdvisorValid && isAbstractValid && isPledgeValid
 
-  // AI Generate Abstract (F4)
+  // AI Generate Abstract (Gemini với OpenRouter failover + Đọc các trang đầu tài liệu PDF, Word DOCX)
   const handleGenerateAiAbstract = async () => {
-    if (!title.trim() || title.trim().length < 4) {
-      toast.warning('Cần tên đề tài', 'Vui lòng nhập Tên đề tài trước khi yêu cầu AI sinh tóm tắt.')
+    if (!title.trim() && !file) {
+      toast.warning('Cần tên đề tài hoặc tệp đính kèm', 'Vui lòng nhập Tên đề tài hoặc tải lên tệp tài liệu trước khi yêu cầu AI sinh tóm tắt.')
       return
     }
     const currentSub = subjects.find((s) => s.id === Number(subjectId))
     setGeneratingAiAbstract(true)
     try {
-      const res = await documentApi.generateAbstract({
-        title: title.trim(),
-        subjectName: currentSub ? currentSub.name : undefined,
-        documentType: documentTypeCode,
-      })
+      let res
+      if (file) {
+        res = await documentApi.generateAbstractFromFile(
+          file,
+          title.trim(),
+          currentSub ? currentSub.name : undefined,
+          documentTypeCode
+        )
+      } else {
+        res = await documentApi.generateAbstract({
+          title: title.trim() || (file ? file.name.replace(/\.[^/.]+$/, '') : 'Tài liệu học tập'),
+          subjectName: currentSub ? currentSub.name : undefined,
+          documentType: documentTypeCode,
+        })
+      }
+
       if (res?.abstractText) {
         setAbstractText(res.abstractText)
-        if (res.suggestedTargetYear) {
+        if (res.suggestedTargetYear && ['YEAR_1', 'YEAR_2', 'YEAR_3', 'YEAR_4', 'YEAR_5'].includes(res.suggestedTargetYear)) {
           setTargetYear(res.suggestedTargetYear)
         }
-        toast.success(
-          'Đã sinh gợi ý tóm tắt học thuật!',
-          'Hệ thống đã tự động soạn thảo tóm tắt theo chuẩn đề cương Khoa CNTT. Bạn có thể chỉnh sửa lại.'
-        )
+        if (file) {
+          toast.success(
+            'Đã đọc tài liệu & sinh tóm tắt!',
+            'AI đã đọc nội dung các trang/slide đầu của tài liệu (PDF, Word, PowerPoint) để tóm tắt chính xác bài toán và giải pháp.'
+          )
+        } else {
+          toast.success(
+            'Đã sinh gợi ý tóm tắt học thuật!',
+            'AI đã đúc kết tóm tắt ngắn gọn (50-90 từ), đúng cấu trúc học thuật Khoa CNTT.'
+          )
+        }
       }
     } catch {
-      toast.error('Không thể sinh tóm tắt tự động', 'Vui lòng nhập tóm tắt thủ công.')
+      toast.error('Không thể sinh tóm tắt tự động', 'Vui lòng nhập tóm tắt thủ công hoặc thử lại.')
     } finally {
       setGeneratingAiAbstract(false)
     }
   }
 
   const handleFormSubmit = async (shouldSubmitToPending = true) => {
+    const effectiveTitle = title.trim() || (file ? file.name.replace(/\.[^/.]+$/, '').trim() : 'Bản nháp tài liệu mới')
+    const effectiveSubjectId = subjectId ? Number(subjectId) : (subjects[0]?.id || 1)
+    const effectiveYearId = academicYearId ? Number(academicYearId) : (academicYears[0]?.id || 7)
+
     if (shouldSubmitToPending) {
       if (!isFileValid) {
-        setError('Vui lòng kéo thả hoặc tải lên tệp tài liệu PDF.')
-        toast.warning('Thiếu tệp đính kèm', 'Vui lòng chọn tệp PDF học liệu trước khi nộp.')
+        setError('Vui lòng kéo thả hoặc tải lên tệp tài liệu (PDF, Word, PowerPoint).')
+        toast.warning('Thiếu tệp đính kèm', 'Vui lòng chọn tệp tài liệu trước khi nộp.')
         return
       }
 
       if (!isTitleValid) {
-        setError('Vui lòng nhập tên đề tài học liệu (tối thiểu 5 ký tự).')
+        setError('Vui lòng nhập tên đề tài / tài liệu (tối thiểu 5 ký tự).')
         toast.warning('Tiêu đề quá ngắn', 'Tên đề tài cần tối thiểu 5 ký tự.')
         return
       }
@@ -221,16 +246,16 @@ export default function UploadDocument() {
     try {
       // 1. Tạo tài liệu DRAFT
       const created = await createDocument({
-        title,
-        subjectId: Number(subjectId),
-        majorId: majorId ? Number(majorId) : undefined,
-        academicYearId: Number(academicYearId),
+        title: effectiveTitle,
+        subjectId: effectiveSubjectId,
+        majorId: majorId ? Number(majorId) : (majors[0]?.id || undefined),
+        academicYearId: effectiveYearId,
         targetYear: targetYear || undefined,
         documentTypeCode,
         advisorName: advisorName || undefined,
         abstractText: abstractText || `Học liệu môn học do sinh viên UTC thực hiện.`,
         githubUrl: githubUrl || undefined,
-        pledgeAccepted,
+        pledgeAccepted: pledgeAccepted ?? true,
         technologyIds: selectedTechIds,
       })
 
@@ -291,10 +316,10 @@ export default function UploadDocument() {
             <div>
               <div className="flex items-center gap-1.5 text-secondary font-label-code text-caption font-bold uppercase tracking-widest mb-1">
                 <span className="material-symbols-outlined text-[18px]">publish</span>
-                <span>HỌC LIỆU SỐ NỘI BỘ • FRICTIONLESS UPLOAD</span>
+                <span>TÀI LIỆU SỐ NỘI BỘ • FRICTIONLESS UPLOAD</span>
               </div>
               <h1 className="font-headline-xl text-2xl sm:text-3xl font-extrabold text-primary">
-                Đăng Tải Học Liệu &amp; Đồ Án Mới
+                Đăng Tải Tài Liệu &amp; Đồ Án Mới
               </h1>
               <p className="text-body-sm text-on-surface-variant mt-1">
                 Quy trình nộp bài nhanh 30 giây: Tải lên PDF, chọn phân loại và ký cam kết liêm chính học thuật.
@@ -335,7 +360,7 @@ export default function UploadDocument() {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,.docx,.pptx,.zip"
+              accept=".pdf,.docx,.doc,.pptx,.ppt,.zip"
               className="hidden"
               onChange={(e) => {
                 if (e.target.files && e.target.files.length > 0) {
@@ -347,7 +372,15 @@ export default function UploadDocument() {
             {file ? (
               <div className="flex flex-col items-center gap-2">
                 <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-xs">
-                  <span className="material-symbols-outlined text-[32px]">picture_as_pdf</span>
+                  <span className="material-symbols-outlined text-[32px]">
+                    {file.name.toLowerCase().endsWith('.pptx') || file.name.toLowerCase().endsWith('.ppt')
+                      ? 'slideshow'
+                      : file.name.toLowerCase().endsWith('.docx') || file.name.toLowerCase().endsWith('.doc')
+                      ? 'description'
+                      : file.name.toLowerCase().endsWith('.zip')
+                      ? 'folder_zip'
+                      : 'picture_as_pdf'}
+                  </span>
                 </div>
                 <div className="text-center">
                   <p className="font-bold text-body-md text-primary truncate max-w-md">{file.name}</p>
@@ -373,10 +406,10 @@ export default function UploadDocument() {
                 </div>
                 <div>
                   <p className="font-bold text-body-md text-primary">
-                    Kéo thả tệp PDF vào đây, hoặc <span className="text-secondary underline">duyệt tệp từ máy tính</span>
+                    Kéo thả tệp PDF, Word, PowerPoint vào đây, hoặc <span className="text-secondary underline">duyệt tệp từ máy tính</span>
                   </p>
                   <p className="text-caption text-on-surface-variant mt-1">
-                    Hỗ trợ tệp PDF, Word, PowerPoint (Tối đa 25MB)
+                    Hỗ trợ tệp PDF, Word (DOC/DOCX), PowerPoint (PPT/PPTX) (Tối đa 50MB)
                   </p>
                 </div>
               </div>
@@ -396,7 +429,7 @@ export default function UploadDocument() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ví dụ: Nghiên cứu Xây dựng Hệ thống Quản lý Học liệu Khoa CNTT UTC"
-                className="w-full px-4 py-2.5 bg-surface-container-low rounded-xl border border-surface-container text-body-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                className="w-full px-4 py-2.5 bg-surface-container-low rounded-xl border border-surface-container text-body-md focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
               />
             </div>
 
@@ -426,14 +459,14 @@ export default function UploadDocument() {
                       {similarDocs.map((sim) => (
                         <div
                           key={sim.id}
-                          className="p-2.5 bg-white rounded-lg border border-amber-200 flex items-start justify-between gap-2 shadow-2xs"
+                          className="p-2.5 bg-white dark:bg-slate-900 rounded-lg border border-amber-200 dark:border-amber-900/50 flex items-start justify-between gap-2 shadow-2xs"
                         >
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-slate-900 truncate">{sim.title}</p>
-                            <p className="text-[10px] text-slate-500 mt-0.5">
+                            <p className="font-semibold text-slate-900 dark:text-slate-100 truncate">{sim.title}</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
                               {sim.subjectName} • {sim.academicYearName} {sim.advisorName ? `• GVHD: ${sim.advisorName}` : ''}
                             </p>
-                            <span className="inline-block mt-1 px-1.5 py-0.5 bg-amber-50 text-amber-700 text-[9px] font-bold rounded border border-amber-200">
+                            <span className="inline-block mt-1 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 text-[9px] font-bold rounded border border-amber-200 dark:border-amber-800">
                               {sim.matchReason}
                             </span>
                           </div>
@@ -555,7 +588,7 @@ export default function UploadDocument() {
                   value={advisorName}
                   onChange={(e) => setAdvisorName(e.target.value)}
                   placeholder="Ví dụ: PGS. TS. Đào Thị Lệ Thủy"
-                  className={`w-full px-4 py-2 bg-surface-container-low rounded-xl border text-body-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary transition-all ${
+                  className={`w-full px-4 py-2 bg-surface-container-low rounded-xl border text-body-sm focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary transition-all ${
                     isAdvisorRequired && !isAdvisorValid ? 'border-amber-400 bg-amber-50/30' : 'border-surface-container'
                   }`}
                 />
@@ -570,7 +603,7 @@ export default function UploadDocument() {
                   value={githubUrl}
                   onChange={(e) => setGithubUrl(e.target.value)}
                   placeholder="https://github.com/utc-fit/..."
-                  className="w-full px-4 py-2 bg-surface-container-low rounded-xl border border-surface-container text-body-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                  className="w-full px-4 py-2 bg-surface-container-low rounded-xl border border-surface-container text-body-sm focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                 />
               </div>
             </div>
@@ -613,7 +646,7 @@ export default function UploadDocument() {
                 value={abstractText}
                 onChange={(e) => setAbstractText(e.target.value)}
                 placeholder="Tóm tắt mục tiêu, phương pháp nghiên cứu và kết quả đạt được của đề tài đồ án..."
-                className="w-full px-4 py-2 bg-surface-container-low rounded-xl border border-surface-container text-body-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                className="w-full px-4 py-2 bg-surface-container-low rounded-xl border border-surface-container text-body-sm focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
               />
             </div>
 
@@ -632,7 +665,7 @@ export default function UploadDocument() {
                   <span className="text-slate-400 font-mono">{showTechAccordion ? '▲ Đóng' : '▼ Mở rộng'}</span>
                 </button>
                 {showTechAccordion && (
-                  <div className="p-3 pt-1 border-t border-slate-200 bg-white">
+                  <div className="p-3 pt-1 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
                     <div className="flex flex-wrap gap-1.5">
                       {technologies.map((tech) => {
                         const selected = selectedTechIds.includes(tech.id)

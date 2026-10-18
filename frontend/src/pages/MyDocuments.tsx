@@ -79,7 +79,16 @@ export default function MyDocuments() {
       toast.success('Đã gửi tài liệu đi kiểm duyệt thành công!');
       fetchDocuments();
     } catch (error) {
-      toast.error('Lỗi khi nộp tài liệu', getErrorMessage(error));
+      const msg = getErrorMessage(error);
+      if (msg.includes('ít nhất 1 tệp đính kèm') || msg.includes('MISSING_ATTACHED_FILE')) {
+        toast.warning(
+          'Tài liệu chưa có tệp đính kèm',
+          'Bản nháp này chưa có tệp đính kèm. Đang chuyển đến trang chỉnh sửa để bạn tải tệp lên.'
+        );
+        setTimeout(() => navigate(`/documents/${id}/edit`), 1200);
+        return;
+      }
+      toast.error('Lỗi khi nộp tài liệu', msg);
     } finally {
       setActionLoading(null);
     }

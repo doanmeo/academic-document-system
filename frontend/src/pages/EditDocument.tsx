@@ -121,6 +121,26 @@ export default function EditDocument() {
     })
   }, [id])
   
+  const handleUploadNow = async () => {
+    if (!selectedUploadFile || !id) return
+    setUploading(true)
+    setError('')
+    try {
+      const uploaded = await uploadFile(selectedUploadFile, Number(id), true, (progress) => {
+        setUploadProgress(progress)
+      })
+      setFiles(prev => [...prev.map(f => ({ ...f, isPrimary: false })), uploaded])
+      setSelectedUploadFile(null)
+      appToast.success('Tải lên tệp thành công!', `Tệp ${uploaded.fileName} đã được lưu làm tệp chính.`)
+    } catch (err) {
+      setError(getErrorMessage(err))
+      appToast.error('Lỗi khi tải tệp', getErrorMessage(err))
+    } finally {
+      setUploading(false)
+      setUploadProgress(0)
+    }
+  }
+
   const handleSaveDraft = async () => {
     if (!id) return
     if (!title || !subjectId || !academicYearId || !abstractText || !documentTypeCode || !majorId) {
@@ -130,13 +150,23 @@ export default function EditDocument() {
     setError('')
     setSaving(true)
     try {
+      if (selectedUploadFile) {
+        setUploading(true)
+        const uploaded = await uploadFile(selectedUploadFile, Number(id), true, (progress) => {
+          setUploadProgress(progress)
+        })
+        setFiles(prev => [...prev.map(f => ({ ...f, isPrimary: false })), uploaded])
+        setSelectedUploadFile(null)
+        setUploading(false)
+      }
+
       await updateDocument(Number(id), {
         title,
-        subjectId: Number(subjectId),
-        academicYearId: Number(academicYearId),
+        subjectId: subjectId ? Number(subjectId) : undefined,
+        academicYearId: academicYearId ? Number(academicYearId) : undefined,
         abstractText,
         documentTypeCode: documentTypeCode as DocumentTypeCode,
-        majorId: Number(majorId),
+        majorId: majorId ? Number(majorId) : undefined,
         advisorName: advisorName || undefined,
         githubUrl: githubUrl || undefined,
         gitlabUrl: gitlabUrl || undefined,
@@ -145,12 +175,13 @@ export default function EditDocument() {
       })
       setToast({
         title: 'Đã lưu bản nháp chỉnh sửa!',
-        subtitle: 'Dữ liệu được lưu trữ an toàn trong phiên làm việc.',
+        subtitle: 'Dữ liệu được lưu trữ an toàn trong cơ sở dữ liệu.',
       })
     } catch (err) {
       setError(getErrorMessage(err))
     } finally {
       setSaving(false)
+      setUploading(false)
     }
   }
 
@@ -170,7 +201,7 @@ export default function EditDocument() {
         const uploaded = await uploadFile(selectedUploadFile, Number(id), true, (progress) => {
           setUploadProgress(progress)
         })
-        setFiles(prev => [...prev, uploaded])
+        setFiles(prev => [...prev.map(f => ({ ...f, isPrimary: false })), uploaded])
         setSelectedUploadFile(null)
         setUploading(false)
       }
@@ -178,11 +209,11 @@ export default function EditDocument() {
       // Save document updates
       await updateDocument(Number(id), {
         title,
-        subjectId: Number(subjectId),
-        academicYearId: Number(academicYearId),
+        subjectId: subjectId ? Number(subjectId) : undefined,
+        academicYearId: academicYearId ? Number(academicYearId) : undefined,
         abstractText,
         documentTypeCode: documentTypeCode as DocumentTypeCode,
-        majorId: Number(majorId),
+        majorId: majorId ? Number(majorId) : undefined,
         advisorName: advisorName || undefined,
         githubUrl: githubUrl || undefined,
         gitlabUrl: gitlabUrl || undefined,
@@ -588,14 +619,14 @@ export default function EditDocument() {
                   <div className="space-y-2">
                     <label className="font-headline-sm text-body-sm text-on-surface flex items-center justify-between">
                       <span>Tải lên tệp thay thế mới <span className="text-error">*</span></span>
-                      <span className="font-caption text-caption text-secondary font-semibold">Chấp nhận .PDF, .DOCX, .ZIP (Tối đa 50MB)</span>
+                      <span className="font-caption text-caption text-secondary font-semibold">Chấp nhận .PDF, .DOCX, .PPTX, .ZIP (Tối đa 50MB)</span>
                     </label>
                     
                     <div className="relative group cursor-pointer rounded-xl bg-surface-container-low hover:bg-surface-container p-space-lg text-center transition-all border border-dashed border-outline-variant">
                       <input
                         id="fileUploader"
                         type="file"
-                        accept=".pdf,.docx,.pptx,.zip"
+                        accept=".pdf,.docx,.doc,.pptx,.ppt,.zip"
                         onChange={handleFileUpload}
                         className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
                       />
@@ -606,10 +637,10 @@ export default function EditDocument() {
                             <span className="material-symbols-outlined text-[26px]">upload</span>
                           </div>
                           <p className="font-headline-sm text-body-md text-primary">
-                            Kéo thả tệp PDF đã chỉnh sửa vào đây, hoặc <span className="text-secondary underline">chọn từ thiết bị</span>
+                            Kéo thả tệp PDF, Word, PowerPoint đã chỉnh sửa vào đây, hoặc <span className="text-secondary underline">chọn từ thiết bị</span>
                           </p>
                           <p className="font-body-sm text-caption text-on-surface-variant">
-                            Đảm bảo đã nhúng font chữ vector và sơ đồ hệ thống đạt độ phân giải cao
+                            Hỗ trợ tài liệu học tập, báo cáo đồ án, đề cương và slide bài giảng
                           </p>
                         </div>
                       ) : (
@@ -625,16 +656,30 @@ export default function EditDocument() {
                               </p>
                             </div>
                           </div>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setSelectedUploadFile(null)
-                            }}
-                            className="relative z-20 px-3 py-1.5 rounded-lg text-caption font-headline-sm text-error hover:bg-error-container transition-colors cursor-pointer"
-                          >
-                            Hủy chọn
-                          </button>
+                          <div className="flex items-center gap-2 relative z-20">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleUploadNow()
+                              }}
+                              disabled={uploading}
+                              className="px-3 py-1.5 rounded-lg text-caption font-bold bg-primary text-on-primary hover:bg-primary/90 transition-colors flex items-center gap-1 cursor-pointer shadow-xs"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">upload</span>
+                              <span>{uploading ? 'Đang tải...' : 'Tải lên ngay'}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setSelectedUploadFile(null)
+                              }}
+                              className="px-3 py-1.5 rounded-lg text-caption font-headline-sm text-error hover:bg-error-container transition-colors cursor-pointer"
+                            >
+                              Hủy chọn
+                            </button>
+                          </div>
                         </div>
                       )}
 

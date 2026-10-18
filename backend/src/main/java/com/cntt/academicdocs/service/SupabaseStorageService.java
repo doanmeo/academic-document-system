@@ -36,8 +36,8 @@ public class SupabaseStorageService implements FileStorageService {
         this.defaultExpirySeconds = defaultExpirySeconds;
         
         org.springframework.http.client.SimpleClientHttpRequestFactory factory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(500);
-        factory.setReadTimeout(500);
+        factory.setConnectTimeout(15000);
+        factory.setReadTimeout(60000);
         this.restTemplate = new RestTemplate(factory);
     }
 
@@ -57,13 +57,15 @@ public class SupabaseStorageService implements FileStorageService {
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("Successfully uploaded file to Supabase storage bucket '{}' at path '{}'", bucketName, storagePath);
                 return storagePath;
             } else {
-                throw new BusinessException(HttpStatus.INTERNAL_SERVER_ERROR, "STORAGE_UPLOAD_FAILED", "Không thể tải tệp lên hệ thống lưu trữ");
+                log.error("Supabase storage upload returned status: {}", response.getStatusCode());
+                throw new BusinessException(HttpStatus.INTERNAL_SERVER_ERROR, "STORAGE_UPLOAD_FAILED", "Không thể tải tệp lên hệ thống lưu trữ Supabase");
             }
         } catch (Exception e) {
-            log.warn("Failed to upload file to Supabase (using storageKey fallback for demo/offline resilience): {}", e.getMessage());
-            return storagePath;
+            log.error("Failed to upload file to Supabase storage: {}", e.getMessage(), e);
+            throw new BusinessException(HttpStatus.INTERNAL_SERVER_ERROR, "STORAGE_UPLOAD_FAILED", "Lỗi khi tải tệp lên Supabase Storage: " + e.getMessage());
         }
     }
 

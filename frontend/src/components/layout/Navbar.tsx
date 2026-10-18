@@ -16,7 +16,7 @@ import {
   Shield,
   FileText,
   Bookmark,
-  Map,
+  Compass,
   Sparkles,
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -48,8 +48,7 @@ export default function Navbar() {
       return (
         location.pathname === '/search' &&
         !location.search.includes('tab=hub') &&
-        !location.search.includes('tab=novelty') &&
-        !location.search.includes('tab=heatmap')
+        !location.search.includes('tab=novelty')
       )
     }
     return location.pathname === path
@@ -117,11 +116,6 @@ export default function Navbar() {
               <span>Đối soát Đề tài</span>
             </Link>
 
-            <Link to="/search?tab=heatmap" className={navLinkClass(isTabActive('heatmap'))}>
-              <Map className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
-              <span>Bản đồ Độ phủ</span>
-            </Link>
-
             {isAuthenticated && (
               <Link to="/collections" className={navLinkClass(isActive('/collections'))}>
                 <FolderArchive className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" />
@@ -164,7 +158,7 @@ export default function Navbar() {
               className="hidden sm:inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-xl font-bold text-xs shadow-sm hover:shadow transition-all"
             >
               <Upload className="w-3.5 h-3.5" />
-              <span>+ Đăng tải học liệu</span>
+              <span>+ Đăng tải tài liệu</span>
             </Link>
           )}
 

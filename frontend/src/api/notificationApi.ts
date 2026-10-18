@@ -10,7 +10,14 @@ export const notificationApi = {
    */
   getNotifications: async (unreadOnly = false): Promise<InAppNotification[]> => {
     const res = await api.get('/me/notifications', { params: { unreadOnly } })
-    return unwrap(res)
+    const data = res.data?.data
+    if (data && Array.isArray(data.content)) {
+      return data.content
+    }
+    if (Array.isArray(data)) {
+      return data
+    }
+    return []
   },
 
   /**
@@ -19,7 +26,14 @@ export const notificationApi = {
    */
   getUnreadCount: async (): Promise<number> => {
     const res = await api.get('/me/notifications/unread-count')
-    return unwrap(res)
+    const data = res.data?.data
+    if (typeof data === 'number') {
+      return data
+    }
+    if (data && typeof data.unreadCount === 'number') {
+      return data.unreadCount
+    }
+    return 0
   },
 
   /**

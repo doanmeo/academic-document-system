@@ -69,11 +69,6 @@ public interface DocumentRepository extends JpaRepository<Document, Long>, JpaSp
     // U3: Dashboard recent submissions
     List<Document> findTop10ByStatusInOrderByUpdatedAtDesc(List<DocumentStatus> statuses);
 
-    // F1: Coverage Heatmap
-    @Query("SELECT d.subject.id, d.subject.code, d.subject.name, d.documentTypeCode, COUNT(d.id) " +
-           "FROM Document d WHERE d.status = 'APPROVED' AND d.subject IS NOT NULL " +
-           "GROUP BY d.subject.id, d.subject.code, d.subject.name, d.documentTypeCode")
-    List<Object[]> countCoverageMatrix();
 
     // F5: Personal Stats for user
     long countByUploader_IdAndStatus(Long uploaderId, DocumentStatus status);

@@ -262,13 +262,6 @@ export interface SignedUrlResponse {
 // ─── Citation format ───────────────────────────────────────────────────────────
 export type CitationFormat = 'APA' | 'IEEE' | 'BIBTEX'
 
-// ─── F1: Coverage Heatmap ──────────────────────────────────────────────────────
-export interface CoverageMatrix {
-  subjects: { id: number; code: string; name: string }[]
-  types: { code: string; label: string }[]
-  cellCounts: Record<string, number>
-  totalApprovedDocuments: number
-}
 
 // ─── F2: In-App Notification ──────────────────────────────────────────────────
 export interface InAppNotification {
@@ -345,7 +338,15 @@ export interface CollectionItem {
   documentTitle: string
   documentTypeCode: string
   documentTypeLabel: string
+  subjectCode?: string
   subjectName: string
+  advisorName?: string
+  academicYearName?: string
+  avgRating?: number
+  viewCount?: number
+  downloadCount?: number
+  fileId?: number
+  fileName?: string
   note?: string | null
   sortOrder: number
   createdAt: string

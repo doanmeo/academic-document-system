@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-primary: #1d4ed8;
   --color-primary-container: #2563eb;
@@ -179,6 +181,10 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-feature-settings: 'liga';
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 .dark {

@@ -74,7 +74,6 @@ public class SecurityConfig {
                                 "/api/documents/*/citation",
                                 "/api/documents/*/qa",
                                 "/api/documents/search",
-                                "/api/documents/coverage-matrix",
                                 "/api/files/**",
                                 "/api/collections/public/**"
                         ).permitAll()
@@ -84,7 +83,8 @@ public class SecurityConfig {
                                 "/api/documents/*/rate",
                                 "/api/documents/compare-topics",
                                 "/api/documents/check-similarity",
-                                "/api/documents/generate-abstract"
+                                "/api/documents/generate-abstract",
+                                "/api/documents/generate-abstract-from-file"
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

@@ -57,22 +57,22 @@ export default function Login() {
             </div>
           )}
 
-          {/* Email */}
+          {/* Email / Student Code */}
           <div className="flex flex-col gap-1.5">
             <label className="font-body-sm text-body-sm text-on-surface font-semibold flex items-center justify-between" htmlFor="email">
-              <span>Email</span>
-              <span className="font-label-code text-[11px] text-outline">UTC Mail / @cntt.local</span>
+              <span>Email hoặc Mã sinh viên</span>
+              <span className="font-label-code text-[11px] text-outline">Email UTC / MSV</span>
             </label>
             <div className="relative flex items-center">
-              <span className="material-symbols-outlined absolute left-3 text-outline pointer-events-none text-[20px]">mail</span>
+              <span className="material-symbols-outlined absolute left-3 text-outline pointer-events-none text-[20px]">person</span>
               <input
                 id="email"
-                type="email"
+                type="text"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 bg-surface-container-lowest border border-outline-variant/60 rounded-xl text-on-surface font-body-sm placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                placeholder="sv@cntt.local hoặc admin@cntt.local"
+                placeholder="Email (doan1@gmail.com) hoặc Mã sinh viên (123)"
               />
             </div>
           </div>

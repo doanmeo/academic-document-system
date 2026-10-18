@@ -9,7 +9,15 @@ public class CollectionItemDTO {
     private String documentTitle;
     private String documentTypeCode;
     private String documentTypeLabel;
+    private String subjectCode;
     private String subjectName;
+    private String advisorName;
+    private String academicYearName;
+    private Double avgRating;
+    private Integer viewCount;
+    private Integer downloadCount;
+    private Long fileId;
+    private String fileName;
     private String note;
     private Integer sortOrder;
     private LocalDateTime createdAt;
@@ -34,8 +42,32 @@ public class CollectionItemDTO {
     public String getDocumentTypeLabel() { return documentTypeLabel; }
     public void setDocumentTypeLabel(String documentTypeLabel) { this.documentTypeLabel = documentTypeLabel; }
 
+    public String getSubjectCode() { return subjectCode; }
+    public void setSubjectCode(String subjectCode) { this.subjectCode = subjectCode; }
+
     public String getSubjectName() { return subjectName; }
     public void setSubjectName(String subjectName) { this.subjectName = subjectName; }
+
+    public String getAdvisorName() { return advisorName; }
+    public void setAdvisorName(String advisorName) { this.advisorName = advisorName; }
+
+    public String getAcademicYearName() { return academicYearName; }
+    public void setAcademicYearName(String academicYearName) { this.academicYearName = academicYearName; }
+
+    public Double getAvgRating() { return avgRating; }
+    public void setAvgRating(Double avgRating) { this.avgRating = avgRating; }
+
+    public Integer getViewCount() { return viewCount; }
+    public void setViewCount(Integer viewCount) { this.viewCount = viewCount; }
+
+    public Integer getDownloadCount() { return downloadCount; }
+    public void setDownloadCount(Integer downloadCount) { this.downloadCount = downloadCount; }
+
+    public Long getFileId() { return fileId; }
+    public void setFileId(Long fileId) { this.fileId = fileId; }
+
+    public String getFileName() { return fileName; }
+    public void setFileName(String fileName) { this.fileName = fileName; }
 
     public String getNote() { return note; }
     public void setNote(String note) { this.note = note; }

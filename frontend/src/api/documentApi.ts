@@ -290,14 +290,6 @@ export const compareTopics = async (
   return unwrap(res)
 }
 
-/**
- * GET /documents/coverage-matrix
- * Lấy ma trận độ phủ học liệu (F1: Môn học x Thể loại)
- */
-export const getCoverageMatrix = async (): Promise<import('../types/document').CoverageMatrix> => {
-  const res = await api.get('/documents/coverage-matrix')
-  return unwrap(res)
-}
 
 /**
  * POST /documents/generate-abstract
@@ -307,6 +299,26 @@ export const generateAbstract = async (
   payload: import('../types/document').GenerateAbstractRequest
 ): Promise<import('../types/document').GenerateAbstractResponse> => {
   const res = await api.post('/documents/generate-abstract', payload)
+  return unwrap(res)
+}
+
+/**
+ * POST /documents/generate-abstract-from-file
+ * Đọc 2-3 trang đầu tệp PDF và dùng AI sinh tóm tắt học thuật chính xác (Gemini & OpenRouter failover)
+ */
+export const generateAbstractFromFile = async (
+  file: File,
+  title?: string,
+  subjectName?: string,
+  documentTypeCode?: string
+): Promise<import('../types/document').GenerateAbstractResponse> => {
+  const formData = new FormData()
+  formData.append('file', file)
+  if (title) formData.append('title', title)
+  if (subjectName) formData.append('subjectName', subjectName)
+  if (documentTypeCode) formData.append('documentTypeCode', documentTypeCode)
+
+  const res = await api.post('/documents/generate-abstract-from-file', formData)
   return unwrap(res)
 }
 
@@ -332,8 +344,8 @@ export const documentApi = {
   getRelatedDocuments,
   checkSimilarity,
   compareTopics,
-  getCoverageMatrix,
   generateAbstract,
+  generateAbstractFromFile,
   getDocumentReviews,
   create: createDocument,
   createDocument,

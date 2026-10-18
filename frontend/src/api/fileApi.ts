@@ -24,7 +24,6 @@ export const uploadFile = async (
   formData.append('isPrimary', String(isPrimary))
 
   const res = await api.post('/files/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
     onUploadProgress: (event) => {
       if (onProgress && event.total) {
         onProgress(Math.round((event.loaded * 100) / event.total))
@@ -41,16 +40,8 @@ export const uploadFile = async (
  * Hỗ trợ fallback an toàn khi demo offline.
  */
 export const getPreviewUrl = async (fileId: number): Promise<SignedUrlResponse> => {
-  try {
-    const res = await api.get(`/files/${fileId}/preview-url`)
-    const data = unwrap<SignedUrlResponse>(res)
-    if (data?.url && !data.url.includes('YOUR_PROJECT.supabase.co')) {
-      return data
-    }
-  } catch (err) {
-    // Không ném lỗi để tránh sập UI lúc demo, fallback an toàn
-  }
-  return { url: '/sample.pdf', expiresIn: 300 }
+  const res = await api.get(`/files/${fileId}/preview-url`)
+  return unwrap<SignedUrlResponse>(res)
 }
 
 /**
@@ -66,7 +57,7 @@ export const getDownloadUrl = async (fileId: number): Promise<SignedUrlResponse>
       return data
     }
   } catch (err) {
-    // Fallback an toàn
+    console.warn('[fileApi] Failed to get download URL, fallback to sample:', err)
   }
   return { url: '/sample.pdf', expiresIn: 300 }
 }

@@ -3,11 +3,14 @@ package com.cntt.academicdocs.service;
 import com.cntt.academicdocs.domain.Collection;
 import com.cntt.academicdocs.domain.CollectionItem;
 import com.cntt.academicdocs.domain.Document;
+import com.cntt.academicdocs.domain.DocumentFile;
 import com.cntt.academicdocs.domain.User;
 import com.cntt.academicdocs.dto.AddCollectionItemRequest;
 import com.cntt.academicdocs.dto.CollectionDTO;
 import com.cntt.academicdocs.dto.CollectionItemDTO;
 import com.cntt.academicdocs.dto.CreateCollectionRequest;
+import com.cntt.academicdocs.dto.UpdateCollectionRequest;
+import com.cntt.academicdocs.dto.UpdateCollectionItemRequest;
 import com.cntt.academicdocs.exception.BusinessException;
 import com.cntt.academicdocs.repository.CollectionItemRepository;
 import com.cntt.academicdocs.repository.CollectionRepository;
@@ -138,6 +141,92 @@ public class CollectionService {
         collectionRepository.delete(collection);
     }
 
+    @Transactional
+    public CollectionDTO updateCollection(Long id, Long userId, UpdateCollectionRequest req) {
+        Collection collection = collectionRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "COLLECTION_NOT_FOUND", "Không tìm thấy bộ sưu tập"));
+
+        if (!collection.getUser().getId().equals(userId)) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "NOT_COLLECTION_OWNER", "Bạn không có quyền chỉnh sửa bộ sưu tập này");
+        }
+
+        collection.setTitle(req.getTitle().trim());
+        collection.setDescription(req.getDescription());
+        if (req.getIsPublic() != null) {
+            collection.setIsPublic(req.getIsPublic());
+        }
+        collection.setUpdatedAt(LocalDateTime.now());
+        return toDetailDTO(collection);
+    }
+
+    @Transactional
+    public CollectionDTO regenerateShareToken(Long id, Long userId) {
+        Collection collection = collectionRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "COLLECTION_NOT_FOUND", "Không tìm thấy bộ sưu tập"));
+
+        if (!collection.getUser().getId().equals(userId)) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "NOT_COLLECTION_OWNER", "Bạn không có quyền chỉnh sửa bộ sưu tập này");
+        }
+
+        collection.setShareToken(UUID.randomUUID().toString().substring(0, 12));
+        collection.setUpdatedAt(LocalDateTime.now());
+        return toDetailDTO(collection);
+    }
+
+    @Transactional
+    public CollectionItemDTO updateCollectionItem(Long collectionId, Long documentId, Long userId, UpdateCollectionItemRequest req) {
+        Collection collection = collectionRepository.findById(collectionId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "COLLECTION_NOT_FOUND", "Không tìm thấy bộ sưu tập"));
+
+        if (!collection.getUser().getId().equals(userId)) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "NOT_COLLECTION_OWNER", "Bạn không có quyền chỉnh sửa bộ sưu tập này");
+        }
+
+        CollectionItem item = collectionItemRepository.findByCollection_IdAndDocument_Id(collectionId, documentId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "ITEM_NOT_FOUND", "Tài liệu không có trong bộ sưu tập"));
+
+        if (req.getNote() != null) {
+            item.setNote(req.getNote().trim());
+        }
+        if (req.getSortOrder() != null) {
+            item.setSortOrder(req.getSortOrder());
+        }
+        collection.setUpdatedAt(LocalDateTime.now());
+        return toItemDTO(item);
+    }
+
+    @Transactional
+    public CollectionDTO cloneCollection(String shareToken, Long userId) {
+        Collection source = collectionRepository.findByShareToken(shareToken)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "COLLECTION_NOT_FOUND", "Không tìm thấy bộ sưu tập để sao chép"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Không tìm thấy người dùng"));
+
+        Collection target = new Collection();
+        target.setUser(user);
+        target.setTitle(source.getTitle() + " (Bản sao)");
+        target.setDescription(source.getDescription() != null ? source.getDescription() : "Sao chép từ bộ sưu tập của " + source.getUser().getFullName());
+        target.setIsPublic(true);
+        target.setShareToken(UUID.randomUUID().toString().substring(0, 12));
+        target.setCreatedAt(LocalDateTime.now());
+        target.setUpdatedAt(LocalDateTime.now());
+        Collection savedTarget = collectionRepository.save(target);
+
+        List<CollectionItem> sourceItems = collectionItemRepository.findByCollection_IdOrderBySortOrderAscCreatedAtAsc(source.getId());
+        for (CollectionItem si : sourceItems) {
+            CollectionItem newItem = new CollectionItem();
+            newItem.setCollection(savedTarget);
+            newItem.setDocument(si.getDocument());
+            newItem.setNote(si.getNote());
+            newItem.setSortOrder(si.getSortOrder());
+            newItem.setCreatedAt(LocalDateTime.now());
+            collectionItemRepository.save(newItem);
+        }
+
+        return toDetailDTO(savedTarget);
+    }
+
     private CollectionDTO toSummaryDTO(Collection c) {
         CollectionDTO dto = new CollectionDTO();
         dto.setId(c.getId());
@@ -168,8 +257,45 @@ public class CollectionService {
         dto.setDocumentId(item.getDocument().getId());
         dto.setDocumentTitle(item.getDocument().getTitle());
         dto.setDocumentTypeCode(item.getDocument().getDocumentTypeCode());
-        dto.setDocumentTypeLabel(item.getDocument().getDocumentTypeCode());
-        dto.setSubjectName(item.getDocument().getSubject() != null ? item.getDocument().getSubject().getName() : "");
+
+        String typeCode = item.getDocument().getDocumentTypeCode();
+        String label = switch (typeCode != null ? typeCode.toUpperCase() : "") {
+            case "SLIDE", "LECTURE" -> "Slide Bài giảng";
+            case "EXAM", "DE_THI" -> "Đề thi & Lời giải";
+            case "LAB", "EXERCISE" -> "Hướng dẫn Lab & Thực hành";
+            case "CAPSTONE", "PROJECT", "BTL", "DO_AN" -> "Đồ án / Bài tập lớn";
+            case "THESIS" -> "Khóa luận tốt nghiệp";
+            case "NOTE" -> "Ghi chú ôn tập";
+            case "REFERENCE", "TAI_LIEU_THAM_KHAO", "GIAO_TRINH" -> "Tài liệu tham khảo";
+            default -> typeCode != null ? typeCode : "Tài liệu học thuật";
+        };
+        dto.setDocumentTypeLabel(label);
+
+        if (item.getDocument().getSubject() != null) {
+            dto.setSubjectCode(item.getDocument().getSubject().getCode());
+            dto.setSubjectName(item.getDocument().getSubject().getName());
+        } else {
+            dto.setSubjectCode("");
+            dto.setSubjectName("");
+        }
+
+        dto.setAdvisorName(item.getDocument().getAdvisorName());
+        if (item.getDocument().getAcademicYear() != null) {
+            dto.setAcademicYearName(item.getDocument().getAcademicYear().getName());
+        }
+        dto.setAvgRating(item.getDocument().getAvgRating() != null ? item.getDocument().getAvgRating() : 0.0);
+        dto.setViewCount(item.getDocument().getViewCount() != null ? item.getDocument().getViewCount() : 0);
+        dto.setDownloadCount(item.getDocument().getDownloadCount() != null ? item.getDocument().getDownloadCount() : 0);
+
+        if (item.getDocument().getFiles() != null && !item.getDocument().getFiles().isEmpty()) {
+            DocumentFile primaryOrFirst = item.getDocument().getFiles().stream()
+                    .filter(DocumentFile::getIsPrimary)
+                    .findFirst()
+                    .orElse(item.getDocument().getFiles().get(0));
+            dto.setFileId(primaryOrFirst.getId());
+            dto.setFileName(primaryOrFirst.getFileName());
+        }
+
         dto.setNote(item.getNote());
         dto.setSortOrder(item.getSortOrder());
         dto.setCreatedAt(item.getCreatedAt());

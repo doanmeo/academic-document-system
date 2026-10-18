@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { GraduationCap, ShieldCheck, FileCheck2, FileText, BookOpen, Heart } from 'lucide-react'
+import { GraduationCap, ShieldCheck, FileCheck2, FileText, BookOpen, Compass, Heart } from 'lucide-react'
 
 export default function Footer() {
   return (
@@ -44,12 +44,6 @@ export default function Footer() {
                   <span>Biểu mẫu BTL & Khóa luận</span>
                 </Link>
               </li>
-              <li>
-                <Link to="/search?tab=heatmap" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5">
-                  <GraduationCap className="w-3.5 h-3.5 text-indigo-500" />
-                  <span>Bản đồ Độ phủ Học liệu (Heatmap)</span>
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -61,11 +55,6 @@ export default function Footer() {
                 <Link to="/search?tab=novelty" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
                   <span>Đối soát tính mới đề tài</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/search?tab=heatmap" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                  Bản đồ độ phủ học liệu các bộ môn
                 </Link>
               </li>
               <li>

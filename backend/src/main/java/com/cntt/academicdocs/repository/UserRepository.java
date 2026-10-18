@@ -12,5 +12,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByStudentCode(String studentCode);
     boolean existsByEmail(String email);
     boolean existsByStudentCode(String studentCode);
+    java.util.List<User> findByRole(com.cntt.academicdocs.domain.UserRole role);
     org.springframework.data.domain.Page<User> findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(String name, String email, org.springframework.data.domain.Pageable pageable);
 }

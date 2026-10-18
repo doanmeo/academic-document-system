@@ -967,37 +967,11 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Feature 2: Heatmap Coverage — Rich Violet Tone */}
-              <div className="bg-gradient-to-b from-purple-50/70 via-white to-white dark:from-purple-950/20 dark:via-stone-900 dark:to-stone-900 rounded-2xl p-6 border-2 border-purple-200 dark:border-purple-800/80 hover:border-purple-500 transition-all flex flex-col justify-between shadow-xs">
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="font-mono text-xs text-purple-700 dark:text-purple-400 font-bold">TOOL // 02</span>
-                    <div className="w-9 h-9 rounded-lg bg-purple-600 text-white flex items-center justify-center shadow-xs">
-                      <BarChart3 className="w-5 h-5" />
-                    </div>
-                  </div>
-                  <h3 className="font-serif-academic text-xl font-bold text-stone-950 dark:text-stone-50 mb-2">
-                    Bản Đồ Độ Phủ Học Liệu
-                  </h3>
-                  <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed font-sans mb-4">
-                    Ma trận trực quan hóa tình trạng học liệu của 55 môn học: phát hiện môn nào đã đủ slide, đề thi, BTL; môn nào đang thiếu để ban học tập bổ sung.
-                  </p>
-                </div>
-
-                <Link
-                  to="/search?tab=heatmap"
-                  className="pt-3 border-t border-dashed border-purple-200 dark:border-purple-800 text-xs font-mono font-bold uppercase text-purple-700 dark:text-purple-400 hover:underline flex items-center justify-between"
-                >
-                  <span>Xem bản đồ độ phủ</span>
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-
-              {/* Feature 3: Exam Bank & Matrix — Warm Amber Tone */}
+              {/* Feature 2: Exam Bank & Matrix — Warm Amber Tone */}
               <div className="bg-gradient-to-b from-amber-50/70 via-white to-white dark:from-amber-950/20 dark:via-stone-900 dark:to-stone-900 rounded-2xl p-6 border-2 border-amber-200 dark:border-amber-800/80 hover:border-amber-500 transition-all flex flex-col justify-between shadow-xs">
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="font-mono text-xs text-amber-700 dark:text-amber-400 font-bold">TOOL // 03</span>
+                    <span className="font-mono text-xs text-amber-700 dark:text-amber-400 font-bold">TOOL // 02</span>
                     <div className="w-9 h-9 rounded-lg bg-amber-600 text-white flex items-center justify-center shadow-xs">
                       <BookOpen className="w-5 h-5" />
                     </div>
@@ -1019,14 +993,14 @@ export default function Home() {
                 </Link>
               </div>
 
-              {/* Feature 4: Templates Center (Span 2) — Emerald & Forest Depth */}
-              <div className="md:col-span-2 bg-gradient-to-br from-teal-950 via-slate-900 to-emerald-950 text-white rounded-2xl p-6 sm:p-8 border-2 border-emerald-500/40 shadow-xl flex flex-col justify-between">
+              {/* Feature 3: Templates Center (Span 3) — Emerald & Forest Depth */}
+              <div className="md:col-span-3 bg-gradient-to-br from-teal-950 via-slate-900 to-emerald-950 text-white rounded-2xl p-6 sm:p-8 border-2 border-emerald-500/40 shadow-xl flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <span className="stamp-seal text-emerald-300 border-emerald-400 bg-emerald-400/10">
                       QUY CÁCH CHUẨN UTC FIT
                     </span>
-                    <span className="font-mono text-xs text-emerald-300 font-bold">TOOL // 04</span>
+                    <span className="font-mono text-xs text-emerald-300 font-bold">TOOL // 03</span>
                   </div>
 
                   <h3 className="font-serif-academic text-2xl font-bold text-white mb-2">

@@ -44,11 +44,14 @@ public class FileController {
         this.documentRepository = documentRepository;
     }
 
-    @Value("${app.upload.max-size:20}")
+    @Value("${app.upload.max-size:50}")
     private long maxFileSizeMb;
 
-    @Value("${app.upload.allowed-mime:application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/zip}")
+    @Value("${app.upload.allowed-mime:application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip,application/octet-stream}")
     private String allowedMimeTypes;
+
+    @Value("${app.supabase.url-expiry:3600}")
+    private int signedUrlExpirySeconds;
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Tải lên tệp tài liệu")
@@ -73,10 +76,14 @@ public class FileController {
         String contentType = file.getContentType();
         List<String> allowedList = Arrays.asList(allowedMimeTypes.split(","));
         if (contentType == null || !allowedList.contains(contentType.trim())) {
-            // Also check file extension as fallback
             String originalName = file.getOriginalFilename();
-            if (originalName == null || (!originalName.toLowerCase().endsWith(".pdf") && !originalName.toLowerCase().endsWith(".docx") && !originalName.toLowerCase().endsWith(".pptx") && !originalName.toLowerCase().endsWith(".zip"))) {
-                throw new BusinessException(HttpStatus.BAD_REQUEST, "INVALID_FILE_TYPE", "Định dạng tệp không được hỗ trợ");
+            if (originalName == null) {
+                throw new BusinessException(HttpStatus.BAD_REQUEST, "INVALID_FILE_TYPE", "Tên tệp không hợp lệ");
+            }
+            String lower = originalName.toLowerCase();
+            if (!lower.endsWith(".pdf") && !lower.endsWith(".docx") && !lower.endsWith(".doc") 
+                    && !lower.endsWith(".pptx") && !lower.endsWith(".ppt") && !lower.endsWith(".zip")) {
+                throw new BusinessException(HttpStatus.BAD_REQUEST, "INVALID_FILE_TYPE", "Định dạng tệp không được hỗ trợ (chỉ nhận PDF, Word, PPT, ZIP)");
             }
         }
 
@@ -89,8 +96,12 @@ public class FileController {
                 throw new BusinessException(HttpStatus.FORBIDDEN, "NOT_DOCUMENT_OWNER", "Bạn không phải chủ sở hữu tài liệu");
             }
 
-            if (document.getStatus() != DocumentStatus.DRAFT && document.getStatus() != DocumentStatus.REJECTED && document.getStatus() != DocumentStatus.REVISION_REQUIRED && !SecurityUtils.isAdmin()) {
-                throw new BusinessException(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_STATUS_TRANSITION", "Chỉ có thể tải tệp lên tài liệu ở trạng thái Nháp hoặc Yêu cầu bổ sung");
+            if (document.getStatus() != DocumentStatus.DRAFT 
+                    && document.getStatus() != DocumentStatus.PENDING 
+                    && document.getStatus() != DocumentStatus.REJECTED 
+                    && document.getStatus() != DocumentStatus.REVISION_REQUIRED 
+                    && !SecurityUtils.isAdmin()) {
+                throw new BusinessException(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_STATUS_TRANSITION", "Chỉ có thể tải tệp lên tài liệu ở trạng thái Nháp, Chờ duyệt hoặc Yêu cầu bổ sung");
             }
         }
 
@@ -103,6 +114,17 @@ public class FileController {
         String docPath = documentId != null ? String.valueOf(documentId) : "temp_" + userId;
         String storagePath = docPath + "/" + UUID.randomUUID() + extension;
         String storageKey = fileStorageService.upload(file, storagePath);
+
+        // If the new file is primary, unset isPrimary on existing files of this document
+        if (Boolean.TRUE.equals(isPrimary) && document != null) {
+            List<DocumentFile> existingFiles = documentFileRepository.findByDocument_Id(documentId);
+            for (DocumentFile existing : existingFiles) {
+                if (Boolean.TRUE.equals(existing.getIsPrimary())) {
+                    existing.setIsPrimary(false);
+                    documentFileRepository.save(existing);
+                }
+            }
+        }
 
         DocumentFile docFile = new DocumentFile();
         docFile.setDocument(document);
@@ -136,8 +158,8 @@ public class FileController {
 
         checkFileAccess(file);
 
-        String signedUrl = fileStorageService.createSignedUrl(file.getStorageKey(), 300);
-        return ResponseEntity.ok(ApiResponse.success(Map.of("url", signedUrl, "expiresIn", 300)));
+        String signedUrl = fileStorageService.createSignedUrl(file.getStorageKey(), signedUrlExpirySeconds);
+        return ResponseEntity.ok(ApiResponse.success(Map.of("url", signedUrl, "expiresIn", signedUrlExpirySeconds)));
     }
 
     @GetMapping("/{fileId}/download-url")
@@ -153,8 +175,8 @@ public class FileController {
             documentRepository.incrementDownloadCount(file.getDocument().getId());
         }
 
-        String signedUrl = fileStorageService.createSignedUrl(file.getStorageKey(), 300);
-        return ResponseEntity.ok(ApiResponse.success(Map.of("url", signedUrl, "expiresIn", 300)));
+        String signedUrl = fileStorageService.createSignedUrl(file.getStorageKey(), signedUrlExpirySeconds);
+        return ResponseEntity.ok(ApiResponse.success(Map.of("url", signedUrl, "expiresIn", signedUrlExpirySeconds)));
     }
 
     @DeleteMapping("/{fileId}")
@@ -175,11 +197,24 @@ public class FileController {
             throw new BusinessException(HttpStatus.FORBIDDEN, "NOT_DOCUMENT_OWNER", "Bạn không có quyền xóa tệp này");
         }
 
+        boolean wasPrimary = Boolean.TRUE.equals(file.getIsPrimary());
+        Document doc = file.getDocument();
+
         try {
             fileStorageService.delete(file.getStorageKey());
         } catch (Exception ignored) {}
 
         documentFileRepository.delete(file);
+
+        if (wasPrimary && doc != null) {
+            List<DocumentFile> remaining = documentFileRepository.findByDocument_Id(doc.getId());
+            if (!remaining.isEmpty()) {
+                DocumentFile first = remaining.get(0);
+                first.setIsPrimary(true);
+                documentFileRepository.save(first);
+            }
+        }
+
         return ResponseEntity.ok(ApiResponse.ok("Đã xóa tệp thành công"));
     }
 

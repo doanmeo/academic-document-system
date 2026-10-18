@@ -15,8 +15,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/documents")
@@ -60,7 +62,7 @@ public class DocumentController {
     @PutMapping("/{id}")
     @Operation(summary = "Cập nhật tài liệu")
     public ResponseEntity<ApiResponse<DocumentDetailDTO>> updateDocument(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody UpdateDocumentRequest request
     ) {
         Long userId = SecurityUtils.getCurrentUserId();
@@ -71,7 +73,7 @@ public class DocumentController {
 
     @PostMapping("/{id}/submit")
     @Operation(summary = "Gửi tài liệu để hội đồng kiểm duyệt")
-    public ResponseEntity<ApiResponse<DocumentDetailDTO>> submitDocument(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<DocumentDetailDTO>> submitDocument(@PathVariable("id") Long id) {
         Long userId = SecurityUtils.getCurrentUserId();
         if (userId == null) throw new BusinessException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Yêu cầu đăng nhập");
         DocumentDetailDTO doc = documentService.submitDocument(id, userId);
@@ -81,7 +83,7 @@ public class DocumentController {
     @PutMapping("/{id}/resubmit")
     @Operation(summary = "Nộp lại tài liệu sau khi chỉnh sửa kèm revisionNote")
     public ResponseEntity<ApiResponse<DocumentDetailDTO>> resubmitDocument(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @RequestBody(required = false) java.util.Map<String, String> body
     ) {
         Long userId = SecurityUtils.getCurrentUserId();
@@ -185,7 +187,7 @@ public class DocumentController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Xem chi tiết tài liệu")
-    public ResponseEntity<ApiResponse<DocumentDetailDTO>> getDocumentById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<DocumentDetailDTO>> getDocumentById(@PathVariable("id") Long id) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         String currentRole = SecurityUtils.getCurrentRole();
         DocumentDetailDTO doc = documentService.getDocumentById(id, currentUserId, currentRole);
@@ -195,7 +197,7 @@ public class DocumentController {
     @GetMapping("/{id}/related")
     @Operation(summary = "Gợi ý các học liệu cùng mạch học thuật (cùng môn, cùng GVHD, cùng ngành)")
     public ResponseEntity<ApiResponse<java.util.List<RelatedDocumentDTO>>> getRelatedDocuments(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @RequestParam(defaultValue = "4") int limit
     ) {
         java.util.List<RelatedDocumentDTO> related = documentService.getRelatedDocuments(id, limit);
@@ -213,7 +215,7 @@ public class DocumentController {
 
     @GetMapping("/course-hub/{subjectId}")
     @Operation(summary = "Lấy trọn bộ Gói học liệu học phần (Syllabus Knowledge Pack) theo Môn học")
-    public ResponseEntity<ApiResponse<CourseHubDTO>> getCourseHub(@PathVariable Long subjectId) {
+    public ResponseEntity<ApiResponse<CourseHubDTO>> getCourseHub(@PathVariable("subjectId") Long subjectId) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         CourseHubDTO hub = documentService.getCourseHub(subjectId, currentUserId);
         return ResponseEntity.ok(ApiResponse.success(hub));
@@ -231,7 +233,7 @@ public class DocumentController {
     @GetMapping("/{id}/citation")
     @Operation(summary = "Tạo trích dẫn tài liệu theo chuẩn APA, IEEE, BibTeX")
     public ResponseEntity<ApiResponse<CitationResponseDTO>> getCitation(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @RequestParam(defaultValue = "IEEE") String format
     ) {
         CitationResponseDTO citation = citationService.generateCitation(id, format);
@@ -240,7 +242,7 @@ public class DocumentController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Xóa tài liệu (chuyển trạng thái ẩn)")
-    public ResponseEntity<ApiResponse<Void>> deleteDocument(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteDocument(@PathVariable("id") Long id) {
         Long userId = SecurityUtils.getCurrentUserId();
         if (userId == null) throw new BusinessException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Yêu cầu đăng nhập");
         documentService.deleteDocument(id, userId);
@@ -251,7 +253,7 @@ public class DocumentController {
 
     @PostMapping("/{id}/bookmark")
     @Operation(summary = "Lưu tài liệu vào danh sách cá nhân")
-    public ResponseEntity<ApiResponse<Void>> addBookmark(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> addBookmark(@PathVariable("id") Long id) {
         Long userId = SecurityUtils.getCurrentUserId();
         if (userId == null) throw new BusinessException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Yêu cầu đăng nhập");
         bookmarkService.addBookmark(id, userId);
@@ -260,7 +262,7 @@ public class DocumentController {
 
     @DeleteMapping("/{id}/bookmark")
     @Operation(summary = "Bỏ lưu tài liệu khỏi danh sách cá nhân")
-    public ResponseEntity<ApiResponse<Void>> removeBookmark(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> removeBookmark(@PathVariable("id") Long id) {
         Long userId = SecurityUtils.getCurrentUserId();
         if (userId == null) throw new BusinessException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Yêu cầu đăng nhập");
         bookmarkService.removeBookmark(id, userId);
@@ -272,7 +274,7 @@ public class DocumentController {
     @PostMapping("/{id}/rate")
     @Operation(summary = "Đánh giá sao cho tài liệu (1-5 sao)")
     public ResponseEntity<ApiResponse<Void>> rateDocument(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody RateRequest request
     ) {
         Long userId = SecurityUtils.getCurrentUserId();
@@ -285,7 +287,7 @@ public class DocumentController {
 
     @DeleteMapping("/{id}/rate")
     @Operation(summary = "Hủy đánh giá sao của tài liệu")
-    public ResponseEntity<ApiResponse<Void>> deleteRating(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteRating(@PathVariable("id") Long id) {
         Long userId = SecurityUtils.getCurrentUserId();
         if (userId == null) throw new BusinessException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Yêu cầu đăng nhập");
         ratingService.deleteRating(id, userId);
@@ -297,7 +299,7 @@ public class DocumentController {
     @PostMapping("/{id}/reports")
     @Operation(summary = "Gửi báo cáo vi phạm nội dung / bản quyền")
     public ResponseEntity<ApiResponse<ReportDTO>> createReport(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody CreateReportRequest request
     ) {
         Long userId = SecurityUtils.getCurrentUserId();
@@ -306,26 +308,62 @@ public class DocumentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(report, "Đã gửi báo cáo vi phạm thành công"));
     }
 
-    // --- F1: Coverage Heatmap ---
-
-    @GetMapping("/coverage-matrix")
-    @Operation(summary = "Lấy ma trận độ phủ học liệu (Coverage Heatmap) theo Môn học và Loại tài liệu")
-    public ResponseEntity<ApiResponse<CoverageMatrixDTO>> getCoverageMatrix() {
-        CoverageMatrixDTO matrix = documentService.getCoverageMatrix();
-        return ResponseEntity.ok(ApiResponse.success(matrix));
-    }
 
     // --- F4: AI-Assisted Abstract Generator (Gemini) ---
 
     @PostMapping("/generate-abstract")
-    @Operation(summary = "Trợ lý AI Gemini gợi ý tóm tắt học thuật tự động cho tài liệu")
+    @Operation(summary = "Trợ lý AI gợi ý tóm tắt học thuật tự động cho tài liệu (Gemini với OpenRouter fallback)")
     public ResponseEntity<ApiResponse<java.util.Map<String, Object>>> generateAbstract(
             @Valid @RequestBody GenerateAbstractRequest request
     ) {
-        String generated = geminiService.generateAcademicAbstract(request);
+        String generated;
+        try {
+            generated = geminiService.generateAcademicAbstract(request);
+        } catch (Exception e) {
+            generated = "Tài liệu học tập và nghiên cứu thực hiện tại Khoa Công nghệ Thông tin - Trường Đại học Giao thông Vận tải (UTC).";
+        }
         java.util.Map<String, Object> result = new java.util.HashMap<>();
         result.put("abstractText", generated);
-        result.put("suggestedTargetYear", "2024-2025");
+        result.put("suggestedTargetYear", "2026-2027");
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    @PostMapping(value = "/generate-abstract-from-file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Đọc 2-3 trang đầu tài liệu PDF tải lên và dùng AI tóm tắt nội dung chính xác")
+    public ResponseEntity<ApiResponse<java.util.Map<String, Object>>> generateAbstractFromFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "documentTypeCode", required = false) String documentTypeCode,
+            @RequestParam(value = "subjectName", required = false) String subjectName
+    ) {
+        String extractedExcerpt = "";
+        if (file != null && !file.isEmpty()) {
+            try {
+                extractedExcerpt = geminiService.extractTextFromFile(file.getBytes(), file.getOriginalFilename());
+            } catch (Exception e) {
+                // If parsing fails, fallback to title
+            }
+        }
+
+        GenerateAbstractRequest req = new GenerateAbstractRequest();
+        String effectiveTitle = (title != null && !title.isBlank()) 
+                ? title.trim() 
+                : (file != null ? file.getOriginalFilename().replaceFirst("[.][^.]+$", "") : "Tài liệu");
+        req.setTitle(effectiveTitle);
+        req.setDocumentTypeCode(documentTypeCode);
+        req.setSubjectName(subjectName);
+        req.setDraftDescription(extractedExcerpt);
+
+        String generated;
+        try {
+            generated = geminiService.generateAcademicAbstract(req);
+        } catch (Exception e) {
+            generated = "Tài liệu học tập và nghiên cứu thực hiện tại Khoa Công nghệ Thông tin - Trường Đại học Giao thông Vận tải (UTC).";
+        }
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("abstractText", generated);
+        result.put("extractedExcerptLength", extractedExcerpt.length());
+        result.put("suggestedTargetYear", "2026-2027");
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
@@ -334,7 +372,7 @@ public class DocumentController {
     @GetMapping("/{id}/reviews")
     @Operation(summary = "Xem tiến trình và lịch sử thẩm định của tài liệu")
     public ResponseEntity<ApiResponse<java.util.List<DocumentReviewDTO>>> getDocumentReviews(
-            @PathVariable Long id
+            @PathVariable("id") Long id
     ) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         String currentRole = SecurityUtils.getCurrentRole();

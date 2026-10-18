@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   Sparkles,
   Search,
@@ -10,6 +10,8 @@ import {
   AlertTriangle,
   Info,
   Wand2,
+  FileText,
+  Upload,
 } from 'lucide-react'
 import type { Subject, Major, TopicComparisonResult, TopicComparisonRequest } from '../types'
 import { documentApi } from '../api/documentApi'
@@ -56,7 +58,10 @@ export default function TopicNoveltyChecker() {
       .catch((err) => console.error('Lỗi tải danh mục tra cứu:', err))
   }, [])
 
-  // AI-assisted Abstract Generation
+  const pdfInputRef = useRef<HTMLInputElement>(null)
+  const [readingPdf, setReadingPdf] = useState(false)
+
+  // AI-assisted Abstract Generation từ Tiêu đề
   const handleGenerateAbstract = async () => {
     if (!title.trim() || title.trim().length < 4) return
     setGeneratingAbstract(true)
@@ -74,6 +79,34 @@ export default function TopicNoveltyChecker() {
       console.error('Lỗi sinh tóm tắt đề cương AI:', err)
     } finally {
       setGeneratingAbstract(false)
+    }
+  }
+
+  // Đọc 2-3 trang đầu tài liệu PDF tải lên và dùng AI tóm tắt chính xác
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setReadingPdf(true)
+    try {
+      if (!title.trim()) {
+        const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ').trim()
+        setTitle(cleanName)
+      }
+      const selectedSub = subjects.find((s) => s.id === subjectId)
+      const res = await documentApi.generateAbstractFromFile(
+        file,
+        title.trim() || file.name.replace(/\.[^/.]+$/, ''),
+        selectedSub ? selectedSub.name : 'Công nghệ Thông tin',
+        'THESIS'
+      )
+      if (res && res.abstractText) {
+        setDescription(res.abstractText)
+      }
+    } catch (err) {
+      console.error('Lỗi đọc và tóm tắt file PDF:', err)
+    } finally {
+      setReadingPdf(false)
+      if (pdfInputRef.current) pdfInputRef.current.value = ''
     }
   }
 
@@ -208,26 +241,55 @@ export default function TopicNoveltyChecker() {
                   <span className="text-[10px] text-stone-400 font-normal">(Rất quan trọng)</span>
                 </label>
 
-                {/* AI Draft Button */}
-                <button
-                  type="button"
-                  onClick={handleGenerateAbstract}
-                  disabled={generatingAbstract || title.trim().length < 4}
-                  title="Nhấn để AI tự động soạn tóm tắt đề cương học thuật dựa trên tên đề tài"
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900 border border-purple-200 dark:border-purple-800 transition-colors disabled:opacity-50 cursor-pointer"
-                >
-                  {generatingAbstract ? (
-                    <>
-                      <span className="w-2.5 h-2.5 border border-purple-600 border-t-transparent rounded-full animate-spin" />
-                      <span>AI đang soạn...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Wand2 className="w-3 h-3 text-purple-600 dark:text-purple-400" />
-                      <span>✨ AI sinh tóm tắt</span>
-                    </>
-                  )}
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="file"
+                    ref={pdfInputRef}
+                    accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    onChange={handlePdfUpload}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => pdfInputRef.current?.click()}
+                    disabled={readingPdf}
+                    title="Tải lên tệp đề cương/bản thảo PDF hoặc Word DOCX để AI đọc các trang đầu và tự động sinh tóm tắt chuẩn xác"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900 border border-amber-200 dark:border-amber-800 transition-colors disabled:opacity-50 cursor-pointer"
+                  >
+                    {readingPdf ? (
+                      <>
+                        <span className="w-2.5 h-2.5 border border-amber-600 border-t-transparent rounded-full animate-spin" />
+                        <span>Đang đọc tệp...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                        <span>📄 Đọc từ tệp (PDF/Word)</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* AI Draft Button */}
+                  <button
+                    type="button"
+                    onClick={handleGenerateAbstract}
+                    disabled={generatingAbstract || title.trim().length < 4}
+                    title="Nhấn để AI tự động soạn tóm tắt đề cương học thuật dựa trên tên đề tài"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900 border border-purple-200 dark:border-purple-800 transition-colors disabled:opacity-50 cursor-pointer"
+                  >
+                    {generatingAbstract ? (
+                      <>
+                        <span className="w-2.5 h-2.5 border border-purple-600 border-t-transparent rounded-full animate-spin" />
+                        <span>AI đang soạn...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                        <span>✨ AI sinh tóm tắt</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <textarea
