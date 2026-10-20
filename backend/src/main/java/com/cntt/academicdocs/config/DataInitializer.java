@@ -25,6 +25,9 @@ public class DataInitializer implements CommandLineRunner {
     private final DocumentRepository documentRepository;
     private final DocumentFileRepository documentFileRepository;
 
+    @org.springframework.beans.factory.annotation.Value("${app.seed.enabled:true}")
+    private boolean seedEnabled;
+
     public DataInitializer(
             UserRepository userRepository,
             MajorRepository majorRepository,
@@ -52,6 +55,10 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
+        if (!seedEnabled) {
+            log.info("DataInitializer is disabled (app.seed.enabled=false). Skipping initial seed.");
+            return;
+        }
         initMajors();
         initSubjects();
         initAcademicYears();
