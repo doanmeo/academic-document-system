@@ -237,9 +237,10 @@ export default function DocumentDetailPanel({ doc, onClose, onOpenPdf }: Documen
           <button
             onClick={handleOpenPdf}
             className="w-full bg-primary hover:bg-primary-container text-on-primary py-2.5 px-space-md rounded-lg font-headline-sm text-body-sm shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer font-bold"
+            title="Xem nhanh bản PDF"
           >
-            <span className="material-symbols-outlined text-[18px]">menu_book</span>
-            <span>Đọc online</span>
+            <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+            <span>Xem PDF</span>
           </button>
 
           <button
@@ -287,8 +288,9 @@ export default function DocumentDetailPanel({ doc, onClose, onOpenPdf }: Documen
           <button
             onClick={() => navigate(`/documents/${doc.id}`)}
             className="text-body-sm text-secondary hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+            title="Xem trực tuyến đầy đủ"
           >
-            <span>Trang chi tiết đầy đủ</span>
+            <span>Xem online (Toàn văn)</span>
             <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
           </button>
 

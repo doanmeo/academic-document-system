@@ -413,13 +413,65 @@ export default function DocumentDetail() {
   const handleZoomOut = () => {
     if (zoomLevel > 75) setZoomLevel((z) => z - 25)
   }
+  // Sync isFullscreen with native browser fullscreen state
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange)
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange)
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange)
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange)
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange)
+    }
+  }, [])
+
+  // Allow ESC key to exit CSS fullscreen fallback as well
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {})
+        }
+        setIsFullscreen(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isFullscreen])
+
   const handleToggleFullscreen = () => {
+    if (activeTab !== 'reader') {
+      setActiveTab('reader')
+      setTimeout(() => {
+        if (viewerContainerRef.current) {
+          if (!document.fullscreenElement && !isFullscreen) {
+            viewerContainerRef.current.requestFullscreen().then(() => {
+              setIsFullscreen(true)
+            }).catch(() => {
+              setIsFullscreen(true)
+            })
+          }
+        }
+      }, 100)
+      return
+    }
+
     if (!viewerContainerRef.current) return
-    if (!document.fullscreenElement) {
-      viewerContainerRef.current.requestFullscreen().catch(() => {})
-      setIsFullscreen(true)
+    if (!document.fullscreenElement && !isFullscreen) {
+      viewerContainerRef.current.requestFullscreen().then(() => {
+        setIsFullscreen(true)
+      }).catch(() => {
+        setIsFullscreen(true)
+      })
     } else {
-      document.exitFullscreen().catch(() => {})
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {})
+      }
       setIsFullscreen(false)
     }
   }
@@ -784,10 +836,14 @@ export default function DocumentDetail() {
                   {/* IN-LINE RESILIENT PDF VIEWER */}
                   <div
                     ref={viewerContainerRef}
-                    className="bg-white dark:bg-[#111827] rounded-2xl border border-stone-200/90 dark:border-slate-800 shadow-xs overflow-hidden flex flex-col"
+                    className={`bg-white dark:bg-[#111827] shadow-xs overflow-hidden flex flex-col ${
+                      isFullscreen
+                        ? 'fixed inset-0 z-[9999] h-screen w-screen rounded-none border-0'
+                        : 'rounded-2xl border border-stone-200/90 dark:border-slate-800'
+                    }`}
                   >
                     {/* Viewer Controls Toolbar */}
-                    <div className="bg-[#f7f5ee] dark:bg-slate-800/90 px-4 py-3 flex flex-wrap items-center justify-between gap-3 text-xs border-b border-stone-200 dark:border-slate-700">
+                    <div className="bg-[#f7f5ee] dark:bg-slate-800/90 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs border-b border-stone-200 dark:border-slate-700 shrink-0">
                       <div className="flex items-center gap-2">
                         <span className="px-2.5 py-1 bg-white dark:bg-slate-900 font-mono font-bold text-stone-800 dark:text-slate-200 rounded-md flex items-center gap-1.5 border border-stone-300 dark:border-slate-700 shadow-2xs">
                           <BookOpen className="w-3.5 h-3.5 text-amber-700 dark:text-sky-400" />
@@ -845,11 +901,22 @@ export default function DocumentDetail() {
                         {/* Fullscreen Button */}
                         <button
                           onClick={handleToggleFullscreen}
-                          className="p-1.5 bg-white dark:bg-slate-900 hover:bg-stone-50 dark:hover:bg-slate-800 text-stone-700 dark:text-slate-200 font-semibold rounded-md border border-stone-300 dark:border-slate-700 transition-colors shadow-2xs cursor-pointer flex items-center gap-1"
+                          className={`p-1.5 font-semibold rounded-md border transition-colors shadow-2xs cursor-pointer flex items-center gap-1.5 text-xs font-mono ${
+                            isFullscreen
+                              ? 'bg-amber-600 hover:bg-amber-700 text-white border-amber-600'
+                              : 'bg-white dark:bg-slate-900 hover:bg-stone-50 dark:hover:bg-slate-800 text-stone-700 dark:text-slate-200 border-stone-300 dark:border-slate-700'
+                          }`}
                           type="button"
-                          title={isFullscreen ? 'Thu nhỏ' : 'Toàn màn hình'}
+                          title={isFullscreen ? 'Thoát toàn màn hình (Phím Esc)' : 'Toàn màn hình'}
                         >
-                          {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                          {isFullscreen ? (
+                            <>
+                              <Minimize2 className="w-4 h-4" />
+                              <span className="hidden sm:inline">Thoát toàn màn hình</span>
+                            </>
+                          ) : (
+                            <Maximize2 className="w-4 h-4" />
+                          )}
                         </button>
 
                         {/* Open in New Window via in-memory Blob without IDM trigger */}
@@ -866,14 +933,28 @@ export default function DocumentDetail() {
                       </div>
                     </div>
                     {/* PDF Document Canvas */}
-                    <div className="bg-stone-200/50 dark:bg-slate-950 p-2 sm:p-4 flex flex-col justify-center items-center min-h-[640px]">
+                    <div
+                      className={`bg-stone-200/50 dark:bg-slate-950 flex flex-col justify-center items-center ${
+                        isFullscreen
+                          ? 'flex-1 h-full w-full min-h-0 p-0 overflow-hidden'
+                          : 'p-2 sm:p-4 min-h-[640px]'
+                      }`}
+                    >
                       <div
-                        className="w-full bg-white dark:bg-slate-900 shadow-md overflow-hidden relative rounded-xl border border-stone-300 dark:border-slate-800"
-                        style={{
-                          transform: `scale(${zoomLevel / 100})`,
-                          transformOrigin: 'top center',
-                          transition: 'transform 0.15s ease-out',
-                        }}
+                        className={`w-full bg-white dark:bg-slate-900 overflow-hidden relative flex flex-col ${
+                          isFullscreen
+                            ? 'flex-1 h-full min-h-0 rounded-none border-0 shadow-none'
+                            : 'rounded-xl border border-stone-300 dark:border-slate-800 shadow-md'
+                        }`}
+                        style={
+                          isFullscreen
+                            ? undefined
+                            : {
+                                transform: `scale(${zoomLevel / 100})`,
+                                transformOrigin: 'top center',
+                                transition: 'transform 0.15s ease-out',
+                              }
+                        }
                       >
                         {!currentActiveFile ? (
                           <div className="w-full h-[540px] flex flex-col items-center justify-center p-8 text-center bg-stone-50 dark:bg-slate-900/60 rounded-xl border border-dashed border-stone-300 dark:border-slate-800 gap-4">
@@ -977,12 +1058,12 @@ export default function DocumentDetail() {
                             </div>
                           </div>
                         ) : pdfLoading ? (
-                          <div className="w-full h-[680px] sm:h-[760px] flex flex-col items-center justify-center p-8 text-center text-stone-500 dark:text-slate-400 bg-white dark:bg-slate-900">
+                          <div className={`w-full flex flex-col items-center justify-center p-8 text-center text-stone-500 dark:text-slate-400 bg-white dark:bg-slate-900 ${isFullscreen ? 'flex-1 h-full min-h-0' : 'h-[680px] sm:h-[760px]'}`}>
                             <span className="w-8 h-8 border-3 border-amber-600 dark:border-sky-400 border-t-transparent rounded-full animate-spin mb-3" />
                             <p className="text-xs font-mono font-medium">Đang kết nối học liệu số FIT-UTC...</p>
                           </div>
                         ) : pdfError ? (
-                          <div className="w-full h-[680px] sm:h-[760px] flex flex-col items-center justify-center p-8 text-center bg-white dark:bg-slate-900 gap-3">
+                          <div className={`w-full flex flex-col items-center justify-center p-8 text-center bg-white dark:bg-slate-900 gap-3 ${isFullscreen ? 'flex-1 h-full min-h-0' : 'h-[680px] sm:h-[760px]'}`}>
                             <AlertCircle className="w-10 h-10 text-amber-600 mx-auto" />
                             <h4 className="font-serif-academic text-base font-bold text-stone-800 dark:text-slate-200">
                               Không thể mở trực tuyến tệp này
@@ -1001,11 +1082,13 @@ export default function DocumentDetail() {
                         ) : blobUrl ? (
                           <iframe
                             src={`${blobUrl}#page=${currentPage}&zoom=${zoomLevel}`}
-                            className="w-full h-[680px] sm:h-[760px] border-0 block"
+                            className={`w-full border-0 block ${
+                              isFullscreen ? 'flex-1 h-full min-h-0' : 'h-[680px] sm:h-[760px]'
+                            }`}
                             title={doc.title}
                           />
                         ) : (
-                          <div className="w-full h-[680px] sm:h-[760px] flex flex-col items-center justify-center p-8 text-center text-stone-400 bg-white dark:bg-slate-900">
+                          <div className={`w-full flex flex-col items-center justify-center p-8 text-center text-stone-400 bg-white dark:bg-slate-900 ${isFullscreen ? 'flex-1 h-full min-h-0' : 'h-[680px] sm:h-[760px]'}`}>
                             <span className="w-8 h-8 border-3 border-amber-600 border-t-transparent rounded-full animate-spin mb-3" />
                             <p className="text-xs font-mono">Đang nạp dữ liệu xem trước...</p>
                           </div>

@@ -330,17 +330,19 @@ export default function DocumentQuickCardModal({
             <button
               type="button"
               onClick={() => onReadPdf(doc)}
-              className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+              className="px-3.5 py-2 rounded-lg bg-stone-200 hover:bg-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 border border-stone-300 dark:border-stone-700 font-mono text-xs font-bold uppercase tracking-wider transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+              title="Xem nhanh bản PDF trong cửa sổ popup"
             >
-              <Eye className="w-4 h-4" />
-              <span>Đọc PDF</span>
+              <Eye className="w-4 h-4 text-stone-600 dark:text-stone-400" />
+              <span>Xem PDF</span>
             </button>
 
             <Link
               to={`/documents/${doc.id}`}
-              className="px-3.5 py-2 rounded-lg bg-stone-900 hover:bg-stone-800 dark:bg-stone-800 dark:hover:bg-stone-750 text-white border border-transparent dark:border-stone-700 font-mono text-xs font-bold uppercase tracking-wider transition-colors shadow-xs flex items-center gap-1.5 whitespace-nowrap"
+              className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors shadow-xs flex items-center gap-1.5 whitespace-nowrap"
+              title="Đọc toàn văn và chi tiết tài liệu trực tuyến"
             >
-              <span>Toàn văn</span>
+              <span>Xem online</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>

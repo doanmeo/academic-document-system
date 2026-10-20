@@ -178,7 +178,7 @@ export default function PendingList() {
 
         <button
           onClick={fetchDocs}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-surface-container-low hover:bg-surface-container text-primary font-body-sm font-semibold rounded-xl transition-all cursor-pointer border border-surface-container"
+          className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-surface-container-low hover:bg-surface-container text-stone-700 dark:text-stone-200 font-body-sm font-semibold rounded-xl transition-all cursor-pointer border border-surface-container"
           title="Làm mới danh sách"
         >
           <span className="material-symbols-outlined text-[18px]">refresh</span>
@@ -199,7 +199,7 @@ export default function PendingList() {
             <span className="material-symbols-outlined text-[36px]">task_alt</span>
           </div>
           <div>
-            <h3 className="font-headline-md font-bold text-primary">
+            <h3 className="font-serif-academic text-xl font-bold text-stone-900 dark:text-stone-100">
               {keyword ? 'Không tìm thấy tài liệu phù hợp' : 'Hàng đợi kiểm duyệt đang trống'}
             </h3>
             <p className="font-body-md text-on-surface-variant max-w-md mx-auto mt-1 leading-relaxed">
@@ -302,7 +302,7 @@ export default function PendingList() {
                 <div className="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center text-primary/60">
                   <span className="material-symbols-outlined text-[30px]">touch_app</span>
                 </div>
-                <h3 className="font-headline-sm font-bold text-primary">Chọn đề tài để thẩm định</h3>
+                <h3 className="font-serif-academic text-lg font-bold text-stone-900 dark:text-stone-100">Chọn đề tài để thẩm định</h3>
                 <p className="font-body-sm text-on-surface-variant max-w-sm leading-relaxed">
                   Click vào một tài liệu từ danh sách bên trái để kiểm tra nội dung và thực hiện phê duyệt.
                 </p>
@@ -542,39 +542,39 @@ export default function PendingList() {
 
       {/* Action Dialog Modal */}
       {modal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-surface-container space-y-4">
-            <div className="flex items-center gap-2.5 pb-2 border-b border-surface-container">
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-[#fffdfa] dark:bg-[#12161f] rounded-2xl max-w-md w-full p-6 shadow-2xl border-2 border-stone-300 dark:border-stone-800 space-y-4">
+            <div className="flex items-center gap-2.5 pb-3 border-b border-stone-200 dark:border-stone-800">
               <span
                 className={`material-symbols-outlined text-[24px] ${
                   modal === 'approve'
-                    ? 'text-emerald-600'
+                    ? 'text-emerald-600 dark:text-emerald-400'
                     : modal === 'revision'
-                    ? 'text-amber-500'
-                    : 'text-error'
+                    ? 'text-amber-500 dark:text-amber-400'
+                    : 'text-rose-600 dark:text-rose-400'
                 }`}
               >
                 {modal === 'approve' ? 'check_circle' : modal === 'revision' ? 'sync' : 'cancel'}
               </span>
-              <h3 className="font-headline-md font-bold text-primary">
+              <h3 className="font-serif-academic text-xl font-bold text-stone-900 dark:text-stone-100">
                 {modal === 'approve' && 'Phê duyệt tài liệu'}
                 {modal === 'revision' && 'Yêu cầu sinh viên chỉnh sửa'}
                 {modal === 'reject' && 'Từ chối tài liệu'}
               </h3>
             </div>
 
-            <p className="font-body-sm text-on-surface-variant">
+            <p className="text-xs text-stone-600 dark:text-stone-400 font-sans leading-relaxed">
               {modal === 'approve' && 'Tài liệu sẽ được chuyển sang trạng thái APPROVED và công khai trên toàn hệ thống.'}
               {modal === 'revision' && 'Sinh viên sẽ nhận được thông báo yêu cầu chỉnh sửa và có thể cập nhật lại tài liệu.'}
               {modal === 'reject' && 'Vui lòng cung cấp lý do từ chối rõ ràng để sinh viên nắm được thông tin.'}
             </p>
 
             <div className="space-y-1.5">
-              <label className="font-headline-sm text-body-sm text-primary font-bold">
+              <label className="block text-xs font-mono font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
                 {modal === 'approve' ? 'Ghi chú phê duyệt (tùy chọn)' : 'Lý do / Hướng dẫn điều chỉnh *'}
               </label>
               <textarea
-                className="w-full border border-outline-variant/60 rounded-xl p-3 min-h-[110px] font-body-sm text-body-sm outline-none focus:ring-2 focus:ring-secondary focus:border-secondary transition-all"
+                className="w-full bg-stone-100/80 dark:bg-stone-950 border border-stone-300 dark:border-stone-700 rounded-xl p-3 min-h-[110px] text-xs font-mono text-stone-900 dark:text-stone-100 placeholder:text-stone-400 outline-none focus:bg-white dark:focus:bg-stone-950 focus:ring-2 focus:ring-stone-400 dark:focus:ring-stone-600 focus:border-stone-400 transition-all resize-none"
                 placeholder={
                   modal === 'approve'
                     ? 'Nhập nhận xét hoặc lời khen ngợi (nếu có)...'
@@ -585,13 +585,13 @@ export default function PendingList() {
               />
             </div>
 
-            <div className="flex justify-end gap-2.5 pt-2">
+            <div className="flex justify-end gap-2.5 pt-2 border-t border-stone-200 dark:border-stone-800">
               <button
                 onClick={() => {
                   setModal(null)
                   setModalNote('')
                 }}
-                className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl font-body-sm font-semibold transition-all cursor-pointer"
+                className="px-4 py-2 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer border border-stone-300 dark:border-stone-700"
                 disabled={actionLoading}
               >
                 Hủy bỏ
@@ -599,12 +599,12 @@ export default function PendingList() {
               <button
                 onClick={handleAction}
                 disabled={actionLoading}
-                className={`px-5 py-2 text-white rounded-xl font-body-sm font-bold shadow-xs transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`px-5 py-2 text-white rounded-xl text-xs font-mono font-bold shadow-xs transition-all cursor-pointer flex items-center gap-1.5 ${
                   modal === 'approve'
                     ? 'bg-emerald-600 hover:bg-emerald-700'
                     : modal === 'revision'
-                    ? 'bg-amber-500 hover:bg-amber-600'
-                    : 'bg-error hover:bg-error-container text-on-error hover:text-on-error-container'
+                    ? 'bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold'
+                    : 'bg-rose-600 hover:bg-rose-700'
                 }`}
               >
                 {actionLoading ? <Spinner size={4} /> : 'Xác nhận thực hiện'}

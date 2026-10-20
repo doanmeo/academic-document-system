@@ -315,11 +315,14 @@ export default function UploadDocument() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-surface-container">
             <div>
-              <div className="flex items-center gap-1.5 text-secondary font-label-code text-caption font-bold uppercase tracking-widest mb-1">
-                <span className="material-symbols-outlined text-[18px]">publish</span>
-                <span>TÀI LIỆU SỐ NỘI BỘ • FRICTIONLESS UPLOAD</span>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="stamp-seal text-stone-700 dark:text-stone-300 border-stone-400 dark:border-stone-700 bg-stone-100 dark:bg-stone-900 text-[10px]">
+                  [ TÀI LIỆU SỐ NỘI BỘ ]
+                </span>
+                <span className="text-stone-400">/</span>
+                <span className="font-mono text-xs text-stone-500">KHOA CNTT · ĐH GIAO THÔNG VẬN TẢI</span>
               </div>
-              <h1 className="font-headline-xl text-2xl sm:text-3xl font-extrabold text-primary">
+              <h1 className="font-serif-academic text-2xl sm:text-3xl md:text-4xl font-bold text-stone-950 dark:text-stone-50 tracking-tight">
                 Đăng Tải Tài Liệu &amp; Đồ Án Mới
               </h1>
               <p className="text-body-sm text-on-surface-variant mt-1">
@@ -329,7 +332,7 @@ export default function UploadDocument() {
 
             <Link
               to="/me/documents"
-              className="inline-flex items-center gap-1 text-body-sm font-semibold text-secondary hover:underline shrink-0"
+              className="inline-flex items-center gap-1 text-body-sm font-mono text-xs font-semibold text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 shrink-0"
             >
               <span className="material-symbols-outlined text-[18px]">folder</span>
               <span>Tủ tài liệu của tôi</span>
@@ -402,12 +405,12 @@ export default function UploadDocument() {
               </div>
             ) : (
               <div className="flex flex-col items-center gap-2">
-                <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                <div className="w-14 h-14 rounded-2xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 flex items-center justify-center border border-stone-200 dark:border-stone-700">
                   <span className="material-symbols-outlined text-[32px]">cloud_upload</span>
                 </div>
                 <div>
-                  <p className="font-bold text-body-md text-primary">
-                    Kéo thả tệp PDF, Word, PowerPoint vào đây, hoặc <span className="text-secondary underline">duyệt tệp từ máy tính</span>
+                  <p className="font-medium text-body-md text-stone-800 dark:text-stone-200">
+                    Kéo thả tệp PDF, Word, PowerPoint vào đây, hoặc <span className="font-bold underline text-stone-900 dark:text-stone-100 hover:text-blue-600 dark:hover:text-blue-400">duyệt tệp từ máy tính</span>
                   </p>
                   <p className="text-caption text-on-surface-variant mt-1">
                     Hỗ trợ tệp PDF, Word (DOC/DOCX), PowerPoint (PPT/PPTX) (Tối đa 50MB)
@@ -418,11 +421,11 @@ export default function UploadDocument() {
           </div>
 
           {/* ─── 2. Metadata Form ─────────────────────────────────────────── */}
-          <div className="bg-surface-container-lowest rounded-2xl border border-surface-container p-6 shadow-xs space-y-5">
+          <div className="bg-[#fffdfa] dark:bg-[#12161f] rounded-2xl border-2 border-stone-300 dark:border-stone-800 p-6 shadow-xs space-y-5">
             {/* Title */}
             {/* Title */}
             <div>
-              <label className="block text-body-sm font-bold text-primary mb-1">
+              <label className="block text-xs font-mono font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 mb-1">
                 Tên đề tài / Tiêu đề học liệu <span className="text-error">*</span>
               </label>
               <input
@@ -492,7 +495,7 @@ export default function UploadDocument() {
             {/* Categorization Grid: Document Type, Subject, Major, Year */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface mb-1">
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 mb-1">
                   Thể loại học liệu <span className="text-error">*</span>
                 </label>
                 <CustomSelect
@@ -506,7 +509,7 @@ export default function UploadDocument() {
               </div>
 
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface mb-1">
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 mb-1">
                   Môn học / Học phần <span className="text-error">*</span>
                 </label>
                 <CustomSelect
@@ -523,7 +526,7 @@ export default function UploadDocument() {
               </div>
 
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface mb-1">
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 mb-1">
                   Chuyên ngành
                 </label>
                 <CustomSelect
@@ -540,7 +543,7 @@ export default function UploadDocument() {
               </div>
 
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface mb-1">
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 mb-1">
                   Niên khóa <span className="text-error">*</span>
                 </label>
                 <CustomSelect
@@ -558,7 +561,7 @@ export default function UploadDocument() {
 
               {/* F3: Target Year (Năm sinh viên) */}
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface mb-1">
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 mb-1">
                   Phù hợp cho sinh viên năm
                 </label>
                 <CustomSelect
@@ -581,7 +584,7 @@ export default function UploadDocument() {
             {/* Advisor & Github */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface mb-1">
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 mb-1">
                   Giảng viên hướng dẫn {isAdvisorRequired && <span className="text-error">* (Bắt buộc cho Đồ án/KLTN)</span>}
                 </label>
                 <input
@@ -596,7 +599,7 @@ export default function UploadDocument() {
               </div>
 
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface mb-1">
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 mb-1">
                   Kho mã nguồn GitHub (nếu có)
                 </label>
                 <input
@@ -612,7 +615,7 @@ export default function UploadDocument() {
             {/* Abstract with AI Assistant (F4) */}
             <div>
               <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
-                <label className="block text-body-sm font-semibold text-on-surface">
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
                   Tóm tắt nội dung (Abstract) <span className="text-error">* (Tối thiểu 15 ký tự)</span>
                 </label>
 
@@ -693,11 +696,11 @@ export default function UploadDocument() {
             )}
 
             {/* ─── 3. Academic Integrity Pledge (Mandatory) ─────────────── */}
-            <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 space-y-2">
+            <div className="p-4 bg-stone-50 dark:bg-stone-900/60 rounded-xl border border-stone-200 dark:border-stone-800 space-y-2">
               <CustomCheckbox
                 checked={pledgeAccepted}
                 onChange={setPledgeAccepted}
-                label={<span className="font-bold text-primary">Cam kết Liêm chính Học thuật UTC:</span>}
+                label={<span className="font-bold text-stone-800 dark:text-stone-200 font-mono text-xs uppercase tracking-wider">Cam kết Liêm chính Học thuật UTC:</span>}
                 description="Tôi cam kết toàn bộ nội dung trong tệp học liệu này là sản phẩm học thuật chính chủ của nhóm tác giả, không sao chép trái phép hay vi phạm bản quyền theo Quy chế Đào tạo của Trường Đại học Giao thông Vận tải."
                 color="blue"
                 size="md"
@@ -705,9 +708,9 @@ export default function UploadDocument() {
             </div>
 
             {/* ─── Academic Checklist Status Widget ─────────────── */}
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+            <div className="p-4 bg-stone-50 dark:bg-stone-900/60 rounded-xl border border-stone-200 dark:border-stone-800 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <span className="text-xs font-mono font-bold text-stone-800 dark:text-stone-200 uppercase tracking-wider flex items-center gap-1.5">
                   <span>📋</span>
                   <span>Checklist Tiêu chuẩn nộp học liệu Khoa CNTT</span>
                 </span>

@@ -735,7 +735,13 @@ export default function Search() {
                                 UTC-FIT-{doc.id.toString().padStart(4, '0')}
                               </td>
                               <td className="py-3 px-4 font-serif-academic font-bold text-sm text-stone-950 dark:text-stone-50 group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                                <div className="line-clamp-1">{doc.title}</div>
+                                <Link
+                                  to={`/documents/${doc.id}`}
+                                  className="line-clamp-1 hover:underline"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {doc.title}
+                                </Link>
                               </td>
                               <td className="py-3 px-4 whitespace-nowrap font-mono text-[11px]">
                                 <span className="px-2 py-0.5 rounded bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-700 font-bold">
@@ -752,13 +758,26 @@ export default function Search() {
                                 {doc.viewCount || 0}
                               </td>
                               <td className="py-3 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedDoc(doc)}
-                                  className="px-2.5 py-1 rounded bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 font-mono text-[11px] font-bold uppercase hover:bg-blue-600 transition-colors cursor-pointer"
-                                >
-                                  Xem nhanh
-                                </button>
+                                <div className="inline-flex items-center gap-1.5 justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedDoc(doc)
+                                      setViewerModal({ isOpen: true, doc })
+                                    }}
+                                    className="px-2.5 py-1 rounded bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-700 font-mono text-[11px] font-bold uppercase hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors cursor-pointer"
+                                    title="Xem nhanh bản PDF"
+                                  >
+                                    Xem PDF
+                                  </button>
+                                  <Link
+                                    to={`/documents/${doc.id}`}
+                                    className="px-2.5 py-1 rounded bg-blue-600 text-white font-mono text-[11px] font-bold uppercase hover:bg-blue-700 transition-colors cursor-pointer shadow-2xs"
+                                    title="Đọc toàn văn tài liệu trực tuyến"
+                                  >
+                                    Xem online
+                                  </Link>
+                                </div>
                               </td>
                             </tr>
                           ))}

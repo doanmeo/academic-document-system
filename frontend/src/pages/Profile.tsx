@@ -72,7 +72,7 @@ export default function Profile() {
                   Hồ Sơ Cá Nhân &amp; Tài Khoản
                 </h1>
                 <p className="font-body-md text-body-md text-on-surface-variant mt-1">
-                  Quản lý thông tin định danh học thuật, liên kết số và trạng thái bảo mật của bạn tại Khoa CNTT UTC.
+                  Quản lý thông tin định danh học thuật và liên kết số của bạn tại Khoa CNTT UTC.
                 </p>
               </div>
 
@@ -170,22 +170,6 @@ export default function Profile() {
                     <div className="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
                       <div className="h-full bg-amber-500 dark:bg-amber-400" style={{ width: '92%' }}></div>
                     </div>
-                  </div>
-                </div>
-
-                {/* Integrated Security Snapshot */}
-                <div className="space-y-2 pt-2 border-t border-surface-container">
-                  <span className="block font-label-code text-[11px] uppercase tracking-wider text-on-surface-variant font-bold">
-                    Bảo mật tích hợp
-                  </span>
-                  <div className="flex items-center justify-between p-2.5 bg-surface-container-low rounded-lg text-body-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[18px] text-stone-400 dark:text-stone-300">security</span>
-                      <span className="font-body-sm font-medium">Bảo vệ 2FA (OTP UTC)</span>
-                    </div>
-                    <span className="px-2 py-0.5 bg-emerald-600 text-white font-label-code text-[10px] font-bold rounded">
-                      BẬT
-                    </span>
                   </div>
                 </div>
 

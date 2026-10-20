@@ -112,16 +112,16 @@ export default function MyDocuments() {
           {/* Main Grid: 4 Cols Profile Card + 8 Cols Documents Management */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* LEFT COLUMN: USER PROFILE CARD (4 Cols) */}
-            <div className="lg:col-span-4 bg-surface-container-lowest rounded-xl shadow-xs border border-surface-container p-6 space-y-6">
+            <div className="lg:col-span-4 bg-[#fffdfa] dark:bg-[#12161f] rounded-2xl shadow-xs border-2 border-stone-300 dark:border-stone-800 p-6 space-y-6">
               {/* Profile Identity */}
               <div className="flex flex-col items-center text-center">
                 <div className="w-20 h-20 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-2xl shadow-sm mb-3">
                   {user?.fullName?.charAt(0) || 'U'}
                 </div>
-                <h2 className="font-headline-md text-headline-sm font-bold text-primary">
+                <h2 className="font-serif-academic text-xl font-bold text-stone-900 dark:text-stone-100">
                   {user?.fullName || 'Học viên CNTT UTC'}
                 </h2>
-                <span className="font-label-code text-caption text-secondary font-bold mt-0.5">
+                <span className="font-mono text-xs text-stone-500 dark:text-stone-400 mt-0.5">
                   MSSV: {user?.studentCode || '231230859'}
                 </span>
                 <span className="mt-2 px-3 py-1 bg-primary text-on-primary font-label-code text-[11px] font-bold tracking-wider uppercase rounded-full">
@@ -135,7 +135,7 @@ export default function MyDocuments() {
                   <span>Email UTC xác thực</span>
                   <span className="material-symbols-outlined text-secondary text-[16px]">verified</span>
                 </div>
-                <p className="font-label-code text-body-sm font-semibold text-primary mt-1 break-all">
+                <p className="font-mono text-xs text-stone-800 dark:text-stone-200 mt-1 break-all">
                   {user?.email || 'sinhvien@st.utc.edu.vn'}
                 </p>
               </div>
@@ -218,29 +218,14 @@ export default function MyDocuments() {
                 )}
               </div>
 
-              {/* Security info */}
-              <div className="pt-2 border-t border-surface-container space-y-2">
-                <span className="block font-label-code text-caption uppercase tracking-wider text-on-surface-variant font-bold">
-                  Bảo mật tích hợp
-                </span>
-                <div className="flex items-center justify-between p-2 bg-surface-container-low rounded-lg text-body-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px] text-primary">security</span>
-                    <span>Xác thực UTC SSO</span>
-                  </div>
-                  <span className="px-2 py-0.5 bg-primary text-on-primary font-label-code text-[10px] font-bold rounded">
-                    ĐÃ BẬT
-                  </span>
-                </div>
               </div>
-            </div>
 
             {/* RIGHT COLUMN: DOCUMENTS MANAGEMENT (8 Cols) */}
             <div className="lg:col-span-8 space-y-4">
               {/* Top Action Ribbon */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-container-lowest p-4 rounded-xl shadow-xs border border-surface-container">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#fffdfa] dark:bg-[#12161f] p-5 rounded-2xl shadow-xs border-2 border-stone-300 dark:border-stone-800">
                 <div>
-                  <h1 className="font-headline-sm text-headline-sm text-primary font-bold">
+                  <h1 className="font-serif-academic text-2xl sm:text-3xl font-bold text-stone-950 dark:text-stone-50 tracking-tight">
                     Tài Liệu Của Tôi
                   </h1>
                   <p className="text-body-sm text-on-surface-variant mt-0.5">
@@ -258,7 +243,7 @@ export default function MyDocuments() {
               </div>
 
               {/* Filter Tabs & Search */}
-              <div className="bg-surface-container-lowest p-4 rounded-xl shadow-xs border border-surface-container space-y-3">
+              <div className="bg-[#fffdfa] dark:bg-[#12161f] p-4 rounded-2xl shadow-xs border-2 border-stone-300 dark:border-stone-800 space-y-3">
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
                   {tabs.map((tab) => {
                     const active = status === tab.value;
@@ -308,7 +293,7 @@ export default function MyDocuments() {
                   <span className="material-symbols-outlined text-[48px] text-secondary mx-auto">
                     folder_open
                   </span>
-                  <h3 className="font-headline-sm font-bold text-primary">Chưa có tài liệu trong mục này</h3>
+                  <h3 className="font-serif-academic text-lg font-bold text-stone-900 dark:text-stone-100">Chưa có tài liệu trong mục này</h3>
                   <p className="text-body-sm text-on-surface-variant max-w-sm mx-auto">
                     Bạn chưa tải lên tài liệu nào phù hợp với bộ lọc hiện tại. Bấm nút bên dưới để bắt đầu đăng tải.
                   </p>
@@ -326,7 +311,7 @@ export default function MyDocuments() {
                     return (
                       <div
                         key={doc.id}
-                        className="bg-surface-container-lowest rounded-xl shadow-xs border border-surface-container p-4 hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+                        className="bg-white dark:bg-stone-900 rounded-xl shadow-2xs border-2 border-stone-200/90 dark:border-stone-800/90 hover:border-stone-400 dark:hover:border-stone-600 p-4 hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
                       >
                         <div className="flex-1 space-y-1.5">
                           <div className="flex flex-wrap items-center gap-2">

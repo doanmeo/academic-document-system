@@ -281,43 +281,43 @@ export default function Reports() {
 
       {/* Report Resolution Modal */}
       {selected && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-surface-container space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-surface-container">
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-[#fffdfa] dark:bg-[#12161f] rounded-2xl max-w-2xl w-full p-6 shadow-2xl border-2 border-stone-300 dark:border-stone-800 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-stone-200 dark:border-stone-800">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-error text-[24px]">gavel</span>
-                <h3 className="font-headline-md font-bold text-primary">
+                <span className="material-symbols-outlined text-rose-600 dark:text-rose-400 text-[24px]">gavel</span>
+                <h3 className="font-serif-academic text-xl font-bold text-stone-900 dark:text-stone-100">
                   Xử lý Báo cáo #REP-{selected.id}
                 </h3>
               </div>
               <button
                 onClick={() => setSelected(null)}
-                className="text-on-surface-variant hover:text-on-surface p-1 rounded-lg"
+                className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 p-1 rounded-lg cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
 
-            <div className="space-y-3 bg-surface-container-low p-4 rounded-xl">
+            <div className="space-y-3 bg-stone-100/70 dark:bg-stone-950/60 p-4 rounded-xl border border-stone-200 dark:border-stone-800">
               <div>
-                <span className="font-caption uppercase text-on-surface-variant font-bold">Tài liệu bị báo cáo:</span>
-                <h4 className="font-headline-sm font-bold text-stone-900 dark:text-stone-100 mt-0.5">{selected.documentTitle}</h4>
+                <span className="font-mono text-[11px] uppercase text-stone-500 dark:text-stone-400 font-bold tracking-wider">Tài liệu bị báo cáo:</span>
+                <h4 className="font-serif-academic text-base font-bold text-stone-900 dark:text-stone-100 mt-0.5">{selected.documentTitle}</h4>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 text-body-sm pt-2 border-t border-surface-container">
+              <div className="grid grid-cols-2 gap-4 text-xs pt-2 border-t border-stone-200 dark:border-stone-800">
                 <div>
-                  <span className="font-caption uppercase text-on-surface-variant font-bold">Người gửi:</span>
-                  <p className="font-semibold">{selected.reporterName}</p>
+                  <span className="font-mono text-[11px] uppercase text-stone-500 dark:text-stone-400 font-bold tracking-wider">Người gửi:</span>
+                  <p className="font-semibold text-stone-800 dark:text-stone-200 mt-0.5">{selected.reporterName}</p>
                 </div>
                 <div>
-                  <span className="font-caption uppercase text-on-surface-variant font-bold">Lý do:</span>
-                  <p className="text-error font-semibold">{selected.reasonName}</p>
+                  <span className="font-mono text-[11px] uppercase text-stone-500 dark:text-stone-400 font-bold tracking-wider">Lý do:</span>
+                  <p className="text-rose-600 dark:text-rose-400 font-semibold mt-0.5">{selected.reasonName}</p>
                 </div>
               </div>
 
               <div>
-                <span className="font-caption uppercase text-on-surface-variant font-bold">Mô tả chi tiết vi phạm:</span>
-                <p className="p-3 bg-white rounded-lg text-body-sm text-on-surface mt-1 border border-surface-container leading-relaxed">
+                <span className="font-mono text-[11px] uppercase text-stone-500 dark:text-stone-400 font-bold tracking-wider">Mô tả chi tiết vi phạm:</span>
+                <p className="p-3 bg-white dark:bg-stone-900 rounded-lg text-xs font-mono text-stone-800 dark:text-stone-200 mt-1 border border-stone-200 dark:border-stone-800 leading-relaxed">
                   {selected.description || 'Không có mô tả chi tiết kèm theo.'}
                 </p>
               </div>
@@ -325,7 +325,7 @@ export default function Reports() {
 
             {/* Admin Note Input */}
             <div className="space-y-1.5">
-              <label className="font-headline-sm text-body-sm text-on-surface font-semibold" htmlFor="adminNote">
+              <label className="font-mono text-xs text-stone-700 dark:text-stone-300 font-bold uppercase tracking-wider block" htmlFor="adminNote">
                 Ghi chú quyết định của Hội đồng Khoa:
               </label>
               <textarea
@@ -334,16 +334,16 @@ export default function Reports() {
                 value={adminNote}
                 onChange={(e) => setAdminNote(e.target.value)}
                 placeholder="Nhập lý do duyệt hoặc ghi chú phản hồi cho tác giả và người báo cáo..."
-                className="w-full bg-surface-container-low p-3 rounded-lg text-body-sm outline-none focus:bg-white focus:ring-2 focus:ring-secondary border border-transparent focus:border-secondary transition-all"
+                className="w-full bg-stone-100/80 dark:bg-stone-950 p-3 rounded-xl text-xs font-mono text-stone-900 dark:text-stone-100 placeholder:text-stone-400 outline-none focus:bg-white dark:focus:bg-stone-950 focus:ring-2 focus:ring-stone-400 dark:focus:ring-stone-600 border border-stone-300 dark:border-stone-700 transition-all resize-none"
               />
             </div>
 
             {/* Action Decision Buttons */}
-            <div className="flex flex-wrap items-center justify-end gap-2 pt-3 border-t border-surface-container">
+            <div className="flex flex-wrap items-center justify-end gap-2 pt-3 border-t border-stone-200 dark:border-stone-800">
               <button
                 type="button"
                 onClick={() => setSelected(null)}
-                className="px-4 py-2 bg-surface-container hover:bg-surface-container-high rounded-lg text-body-sm font-semibold transition-colors"
+                className="px-4 py-2 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 rounded-xl text-xs font-mono font-bold transition-colors border border-stone-300 dark:border-stone-700 cursor-pointer"
               >
                 Hủy bỏ
               </button>
@@ -352,7 +352,7 @@ export default function Reports() {
                 type="button"
                 disabled={actionLoading}
                 onClick={() => onHandle('REJECTED', false)}
-                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg text-body-sm font-semibold transition-colors cursor-pointer"
+                className="px-4 py-2 bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 rounded-xl text-xs font-mono font-bold transition-colors border border-stone-300 dark:border-stone-700 cursor-pointer"
               >
                 Bác bỏ khiếu nại (Không vi phạm)
               </button>
@@ -361,7 +361,7 @@ export default function Reports() {
                 type="button"
                 disabled={actionLoading}
                 onClick={() => onHandle('RESOLVED', false)}
-                className="px-4 py-2 bg-secondary hover:bg-secondary/90 text-on-secondary rounded-lg text-body-sm font-semibold transition-colors cursor-pointer"
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs font-mono rounded-xl shadow-xs transition-colors cursor-pointer"
               >
                 Đã xử lý (Cảnh báo tác giả)
               </button>
@@ -370,7 +370,7 @@ export default function Reports() {
                 type="button"
                 disabled={actionLoading}
                 onClick={() => onHandle('RESOLVED', true)}
-                className="px-4 py-2 bg-error hover:bg-error/90 text-on-error rounded-lg text-body-sm font-semibold transition-colors cursor-pointer"
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs font-mono rounded-xl shadow-xs transition-colors cursor-pointer"
               >
                 Xác nhận vi phạm &amp; Ẩn tài liệu
               </button>

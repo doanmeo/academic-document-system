@@ -386,7 +386,7 @@ export default function EditDocument() {
                         <span className="material-symbols-outlined text-[20px]">edit_note</span>
                       </div>
                       <div>
-                        <h3 className="font-headline-sm text-headline-sm text-primary">Thông tin học thuật đề tài</h3>
+                        <h3 className="font-serif-academic text-lg font-bold text-stone-900 dark:text-stone-100">Thông tin học thuật đề tài</h3>
                         <p className="font-caption text-caption text-on-surface-variant">Hiệu chỉnh các mục bắt buộc đã được đồng bộ với biểu mẫu K64</p>
                       </div>
                     </div>
@@ -762,7 +762,7 @@ export default function EditDocument() {
                 
                 {/* PREVIEW & SUBMISSION SUMMARY (CHECKLIST) */}
                 <div className="rounded-xl bg-surface-container-lowest p-space-lg shadow-xs border border-surface-container space-y-space-md">
-                  <h3 className="font-headline-sm text-headline-sm text-primary flex items-center gap-2">
+                  <h3 className="font-serif-academic text-lg font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
                     <span className="material-symbols-outlined text-[20px] text-secondary">fact_check</span>
                     Kiểm tra trước khi nộp
                   </h3>
