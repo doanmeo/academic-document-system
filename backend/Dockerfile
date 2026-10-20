@@ -6,13 +6,13 @@
 FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
 WORKDIR /workspace
 
-# Cache Maven dependencies
+# Copy POM and download core dependencies
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
+RUN mvn dependency:resolve -B -DskipTests || true
 
 # Copy source code and build executable JAR
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN mvn package -DskipTests -B
 
 # Stage 2: Ultra-lightweight JRE 21 Runtime Container
 FROM eclipse-temurin:21-jre-alpine
@@ -30,10 +30,6 @@ ENV SPRING_PROFILES_ACTIVE=prod
 ENV PORT=8080
 
 EXPOSE 8080
-
-# Healthcheck for container orchestrators (Render / Railway / Koyeb)
-HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
-  CMD wget -qO- http://localhost:${PORT}/api/health | grep -q "UP" || exit 1
 
 # Tuned JVM memory options for 512MB RAM free-tier:
 # - SerialGC saves ~30-50MB RAM compared to G1GC
