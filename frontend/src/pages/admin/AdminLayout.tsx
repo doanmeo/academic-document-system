@@ -1,15 +1,15 @@
-import React from 'react'
+﻿import React from 'react'
 import { Outlet, NavLink } from 'react-router-dom'
 import Navbar from '../../components/layout/Navbar'
 import Footer from '../../components/layout/Footer'
 
 export default function AdminLayout() {
   return (
-    <div className="min-h-screen flex flex-col bg-surface antialiased">
+    <div className="min-h-screen flex flex-col bg-surface bg-paper-grid antialiased">
       <Navbar />
 
-      <main className="w-full pt-20 pb-16 flex-grow bg-surface">
-        <div className="max-w-7xl mx-auto px-4 lg:px-gutter-desktop space-y-6">
+      <main className="w-full pt-20 pb-16 flex-grow bg-paper-grid">
+        <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 space-y-6">
           {/* Admin Navigation Pills Strip */}
           <div className="bg-surface-container-lowest p-2.5 rounded-xl shadow-xs border border-surface-container flex items-center gap-1.5 flex-wrap">
             <NavLink

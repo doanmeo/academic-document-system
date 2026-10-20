@@ -44,6 +44,8 @@ import { generateClientCitation } from '../api/documentApi'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import PdfViewerModal from '../components/PdfViewerModal'
+import CustomSelect from '../components/ui/CustomSelect'
+import CustomCheckbox from '../components/ui/CustomCheckbox'
 
 // Preset templates for quick collection creation
 const ACADEMIC_PRESETS = [
@@ -455,52 +457,49 @@ export const Collections: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-[#faf9f5] dark:bg-[#0c1017] text-stone-900 dark:text-stone-100 antialiased selection:bg-blue-600 selection:text-white">
       <Navbar />
 
-      <main className="w-full pt-20 pb-16 flex-grow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Breadcrumb & Stamp */}
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-stone-500 dark:text-stone-400 mb-6 pb-3 border-b border-stone-200 dark:border-stone-800 font-mono">
-            <div className="flex items-center gap-2">
-              <Link to="/search" className="hover:text-blue-600 dark:hover:text-blue-400">Tra cứu tài liệu</Link>
-              <ChevronRight className="w-3.5 h-3.5" />
-              <span className="text-stone-900 dark:text-stone-100 font-bold">Bộ Sưu Tập Cá Nhân &amp; Nhóm</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="stamp-seal text-stone-700 dark:text-stone-300 border-stone-400 dark:border-stone-700 bg-stone-100 dark:bg-stone-900 text-[10px]">
-                UTC FIT ACADEMIC COLLECTIONS
-              </span>
-            </div>
-          </div>
-
-          {/* Header Title Section */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between pb-6 mb-6 gap-4">
+      <main className="w-full pt-20 pb-16 flex-grow bg-paper-grid">
+        <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
+          {/* Header: Title, Academic Meta & Actions */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-5 border-b border-stone-300 dark:border-stone-800 mb-6">
             <div>
-              <div className="flex items-center gap-2.5 mb-1.5">
-                <div className="w-9 h-9 rounded-lg bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 flex items-center justify-center shadow-xs">
-                  <FolderArchive className="w-5 h-5" />
-                </div>
-                <h1 className="font-serif-academic text-2xl md:text-3xl font-bold text-stone-950 dark:text-stone-50 tracking-tight">
-                  Bộ Sưu Tập &amp; Góc Học Tập Nhóm
-                </h1>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="stamp-seal text-purple-700 dark:text-purple-400 border-purple-600 dark:border-purple-400 bg-purple-50 dark:bg-purple-950/60 text-[10px]">
+                  [ HỒ SƠ LƯU TRỮ &amp; BỘ SƯU TẬP HỌC THUẬT ]
+                </span>
+                <span className="text-stone-400">/</span>
+                <span className="font-mono text-xs text-stone-500">KHOA CNTT · ĐH GIAO THÔNG VẬN TẢI</span>
               </div>
-              <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 max-w-2xl font-sans">
-                Gom nhóm và phân loại học liệu theo từng môn học, đề tài nghiên cứu hoặc chia sẻ tài liệu ôn thi trực tiếp cho bạn bè qua đường dẫn bí mật.
+
+              <h1 className="font-serif-academic text-3xl sm:text-4xl font-bold text-stone-950 dark:text-stone-50 tracking-tight">
+                Bộ Sưu Tập &amp; Góc Học Tập Cá Nhân
+              </h1>
+
+              <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 max-w-2xl font-sans">
+                Gom nhóm và phân loại học liệu theo từng môn học, đề tài nghiên cứu hoặc chia sẻ tài liệu ôn thi trực tiếp cho bạn bè qua đường dẫn chia sẻ an toàn.
               </p>
             </div>
 
-            {!shareToken && (
-              <button
-                type="button"
-                onClick={() => {
-                  setNewTitle('')
-                  setNewDesc('')
-                  setShowCreate(true)
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-white text-white dark:text-stone-900 font-mono font-bold text-xs shadow-sm transition-all cursor-pointer self-start md:self-auto"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Tạo bộ sưu tập mới</span>
-              </button>
-            )}
+            {/* Counter & Action */}
+            <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+              <div className="px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 font-mono text-xs font-bold text-stone-700 dark:text-stone-300">
+                <span className="text-purple-600 dark:text-purple-400">{collections.length}</span> BỘ SƯU TẬP
+              </div>
+
+              {!shareToken && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewTitle('')
+                    setNewDesc('')
+                    setShowCreate(true)
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-mono font-bold text-xs shadow-xs transition-all cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>+ Tạo bộ sưu tập mới</span>
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -522,7 +521,7 @@ export const Collections: React.FC = () => {
                       placeholder="Tìm bộ sưu tập..."
                       value={colSearchQuery}
                       onChange={(e) => setColSearchQuery(e.target.value)}
-                      className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100 focus:outline-hidden focus:ring-1 focus:ring-stone-400"
+                      className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-stone-300 dark:border-stone-700 bg-stone-100/80 dark:bg-stone-950 text-stone-900 dark:text-stone-100 focus:outline-none focus:border-purple-600 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20"
                     />
                   </div>
                 </div>
@@ -577,7 +576,7 @@ export const Collections: React.FC = () => {
                           onClick={() => handleSelectCollection(col)}
                           className={`p-3.5 rounded-xl border transition-all cursor-pointer relative group ${
                             isSelected
-                              ? 'border-stone-900 dark:border-stone-100 bg-white dark:bg-stone-850 shadow-md ring-1 ring-stone-900/10 dark:ring-white/20'
+                              ? 'border-blue-600 dark:border-blue-500 bg-blue-50/40 dark:bg-stone-800 shadow-md ring-1 ring-blue-600/20 dark:ring-blue-500/30'
                               : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 hover:border-stone-400 dark:hover:border-stone-700 shadow-2xs'
                           }`}
                         >
@@ -755,43 +754,45 @@ export const Collections: React.FC = () => {
                       <div className="flex items-center gap-2 flex-wrap">
                         {/* Filter by Type */}
                         {availableTypes.length > 1 && (
-                          <select
+                          <CustomSelect
                             value={itemTypeFilter}
-                            onChange={(e) => setItemTypeFilter(e.target.value)}
-                            className="px-2.5 py-1.5 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-200 text-xs"
-                          >
-                            <option value="ALL">Mọi thể loại ({availableTypes.length})</option>
-                            {availableTypes.map(([code, label]) => (
-                              <option key={code} value={code}>{label}</option>
-                            ))}
-                          </select>
+                            onChange={(val) => setItemTypeFilter(val)}
+                            options={[
+                              { value: 'ALL', label: `Mọi thể loại (${availableTypes.length})` },
+                              ...availableTypes.map(([code, label]) => ({ value: code, label })),
+                            ]}
+                            size="sm"
+                            className="min-w-[140px]"
+                          />
                         )}
 
                         {/* Filter by Subject */}
                         {availableSubjects.length > 1 && (
-                          <select
+                          <CustomSelect
                             value={itemSubjectFilter}
-                            onChange={(e) => setItemSubjectFilter(e.target.value)}
-                            className="px-2.5 py-1.5 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-200 text-xs"
-                          >
-                            <option value="ALL">Mọi môn học ({availableSubjects.length})</option>
-                            {availableSubjects.map((sub) => (
-                              <option key={sub} value={sub}>{sub}</option>
-                            ))}
-                          </select>
+                            onChange={(val) => setItemSubjectFilter(val)}
+                            options={[
+                              { value: 'ALL', label: `Mọi môn học (${availableSubjects.length})` },
+                              ...availableSubjects.map((sub) => ({ value: sub, label: sub })),
+                            ]}
+                            size="sm"
+                            className="min-w-[170px]"
+                          />
                         )}
 
                         {/* Sort selector */}
-                        <select
+                        <CustomSelect
                           value={itemSortBy}
-                          onChange={(e) => setItemSortBy(e.target.value as any)}
-                          className="px-2.5 py-1.5 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-200 text-xs"
-                        >
-                          <option value="default">Thứ tự thêm</option>
-                          <option value="title">Tên tài liệu A-Z</option>
-                          <option value="rating">Đánh giá cao nhất ⭐</option>
-                          <option value="views">Lượt xem nhiều nhất 👁️</option>
-                        </select>
+                          onChange={(val) => setItemSortBy(val as any)}
+                          options={[
+                            { value: 'default', label: 'Thứ tự thêm' },
+                            { value: 'title', label: 'Tên tài liệu A-Z' },
+                            { value: 'rating', label: 'Đánh giá cao nhất ⭐' },
+                            { value: 'views', label: 'Lượt xem nhiều nhất 👁️' },
+                          ]}
+                          size="sm"
+                          className="min-w-[150px]"
+                        />
                       </div>
                     </div>
                   )}
@@ -1024,20 +1025,16 @@ export const Collections: React.FC = () => {
                 />
               </div>
 
-              <div className="bg-stone-50 dark:bg-stone-950 p-3 rounded-lg border border-stone-200 dark:border-stone-800 flex items-start gap-2.5">
-                <input
-                  type="checkbox"
+              <div className="bg-stone-50 dark:bg-stone-950 p-3 rounded-lg border border-stone-200 dark:border-stone-800">
+                <CustomCheckbox
                   id="colPublic"
                   checked={isPublic}
-                  onChange={(e) => setIsPublic(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded text-blue-600 border-stone-300 focus:ring-blue-600"
+                  onChange={setIsPublic}
+                  label="Cho phép chia sẻ qua đường link bí mật"
+                  description="Bất kỳ ai nhận được đường liên kết đều có thể xem và lưu bản sao học liệu này."
+                  color="blue"
+                  size="md"
                 />
-                <label htmlFor="colPublic" className="text-xs text-stone-700 dark:text-stone-300 cursor-pointer">
-                  <strong className="block font-semibold">Cho phép chia sẻ qua đường link bí mật</strong>
-                  <span className="text-[11px] text-stone-500 block mt-0.5">
-                    Bất kỳ ai nhận được đường liên kết đều có thể xem và lưu bản sao học liệu này.
-                  </span>
-                </label>
               </div>
 
               <div className="flex justify-end gap-2.5 pt-2 border-t border-stone-200 dark:border-stone-800">
@@ -1105,20 +1102,16 @@ export const Collections: React.FC = () => {
                 />
               </div>
 
-              <div className="bg-stone-50 dark:bg-stone-950 p-3 rounded-lg border border-stone-200 dark:border-stone-800 flex items-start gap-2.5">
-                <input
-                  type="checkbox"
+              <div className="bg-stone-50 dark:bg-stone-950 p-3 rounded-lg border border-stone-200 dark:border-stone-800">
+                <CustomCheckbox
                   id="editColPublic"
                   checked={editPublic}
-                  onChange={(e) => setEditPublic(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded text-blue-600 border-stone-300 focus:ring-blue-600"
+                  onChange={setEditPublic}
+                  label="Cho phép chia sẻ qua đường link bí mật"
+                  description="Nếu tắt, bộ sưu tập này sẽ chuyển về chế độ riêng tư và chỉ một mình bạn có thể truy cập."
+                  color="blue"
+                  size="md"
                 />
-                <label htmlFor="editColPublic" className="text-xs text-stone-700 dark:text-stone-300 cursor-pointer">
-                  <strong className="block font-semibold">Cho phép chia sẻ qua đường link bí mật</strong>
-                  <span className="text-[11px] text-stone-500 block mt-0.5">
-                    Nếu tắt, bộ sưu tập này sẽ chuyển về chế độ riêng tư và chỉ một mình bạn có thể truy cập.
-                  </span>
-                </label>
               </div>
 
               {/* Share token regeneration option */}

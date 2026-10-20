@@ -10,6 +10,7 @@ import type { Subject, AcademicYear, Major, Technology } from '../types/catalog'
 import { getErrorMessage } from '../utils/errorMessages'
 import { useToast } from '../contexts/ToastContext'
 import CustomSelect from '../components/ui/CustomSelect'
+import CustomCheckbox from '../components/ui/CustomCheckbox'
 import { Sparkles, Loader2 } from 'lucide-react'
 
 export default function UploadDocument() {
@@ -309,8 +310,8 @@ export default function UploadDocument() {
     <div className="min-h-screen flex flex-col bg-surface antialiased">
       <Navbar />
 
-      <main className="w-full pt-20 pb-16 flex-grow bg-surface">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-6">
+      <main className="w-full pt-20 pb-16 flex-grow bg-paper-grid">
+        <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-surface-container">
             <div>
@@ -693,20 +694,14 @@ export default function UploadDocument() {
 
             {/* ─── 3. Academic Integrity Pledge (Mandatory) ─────────────── */}
             <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 space-y-2">
-              <label className="flex items-start gap-3 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={pledgeAccepted}
-                  onChange={(e) => setPledgeAccepted(e.target.checked)}
-                  className="mt-1 w-5 h-5 rounded text-primary focus:ring-primary cursor-pointer"
-                />
-                <div className="text-body-sm leading-snug">
-                  <span className="font-bold text-primary">Cam kết Liêm chính Học thuật UTC:</span>
-                  <p className="text-on-surface-variant text-caption mt-0.5">
-                    Tôi cam kết toàn bộ nội dung trong tệp học liệu này là sản phẩm học thuật chính chủ của nhóm tác giả, không sao chép trái phép hay vi phạm bản quyền theo Quy chế Đào tạo của Trường Đại học Giao thông Vận tải.
-                  </p>
-                </div>
-              </label>
+              <CustomCheckbox
+                checked={pledgeAccepted}
+                onChange={setPledgeAccepted}
+                label={<span className="font-bold text-primary">Cam kết Liêm chính Học thuật UTC:</span>}
+                description="Tôi cam kết toàn bộ nội dung trong tệp học liệu này là sản phẩm học thuật chính chủ của nhóm tác giả, không sao chép trái phép hay vi phạm bản quyền theo Quy chế Đào tạo của Trường Đại học Giao thông Vận tải."
+                color="blue"
+                size="md"
+              />
             </div>
 
             {/* ─── Academic Checklist Status Widget ─────────────── */}

@@ -40,6 +40,8 @@ import { documentApi } from '../api/documentApi'
 import { catalogApi } from '../api/catalogApi'
 import { DocumentSummary } from '../types/document'
 import { useToast } from '../contexts/ToastContext'
+import CustomSelect from '../components/ui/CustomSelect'
+import CustomCheckbox from '../components/ui/CustomCheckbox'
 
 // ─── UTC FIT Exam Matrix Reference Data ───────────────────────────────────────
 interface ExamMatrixItem {
@@ -564,14 +566,14 @@ export const ExamBank: React.FC = () => {
       <Navbar />
 
       <main className="w-full pt-20 pb-20 flex-grow bg-paper-grid">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
           
           {/* Breadcrumb & Accession Code */}
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs mb-6 pt-2">
             <div className="flex items-center gap-2 text-stone-500 dark:text-stone-400">
-              <Link to="/" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Trang chủ</Link>
+              <Link to="/" className="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Trang chủ</Link>
               <ChevronRight className="w-3.5 h-3.5" />
-              <Link to="/search" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Tra cứu tài liệu</Link>
+              <Link to="/search" className="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Tra cứu tài liệu</Link>
               <ChevronRight className="w-3.5 h-3.5" />
               <span className="text-stone-800 dark:text-stone-200 font-semibold font-mono">/exams</span>
             </div>
@@ -582,202 +584,258 @@ export const ExamBank: React.FC = () => {
             </div>
           </div>
 
-          {/* Academic Hero Banner */}
-          <div className="relative overflow-hidden rounded-2xl bg-[#fffdfa] dark:bg-[#12161f] border border-stone-200/90 dark:border-stone-800 shadow-sm p-6 sm:p-8 md:p-10 mb-8">
-            <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-              <div className="max-w-3xl space-y-3">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs font-semibold text-amber-900 dark:text-amber-200">
-                  <GraduationCap className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                  <span>KHO LƯU TRỮ ĐỀ THI KẾT THÚC HỌC PHẦN (KTHP) &amp; GIỮA KỲ</span>
-                </div>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif-academic font-bold tracking-tight text-stone-900 dark:text-stone-50 leading-tight">
-                  Ngân Hàng Đề Thi &amp; Ma Trận Ôn Tập Học Phần FIT
-                </h1>
-                <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 leading-relaxed font-sans max-w-2xl">
-                  Tổng hợp đề thi chính thức qua các học kỳ, phân cấp theo thang điểm B / A / A+, kèm đáp án giải chi tiết, cấu trúc đề thi chuẩn của từng bộ môn và lời bình bẫy đề thi từ sinh viên khóa trước.
-                </p>
-
-                {/* Quick Action Buttons */}
-                <div className="flex flex-wrap items-center gap-3 pt-2">
-                  <button
-                    onClick={() => setMatrixModalOpen(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
-                  >
-                    <BarChart3 className="w-4 h-4" />
-                    <span>Ma Trận Cấu Trúc Đề Thi UTC</span>
-                  </button>
-                  <button
-                    onClick={() => setTrapsModalOpen(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-amber-50 dark:hover:bg-amber-950/30 text-stone-800 dark:text-stone-200 hover:text-amber-900 dark:hover:text-amber-300 border border-stone-200 dark:border-stone-700 text-xs font-semibold transition-colors cursor-pointer"
-                  >
-                    <Lightbulb className="w-4 h-4 text-amber-500" />
-                    <span>Cẩm Nang Bẫy Đề &amp; Mẹo Điểm A+</span>
-                  </button>
-                </div>
+          {/* Header: Title, Academic Meta & Actions */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-5 border-b border-stone-300 dark:border-stone-800 mb-6">
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="stamp-seal text-amber-700 dark:text-amber-400 border-amber-600 dark:border-amber-400 bg-amber-50 dark:bg-amber-950/60 text-[10px]">
+                  [ NGÂN HÀNG ĐỀ THI &amp; MA TRẬN KTHP ]
+                </span>
+                <span className="text-stone-400">/</span>
+                <span className="font-mono text-xs text-stone-500">KHOA CNTT · ĐH GIAO THÔNG VẬN TẢI</span>
               </div>
 
-              {/* Stats Column */}
-              <div className="w-full lg:w-auto grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-3 shrink-0">
-                <div className="p-3.5 rounded-xl bg-stone-50 dark:bg-stone-900/60 border border-stone-200/80 dark:border-stone-800">
-                  <div className="font-mono text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-100">{stats.total}</div>
-                  <div className="text-[11px] text-stone-500 dark:text-stone-400 font-sans mt-0.5">Đề thi đã lưu trữ</div>
-                </div>
-                <div className="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/40">
-                  <div className="font-mono text-xl sm:text-2xl font-bold text-emerald-700 dark:text-emerald-300">{stats.solutionPercent}%</div>
-                  <div className="text-[11px] text-emerald-600/90 dark:text-emerald-400/90 font-sans mt-0.5">Có đáp án chi tiết</div>
-                </div>
-                <div className="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40">
-                  <div className="font-mono text-xl sm:text-2xl font-bold text-amber-700 dark:text-amber-300">{stats.withTips}</div>
-                  <div className="text-[11px] text-amber-600/90 dark:text-amber-400/90 font-sans mt-0.5">Đề có lời bình &amp; mẹo</div>
-                </div>
-                <div className="p-3.5 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/60 dark:border-rose-800/40">
-                  <div className="font-mono text-xl sm:text-2xl font-bold text-rose-700 dark:text-rose-300">{stats.hardCount}</div>
-                  <div className="text-[11px] text-rose-600/90 dark:text-rose-400/90 font-sans mt-0.5">Đề phân hóa (A+)</div>
-                </div>
+              <h1 className="font-serif-academic text-3xl sm:text-4xl font-bold text-stone-950 dark:text-stone-50 tracking-tight">
+                Ngân Hàng Đề Thi &amp; Ma Trận Ôn Tập
+              </h1>
+
+              <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 max-w-2xl font-sans">
+                Tổng hợp đề thi chính thức qua các học kỳ, phân cấp theo thang điểm B / A / A+, kèm đáp án giải chi tiết, cấu trúc đề thi chuẩn của từng bộ môn và lời bình bẫy đề thi từ sinh viên khóa trước.
+              </p>
+            </div>
+
+            {/* Counter & Action Modals */}
+            <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+              <div className="px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 font-mono text-xs font-bold text-stone-700 dark:text-stone-300">
+                <span className="text-amber-600 dark:text-amber-400">{filteredExams.length}</span> / {exams.length} ĐỀ THI
               </div>
+
+              <button
+                type="button"
+                onClick={() => setMatrixModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs shadow-xs transition-all cursor-pointer"
+              >
+                <BarChart3 className="w-3.5 h-3.5 text-stone-950" />
+                <span>Ma Trận Đề Thi</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTrapsModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-stone-800 dark:text-stone-200 border border-stone-300 dark:border-stone-700 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+                <span>Bẫy Đề &amp; Mẹo A+</span>
+              </button>
             </div>
           </div>
 
-          {/* Multi-dimensional Academic Filter Station */}
-          <div className="bg-[#fffdfa] dark:bg-[#12161f] border border-stone-200/90 dark:border-stone-800 rounded-2xl p-5 mb-8 shadow-xs">
-            {/* Row 1: Search & Major Selectors */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mb-4">
-              {/* Search input with Ctrl+K shortcut */}
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  placeholder="Tìm đề thi, mã môn, giảng viên..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-14 py-2 text-xs rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-900/60 text-stone-800 dark:text-stone-100 focus:outline-hidden focus:ring-2 focus:ring-blue-600 placeholder-stone-400 font-sans"
-                />
-                <kbd className="hidden sm:inline-block absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-mono font-medium text-stone-400 bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded">
-                  Ctrl K
-                </kbd>
-              </div>
+          {/* Quick Stats Strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <div className="p-3.5 rounded-xl bg-white dark:bg-stone-900 border-2 border-stone-200/90 dark:border-stone-800/90 shadow-2xs">
+              <div className="font-mono text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-100">{stats.total}</div>
+              <div className="text-[11px] text-stone-500 dark:text-stone-400 font-sans mt-0.5">Đề thi đã lưu trữ</div>
+            </div>
+            <div className="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border-2 border-emerald-200/70 dark:border-emerald-800/50 shadow-2xs">
+              <div className="font-mono text-xl sm:text-2xl font-bold text-emerald-700 dark:text-emerald-300">{stats.solutionPercent}%</div>
+              <div className="text-[11px] text-emerald-600/90 dark:text-emerald-400/90 font-sans mt-0.5">Có đáp án chi tiết</div>
+            </div>
+            <div className="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border-2 border-amber-200/70 dark:border-amber-800/50 shadow-2xs">
+              <div className="font-mono text-xl sm:text-2xl font-bold text-amber-700 dark:text-amber-300">{stats.withTips}</div>
+              <div className="text-[11px] text-amber-600/90 dark:text-amber-400/90 font-sans mt-0.5">Có lời bình &amp; bẫy đề</div>
+            </div>
+            <div className="p-3.5 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border-2 border-rose-200/70 dark:border-rose-800/50 shadow-2xs">
+              <div className="font-mono text-xl sm:text-2xl font-bold text-rose-700 dark:text-rose-300">{stats.hardCount}</div>
+              <div className="text-[11px] text-rose-600/90 dark:text-rose-400/90 font-sans mt-0.5">Đề phân hóa (A+)</div>
+            </div>
+          </div>
 
-              {/* Subject selector */}
+          {/* Main Search & Filter Command Station */}
+          <div className="bg-white dark:bg-stone-900 rounded-2xl border-2 border-stone-300 dark:border-stone-800 p-5 sm:p-6 shadow-xs space-y-4 mb-6">
+            {/* Row 1: Search Omnibar */}
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-amber-600 dark:text-amber-400">
+                <Search className="w-4 h-4" />
+              </span>
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Tìm đề thi, mã học phần, giảng viên, từ khóa ôn tập... (Ctrl + K)"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10 pr-20 py-2.5 text-xs font-mono bg-stone-100/80 dark:bg-stone-950 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-xl focus:bg-white dark:focus:bg-stone-950 focus:border-amber-500 dark:focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 focus:outline-none transition-all placeholder:text-stone-400"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="absolute right-12 top-1/2 -translate-y-1/2 p-1 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+              <kbd className="hidden sm:inline-block absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-mono font-medium text-stone-500 bg-stone-200 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded select-none">
+                Ctrl K
+              </kbd>
+            </div>
+
+            {/* Quick Filter Subject Pills */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              <span className="text-[11px] font-mono font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mr-1">
+                Bộ môn:
+              </span>
+              {[
+                { label: 'Tất cả', value: '' },
+                { label: 'C/C++ (IT102)', value: '16' },
+                { label: 'OOP Java (IT205)', value: '17' },
+                { label: 'CSDL (IT201)', value: '21' },
+                { label: 'Mạng MT (IT203)', value: '23' },
+                { label: 'Web Tech (IT301)', value: '27' },
+                { label: 'Mobile App (IT302)', value: '28' },
+              ].map((chip) => {
+                const isActive = selectedSubject === chip.value
+                return (
+                  <button
+                    key={chip.label}
+                    type="button"
+                    onClick={() => setSelectedSubject(chip.value)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer border ${
+                      isActive
+                        ? 'bg-amber-500 border-amber-600 text-stone-950 font-bold shadow-2xs'
+                        : 'bg-stone-50 dark:bg-stone-950/50 border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-amber-400 dark:hover:border-amber-600 hover:text-stone-900 dark:hover:text-stone-100'
+                    }`}
+                  >
+                    {chip.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Row 2: Select Filters */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-stone-200 dark:border-stone-800">
               <div>
-                <select
+                <label className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-400 uppercase tracking-wider mb-1">
+                  Môn học chi tiết:
+                </label>
+                <CustomSelect
                   value={selectedSubject}
-                  onChange={(e) => setSelectedSubject(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-900/60 text-stone-800 dark:text-stone-100 focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-sans"
-                >
-                  <option value="">Tất cả học phần ({subjects.length})</option>
-                  {subjects.map((sub) => (
-                    <option key={sub.id} value={sub.id}>
-                      {sub.code} - {sub.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setSelectedSubject(val)}
+                  options={[
+                    { value: '', label: `Tất cả học phần (${subjects.length})` },
+                    ...subjects.map((sub) => ({
+                      value: String(sub.id),
+                      label: `${sub.code} - ${sub.name}`,
+                    })),
+                  ]}
+                  placeholder={`Tất cả học phần (${subjects.length})`}
+                  className="w-full"
+                />
               </div>
 
-              {/* Exam Type Selector (KTHP / Giữa kỳ / Lab) */}
               <div>
-                <select
+                <label className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-400 uppercase tracking-wider mb-1">
+                  Hình thức thi:
+                </label>
+                <CustomSelect
                   value={selectedExamType}
-                  onChange={(e) => setSelectedExamType(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-900/60 text-stone-800 dark:text-stone-100 focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-sans"
-                >
-                  <option value="ALL">Hình thức thi: Tất cả</option>
-                  <option value="FINAL">Đề Kết Thúc Học Phần (KTHP)</option>
-                  <option value="MIDTERM">Đề Kiểm Tra Giữa Kỳ</option>
-                  <option value="LAB">Đề Thực Hành Phòng Máy / Lab</option>
-                </select>
+                  onChange={(val) => setSelectedExamType(val)}
+                  options={[
+                    { value: 'ALL', label: 'Tất cả hình thức thi' },
+                    { value: 'FINAL', label: 'Đề Kết Thúc Học Phần (KTHP)' },
+                    { value: 'MIDTERM', label: 'Đề Kiểm Tra Giữa Kỳ' },
+                    { value: 'LAB', label: 'Đề Thực Hành Phòng Máy / Lab' },
+                  ]}
+                  className="w-full"
+                />
               </div>
 
-              {/* Difficulty Selector */}
               <div>
-                <select
+                <label className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-400 uppercase tracking-wider mb-1">
+                  Độ phân hóa điểm:
+                </label>
+                <CustomSelect
                   value={selectedDifficulty}
-                  onChange={(e) => setSelectedDifficulty(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-900/60 text-stone-800 dark:text-stone-100 focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-sans"
-                >
-                  <option value="">Độ phân hóa: Tất cả</option>
-                  <option value="EASY">Cơ bản (Mục tiêu qua môn / Điểm B)</option>
-                  <option value="MEDIUM">Trung bình (Mục tiêu Điểm B+ đến A)</option>
-                  <option value="HARD">Nâng cao (Phân hóa Điểm A+)</option>
-                </select>
+                  onChange={(val) => setSelectedDifficulty(val)}
+                  options={[
+                    { value: '', label: 'Tất cả mức độ' },
+                    { value: 'EASY', label: 'Cơ bản (Mục tiêu qua môn / Điểm B)' },
+                    { value: 'MEDIUM', label: 'Trung bình (Mục tiêu Điểm B+ đến A)' },
+                    { value: 'HARD', label: 'Nâng cao (Phân hóa Điểm A+)' },
+                  ]}
+                  className="w-full"
+                />
               </div>
             </div>
 
-            {/* Row 2: Secondary Filters & Toggles */}
-            <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-stone-100 dark:border-stone-800/80">
+            {/* Row 3: Secondary Toggles, View Mode & Reset */}
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-stone-200 dark:border-stone-800">
               <div className="flex flex-wrap items-center gap-4 text-xs">
-                {/* Semester filter */}
                 <div className="flex items-center gap-1.5">
-                  <span className="text-stone-500 text-[11px]">Học kỳ:</span>
-                  <select
+                  <span className="text-stone-500 font-mono text-[11px]">Học kỳ:</span>
+                  <CustomSelect
                     value={selectedSemester}
-                    onChange={(e) => setSelectedSemester(e.target.value)}
-                    className="px-2.5 py-1 text-xs rounded-lg border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-900/60 text-stone-800 dark:text-stone-100"
-                  >
-                    <option value="">Tất cả kỳ</option>
-                    <option value="Kỳ 1">Học kỳ 1</option>
-                    <option value="Kỳ 2">Học kỳ 2</option>
-                    <option value="Kỳ hè">Học kỳ Hè</option>
-                  </select>
+                    onChange={(val) => setSelectedSemester(val)}
+                    options={[
+                      { value: '', label: 'Tất cả kỳ' },
+                      { value: 'Kỳ 1', label: 'Học kỳ 1' },
+                      { value: 'Kỳ 2', label: 'Học kỳ 2' },
+                      { value: 'Kỳ hè', label: 'Học kỳ Hè' },
+                    ]}
+                    size="sm"
+                    className="w-32"
+                  />
                 </div>
 
-                {/* Solution checkbox */}
-                <label className="flex items-center gap-1.5 cursor-pointer text-stone-700 dark:text-stone-300 select-none">
-                  <input
-                    type="checkbox"
-                    checked={onlyWithSolution}
-                    onChange={(e) => setOnlyWithSolution(e.target.checked)}
-                    className="w-3.5 h-3.5 text-blue-600 rounded border-stone-300 dark:border-stone-700 focus:ring-blue-600"
-                  />
-                  <span>Chỉ hiện đề có đáp án</span>
-                </label>
+                <CustomCheckbox
+                  checked={onlyWithSolution}
+                  onChange={setOnlyWithSolution}
+                  label="Chỉ hiện đề có đáp án"
+                  color="emerald"
+                  size="sm"
+                />
 
-                {/* Tips checkbox */}
-                <label className="flex items-center gap-1.5 cursor-pointer text-stone-700 dark:text-stone-300 select-none">
-                  <input
-                    type="checkbox"
-                    checked={onlyWithTips}
-                    onChange={(e) => setOnlyWithTips(e.target.checked)}
-                    className="w-3.5 h-3.5 text-amber-600 rounded border-stone-300 dark:border-stone-700 focus:ring-amber-600"
-                  />
-                  <span>Có lời bình &amp; bẫy đề thi</span>
-                </label>
+                <CustomCheckbox
+                  checked={onlyWithTips}
+                  onChange={setOnlyWithTips}
+                  label="Có lời bình &amp; bẫy đề thi"
+                  color="amber"
+                  size="sm"
+                />
               </div>
 
-              {/* View mode toggle & reset */}
               <div className="flex items-center gap-3">
-                <div className="inline-flex rounded-lg border border-stone-200 dark:border-stone-700 p-0.5 bg-stone-50 dark:bg-stone-900">
+                <div className="flex items-center p-1 rounded-lg bg-stone-200/80 dark:bg-stone-900 border border-stone-300 dark:border-stone-700">
                   <button
+                    type="button"
                     onClick={() => setViewMode('grid')}
-                    className={`px-2.5 py-1 text-xs rounded-md flex items-center gap-1.5 transition-colors cursor-pointer ${
+                    className={`p-1.5 rounded transition-colors cursor-pointer ${
                       viewMode === 'grid'
-                        ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-xs font-semibold'
-                        : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
+                        ? 'bg-white dark:bg-stone-800 text-amber-600 dark:text-amber-400 shadow-2xs font-bold'
+                        : 'text-stone-500 hover:text-stone-900 dark:hover:text-white'
                     }`}
-                    title="Hiển thị dạng thẻ bài thi"
+                    title="Hiển thị dạng thẻ bài thi (Grid)"
                   >
-                    <LayoutGrid className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Thẻ</span>
+                    <LayoutGrid className="w-4 h-4" />
                   </button>
                   <button
+                    type="button"
                     onClick={() => setViewMode('ledger')}
-                    className={`px-2.5 py-1 text-xs rounded-md flex items-center gap-1.5 transition-colors cursor-pointer ${
+                    className={`p-1.5 rounded transition-colors cursor-pointer ${
                       viewMode === 'ledger'
-                        ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-xs font-semibold'
-                        : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
+                        ? 'bg-white dark:bg-stone-800 text-amber-600 dark:text-amber-400 shadow-2xs font-bold'
+                        : 'text-stone-500 hover:text-stone-900 dark:hover:text-white'
                     }`}
-                    title="Hiển thị dạng sổ lưu trữ (Bảng)"
+                    title="Hiển thị dạng sổ lưu trữ (Ledger/Bảng)"
                   >
-                    <List className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Sổ bảng</span>
+                    <List className="w-4 h-4" />
                   </button>
                 </div>
 
                 {hasActiveFilters && (
                   <button
+                    type="button"
                     onClick={handleResetFilters}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition-colors cursor-pointer"
-                    title="Xóa toàn bộ bộ lọc"
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-mono font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg border border-rose-200 dark:border-rose-900/60 transition-colors cursor-pointer"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     <span>Đặt lại</span>
@@ -820,11 +878,11 @@ export const ExamBank: React.FC = () => {
             </div>
           ) : viewMode === 'grid' ? (
             /* ─── Grid View (Tactile Exam Notebook Cards) ───────────────── */
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {filteredExams.map((exam) => (
                 <div
                   key={exam.id}
-                  className="flex flex-col justify-between bg-[#fffdfa] dark:bg-[#12161f] border border-stone-200/90 dark:border-stone-800/90 hover:border-blue-500/80 dark:hover:border-blue-500/80 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all duration-200 relative group"
+                  className="flex flex-col justify-between bg-[#fffdfa] dark:bg-[#12161f] border border-stone-200/90 dark:border-stone-800/90 hover:border-amber-500/80 dark:hover:border-amber-500/80 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all duration-200 relative group"
                 >
                   <div>
                     {/* Top accession bar */}
@@ -869,7 +927,7 @@ export const ExamBank: React.FC = () => {
                     {/* Title */}
                     <Link
                       to={`/documents/${exam.id}`}
-                      className="font-bold font-serif-academic text-stone-900 dark:text-stone-50 hover:text-blue-600 dark:hover:text-blue-400 text-sm sm:text-base leading-snug line-clamp-2 transition-colors mb-2 block"
+                      className="font-bold font-serif-academic text-stone-900 dark:text-stone-50 hover:text-amber-600 dark:hover:text-amber-400 text-sm sm:text-base leading-snug line-clamp-2 transition-colors mb-2 block"
                     >
                       {exam.title}
                     </Link>
@@ -979,7 +1037,7 @@ export const ExamBank: React.FC = () => {
                         <td className="py-3 px-4">
                           <Link
                             to={`/documents/${exam.id}`}
-                            className="font-semibold text-stone-900 dark:text-stone-100 hover:text-blue-600 dark:hover:text-blue-400 line-clamp-1 block transition-colors"
+                            className="font-semibold text-stone-900 dark:text-stone-100 hover:text-amber-600 dark:hover:text-amber-400 line-clamp-1 block transition-colors"
                           >
                             {exam.title}
                           </Link>

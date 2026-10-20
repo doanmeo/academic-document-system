@@ -45,6 +45,18 @@ export const getPreviewUrl = async (fileId: number): Promise<SignedUrlResponse> 
 }
 
 /**
+ * GET /files/:fileId/view
+ * Lấy trực tiếp dòng byte PDF an toàn qua AJAX stream.
+ * Tuyệt đối không kích hoạt IDM tự động tải về trình duyệt.
+ */
+export const getFileBlob = async (fileId: number): Promise<Blob> => {
+  const res = await api.get(`/files/${fileId}/view`, {
+    responseType: 'blob',
+  })
+  return res.data
+}
+
+/**
  * GET /files/:fileId/download-url
  * Lấy signed URL để tải xuống tệp.
  * Tự động tăng downloadCount của tài liệu.
@@ -73,6 +85,7 @@ export const deleteFile = async (fileId: number): Promise<void> => {
 export const fileApi = {
   uploadFile,
   getPreviewUrl,
+  getFileBlob,
   getDownloadUrl,
   deleteFile,
 }

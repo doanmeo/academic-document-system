@@ -212,17 +212,37 @@ html.dark {
   font-family: 'JetBrains Mono', Menlo, Monaco, Consolas, monospace;
 }
 
-.bg-paper-grid {
+body {
+  background-color: var(--color-surface);
   background-size: 24px 24px;
   background-image: 
     linear-gradient(to right, rgba(28, 25, 23, 0.04) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(28, 25, 23, 0.04) 1px, transparent 1px);
 }
 
-.dark .bg-paper-grid {
+.dark body,
+html.dark body {
+  background-color: var(--color-surface);
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+}
+
+.bg-paper-grid,
+.bg-surface {
+  background-size: 24px 24px;
+  background-image: 
+    linear-gradient(to right, rgba(28, 25, 23, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(28, 25, 23, 0.04) 1px, transparent 1px);
+}
+
+.dark .bg-paper-grid,
+html.dark .bg-paper-grid,
+.dark .bg-surface,
+html.dark .bg-surface {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
 }
 
 .bg-paper-dots {
@@ -257,3 +277,14 @@ html.dark {
   border-color: #272f3d;
 }
 
+
+/* Hide scrollbar completely while maintaining scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}

@@ -30,6 +30,7 @@ import {
 import Navbar from '../components/layout/Navbar'
 import Footer from '../components/layout/Footer'
 import PdfViewerModal from '../components/PdfViewerModal'
+import CustomCheckbox from '../components/ui/CustomCheckbox'
 import { useToast } from '../contexts/ToastContext'
 
 // ─── Template Category Types ──────────────────────────────────────────────────
@@ -300,7 +301,7 @@ export const TemplateCenter: React.FC = () => {
       <Navbar />
 
       <main className="w-full pt-20 pb-20 flex-grow bg-paper-grid">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
           
           {/* Breadcrumb */}
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs mb-6 pt-2">
@@ -316,66 +317,75 @@ export const TemplateCenter: React.FC = () => {
             </span>
           </div>
 
-          {/* Academic Hero Banner */}
-          <div className="relative overflow-hidden rounded-2xl bg-[#fffdfa] dark:bg-[#12161f] border border-stone-200/90 dark:border-stone-800 shadow-sm p-6 sm:p-8 md:p-10 mb-8">
-            <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-              <div className="max-w-3xl space-y-3">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 text-xs font-semibold text-blue-900 dark:text-blue-200">
-                  <School className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <span>TRUNG TÂM BIỂU MẪU &amp; QUY CÁCH TRÌNH BÀY HỌC THUẬT · KHOA CNTT UTC</span>
-                </div>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif-academic font-bold tracking-tight text-stone-900 dark:text-stone-50 leading-tight">
-                  Khung Biểu Mẫu Chuẩn Báo Cáo &amp; Khóa Luận Tốt Nghiệp
-                </h1>
-                <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 leading-relaxed font-sans max-w-2xl">
-                  Tổng hợp đầy đủ mẫu báo cáo Bài tập lớn (Word .docx), Đồ án tốt nghiệp (LaTeX/Overleaf), Slide bảo vệ Hội đồng (PowerPoint .pptx) và bộ biểu mẫu hành chính BM-01/02 được chuẩn hóa theo quy định của Khoa Công nghệ Thông tin - Trường ĐH Giao thông Vận tải.
-                </p>
-
-                {/* Quick Action Buttons */}
-                <div className="flex flex-wrap items-center gap-3 pt-2">
-                  <button
-                    onClick={() => setRubricModalOpen(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
-                  >
-                    <AlignLeft className="w-4 h-4" />
-                    <span>Quy Cách Căn Lề &amp; Font Chữ Chuẩn</span>
-                  </button>
-                  <button
-                    onClick={() => setChecklistModalOpen(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-stone-800 dark:text-stone-200 hover:text-emerald-900 dark:hover:text-emerald-300 border border-stone-200 dark:border-stone-700 text-xs font-semibold transition-colors cursor-pointer"
-                  >
-                    <CheckSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                    <span>Checklist 10 Tiêu Chí Trước Khi Nộp ({checklistScore}/10)</span>
-                  </button>
-                </div>
+          {/* Header: Title, Academic Meta & Actions */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-5 border-b border-stone-300 dark:border-stone-800 mb-6">
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="stamp-seal text-emerald-700 dark:text-emerald-400 border-emerald-600 dark:border-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 text-[10px]">
+                  [ TRUNG TÂM BIỂU MẪU &amp; QUY CÁCH CHUẨN UTC ]
+                </span>
+                <span className="text-stone-400">/</span>
+                <span className="font-mono text-xs text-stone-500">KHOA CNTT · ĐH GIAO THÔNG VẬN TẢI</span>
               </div>
 
-              {/* Stats Column */}
-              <div className="w-full lg:w-auto grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-3 shrink-0">
-                <div className="p-3.5 rounded-xl bg-stone-50 dark:bg-stone-900/60 border border-stone-200/80 dark:border-stone-800">
-                  <div className="font-mono text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-100">8+</div>
-                  <div className="text-[11px] text-stone-500 dark:text-stone-400 font-sans mt-0.5">Biểu mẫu chuẩn hóa</div>
-                </div>
-                <div className="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-800/40">
-                  <div className="font-mono text-xl sm:text-2xl font-bold text-blue-700 dark:text-blue-300">14.8k+</div>
-                  <div className="text-[11px] text-blue-600/90 dark:text-blue-400/90 font-sans mt-0.5">Lượt tải sinh viên</div>
-                </div>
-                <div className="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/40">
-                  <div className="font-mono text-xl sm:text-2xl font-bold text-emerald-700 dark:text-emerald-300">100%</div>
-                  <div className="text-[11px] text-emerald-600/90 dark:text-emerald-400/90 font-sans mt-0.5">Quy chuẩn UTC FIT</div>
-                </div>
-                <div className="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40">
-                  <div className="font-mono text-xl sm:text-2xl font-bold text-amber-700 dark:text-amber-300">IEEE</div>
-                  <div className="text-[11px] text-amber-600/90 dark:text-amber-400/90 font-sans mt-0.5">&amp; APA 7th Trích dẫn</div>
-                </div>
+              <h1 className="font-serif-academic text-3xl sm:text-4xl font-bold text-stone-950 dark:text-stone-50 tracking-tight">
+                Biểu Mẫu Chuẩn &amp; Quy Cách Trình Bày
+              </h1>
+
+              <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 max-w-2xl font-sans">
+                Tổng hợp đầy đủ mẫu báo cáo Bài tập lớn (Word .docx), Đồ án tốt nghiệp (LaTeX/Overleaf), Slide bảo vệ Hội đồng (PowerPoint .pptx) và bộ biểu mẫu hành chính BM-01/02 được chuẩn hóa theo quy định của Khoa Công nghệ Thông tin - Trường ĐH Giao thông Vận tải.
+              </p>
+            </div>
+
+            {/* Counter & Action Modals */}
+            <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+              <div className="px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 font-mono text-xs font-bold text-stone-700 dark:text-stone-300">
+                <span className="text-emerald-600 dark:text-emerald-400">{filteredTemplates.length}</span> BIỂU MẪU CHUẨN
               </div>
+
+              <button
+                type="button"
+                onClick={() => setRubricModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
+              >
+                <AlignLeft className="w-3.5 h-3.5" />
+                <span>Quy Cách Căn Lề</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setChecklistModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-stone-800 dark:text-stone-200 border border-stone-300 dark:border-stone-700 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                <CheckSquare className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Checklist Nộp Bài ({checklistScore}/10)</span>
+              </button>
             </div>
           </div>
 
-          {/* Category Tabs & Search Bar */}
-          <div className="bg-[#fffdfa] dark:bg-[#12161f] border border-stone-200/90 dark:border-stone-800 rounded-2xl p-4 sm:p-5 mb-8 shadow-xs">
+          {/* Quick Stats Strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <div className="p-3.5 rounded-xl bg-white dark:bg-stone-900 border-2 border-stone-200/90 dark:border-stone-800/90 shadow-2xs">
+              <div className="font-mono text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-100">8+</div>
+              <div className="text-[11px] text-stone-500 dark:text-stone-400 font-sans mt-0.5">Biểu mẫu chuẩn hóa</div>
+            </div>
+            <div className="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border-2 border-blue-200/70 dark:border-blue-800/50 shadow-2xs">
+              <div className="font-mono text-xl sm:text-2xl font-bold text-blue-700 dark:text-blue-300">14.8k+</div>
+              <div className="text-[11px] text-blue-600/90 dark:text-blue-400/90 font-sans mt-0.5">Lượt tải sinh viên</div>
+            </div>
+            <div className="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border-2 border-emerald-200/70 dark:border-emerald-800/50 shadow-2xs">
+              <div className="font-mono text-xl sm:text-2xl font-bold text-emerald-700 dark:text-emerald-300">100%</div>
+              <div className="text-[11px] text-emerald-600/90 dark:text-emerald-400/90 font-sans mt-0.5">Quy chuẩn UTC FIT</div>
+            </div>
+            <div className="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border-2 border-amber-200/70 dark:border-amber-800/50 shadow-2xs">
+              <div className="font-mono text-xl sm:text-2xl font-bold text-amber-700 dark:text-amber-300">IEEE &amp; APA</div>
+              <div className="text-[11px] text-amber-600/90 dark:text-amber-400/90 font-sans mt-0.5">Trích dẫn khoa học</div>
+            </div>
+          </div>
+
+          {/* Main Category & Search Command Station */}
+          <div className="bg-white dark:bg-stone-900 rounded-2xl border-2 border-stone-300 dark:border-stone-800 p-5 sm:p-6 shadow-xs space-y-4 mb-6">
             <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-              
               {/* Category Pills */}
               <div className="flex flex-wrap items-center gap-1.5">
                 {[
@@ -388,11 +398,12 @@ export const TemplateCenter: React.FC = () => {
                 ].map(tab => (
                   <button
                     key={tab.key}
+                    type="button"
                     onClick={() => setSelectedCategory(tab.key)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-mono transition-all cursor-pointer border ${
                       selectedCategory === tab.key
-                        ? 'bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 font-bold shadow-xs'
-                        : 'bg-stone-100 dark:bg-stone-800/80 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+                        ? 'bg-emerald-600 border-emerald-700 text-white font-bold shadow-2xs'
+                        : 'bg-stone-50 dark:bg-stone-950/50 border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-emerald-400 dark:hover:border-emerald-600 hover:text-stone-900 dark:hover:text-stone-100'
                     }`}
                   >
                     {tab.label}
@@ -401,25 +412,25 @@ export const TemplateCenter: React.FC = () => {
               </div>
 
               {/* Search input */}
-              <div className="relative min-w-[260px]">
+              <div className="relative min-w-[280px]">
                 <Filter className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
                 <input
                   type="text"
                   placeholder="Lọc theo tên biểu mẫu, định dạng..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-900/60 text-stone-800 dark:text-stone-100 focus:outline-hidden focus:ring-2 focus:ring-blue-600 placeholder-stone-400"
+                  className="w-full pl-9 pr-3 py-2 text-xs font-mono rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-100/80 dark:bg-stone-950 text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-950 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 placeholder:text-stone-400 transition-all"
                 />
               </div>
             </div>
           </div>
 
           {/* Grid of Templates */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
             {filteredTemplates.map((tpl) => (
               <div
                 key={tpl.id}
-                className="flex flex-col justify-between bg-[#fffdfa] dark:bg-[#12161f] border border-stone-200/90 dark:border-stone-800/90 hover:border-blue-500/80 dark:hover:border-blue-500/80 rounded-2xl p-6 shadow-xs hover:shadow-md transition-all duration-200 group"
+                className="flex flex-col justify-between bg-[#fffdfa] dark:bg-[#12161f] border border-stone-200/90 dark:border-stone-800/90 hover:border-emerald-500/80 dark:hover:border-emerald-500/80 rounded-2xl p-6 shadow-xs hover:shadow-md transition-all duration-200 group"
               >
                 <div>
                   {/* Category badge & Hot tag */}
@@ -489,7 +500,7 @@ export const TemplateCenter: React.FC = () => {
                     {/* Direct Download Button */}
                     <button
                       onClick={() => handleDownload(tpl)}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
                     >
                       <Download className="w-3.5 h-3.5" />
                       <span>Tải về</span>
@@ -855,7 +866,7 @@ export const TemplateCenter: React.FC = () => {
                 { id: 9, text: 'Đã đính kèm link kho lưu trữ mã nguồn GitHub/GitLab có commit log đầy đủ' },
                 { id: 10, text: 'Đã kiểm tra lỗi chính tả tiếng Việt và ngắt trang hợp lý giữa các chương' }
               ].map((item) => (
-                <label
+                <div
                   key={item.id}
                   onClick={() => toggleChecklistItem(item.id)}
                   className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer select-none transition-all ${
@@ -864,16 +875,16 @@ export const TemplateCenter: React.FC = () => {
                       : 'bg-[#fffdfa] dark:bg-[#151a24] border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400'
                   }`}
                 >
-                  <input
-                    type="checkbox"
+                  <CustomCheckbox
                     checked={Boolean(checkedItems[item.id])}
-                    onChange={() => {}}
-                    className="w-4 h-4 text-emerald-600 rounded border-stone-300 dark:border-stone-700 focus:ring-emerald-600 mt-0.5"
+                    onChange={() => toggleChecklistItem(item.id)}
+                    color="emerald"
+                    size="md"
                   />
-                  <span className={`text-xs leading-relaxed ${checkedItems[item.id] ? 'font-medium' : ''}`}>
+                  <span className={`text-xs leading-relaxed flex-1 ${checkedItems[item.id] ? 'font-medium' : ''}`}>
                     {item.text}
                   </span>
-                </label>
+                </div>
               ))}
             </div>
 

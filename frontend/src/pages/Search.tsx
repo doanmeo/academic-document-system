@@ -43,6 +43,7 @@ import PdfViewerModal from '../components/PdfViewerModal'
 import CitationModal from '../components/CitationModal'
 import ReportModal from '../components/ReportModal'
 import CustomSelect from '../components/ui/CustomSelect'
+import CustomCheckbox from '../components/ui/CustomCheckbox'
 import Pagination from '../components/ui/Pagination'
 import TopicNoveltyChecker from '../components/TopicNoveltyChecker'
 
@@ -305,11 +306,11 @@ export default function Search() {
     <div className="min-h-screen flex flex-col bg-[#faf9f5] dark:bg-[#0c1017] text-stone-900 dark:text-stone-100 antialiased selection:bg-blue-600 selection:text-white">
       <Navbar />
 
-      <main className="flex-grow pt-16 flex flex-col">
+      <main className="flex-grow pt-16 flex flex-col bg-paper-grid">
 
         {/* ─── DEDICATED SUB-VIEW: TOPIC NOVELTY CHECKER ───────────────────── */}
         {activeTab === 'novelty' && (
-          <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-4">
+          <div className="flex-1 w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-4 space-y-4">
             <div className="pb-3 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between">
               <button
                 type="button"
@@ -333,7 +334,7 @@ export default function Search() {
 
         {/* ─── MAIN DEDICATED WORKSPACE: TRA CỨU TÀI LIỆU ──────────────────── */}
         {activeTab === 'search' && (
-          <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+          <div className="flex-1 w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-6 space-y-6">
             {/* Header: Title, Academic Meta & View Switcher */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-5 border-b border-stone-300 dark:border-stone-800">
               <div>
@@ -404,7 +405,7 @@ export default function Search() {
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
                     placeholder="Tìm theo tên tài liệu, môn học, tác giả, GVHD, công nghệ (#React, #Python, #AI)... (Ctrl + K)"
-                    className="w-full pl-11 pr-24 py-3 text-sm font-mono bg-stone-50 dark:bg-stone-850 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-xl focus:bg-white dark:focus:bg-stone-900 focus:border-blue-600 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/10 focus:outline-none transition-all"
+                    className="w-full pl-11 pr-24 py-3 text-sm font-mono bg-stone-100/80 dark:bg-stone-950 border border-stone-300 dark:border-stone-700/80 text-stone-900 dark:text-stone-100 rounded-xl focus:bg-white dark:focus:bg-stone-950 focus:border-blue-600 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all placeholder:text-stone-400"
                   />
                   {keyword && (
                     <button
@@ -455,7 +456,7 @@ export default function Search() {
                           setKeyword(isSelected ? '' : pill.name)
                         }
                       }}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer border ${
+                      className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer border whitespace-nowrap shrink-0 ${
                         isSelected
                           ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
                           : `${pill.color} hover:brightness-95`
@@ -579,16 +580,20 @@ export default function Search() {
               {/* Secondary Options: Source code toggle & Sorting */}
               <div className="pt-3 border-t border-dashed border-stone-200 dark:border-stone-800 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
                 {/* Source code checkbox */}
-                <label className="inline-flex items-center gap-2 cursor-pointer select-none text-stone-700 dark:text-stone-300 hover:text-stone-950 dark:hover:text-white">
-                  <input
-                    type="checkbox"
+                <div className="flex items-center gap-2">
+                  <CustomCheckbox
                     checked={onlySourceCode}
-                    onChange={(e) => setOnlySourceCode(e.target.checked)}
-                    className="rounded border-stone-400 text-blue-600 focus:ring-blue-500 w-4 h-4"
+                    onChange={setOnlySourceCode}
+                    label={
+                      <span className="inline-flex items-center gap-1.5 font-bold">
+                        <FolderGit2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        Chỉ tài liệu có mã nguồn GitHub / GitLab
+                      </span>
+                    }
+                    color="emerald"
+                    size="md"
                   />
-                  <FolderGit2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  <span className="font-bold">Chỉ tài liệu có mã nguồn GitHub / GitLab</span>
-                </label>
+                </div>
 
                 {/* Sort selector */}
                 <div className="flex items-center gap-2">
@@ -603,7 +608,7 @@ export default function Search() {
                         key={s.key}
                         type="button"
                         onClick={() => setSortBy(s.key as any)}
-                        className={`px-2.5 py-1 rounded text-xs transition-colors cursor-pointer ${
+                        className={`px-3 py-1.5 rounded text-xs transition-colors cursor-pointer whitespace-nowrap ${
                           sortBy === s.key
                             ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 font-bold'
                             : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200'
@@ -657,9 +662,9 @@ export default function Search() {
                     <div className="space-y-3">
                       <div className="h-4 bg-stone-200 dark:bg-stone-800 rounded w-1/3" />
                       <div className="h-5 bg-stone-200 dark:bg-stone-800 rounded w-3/4" />
-                      <div className="h-3 bg-stone-100 dark:bg-stone-850 rounded w-1/2" />
+                      <div className="h-3 bg-stone-100 dark:bg-stone-800 rounded w-1/2" />
                     </div>
-                    <div className="h-8 bg-stone-100 dark:bg-stone-850 rounded" />
+                    <div className="h-8 bg-stone-100 dark:bg-stone-800 rounded" />
                   </div>
                 ))}
               </div>
@@ -708,7 +713,7 @@ export default function Search() {
                   <div className="bg-white dark:bg-stone-900 rounded-xl border-2 border-stone-300 dark:border-stone-800 overflow-hidden shadow-xs">
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs font-sans">
-                        <thead className="bg-stone-100 dark:bg-stone-850 border-b border-stone-200 dark:border-stone-800 font-mono text-[10px] text-stone-500 uppercase tracking-wider">
+                        <thead className="bg-stone-100 dark:bg-stone-800 border-b border-stone-200 dark:border-stone-800 font-mono text-[10px] text-stone-500 uppercase tracking-wider">
                           <tr>
                             <th className="py-3 px-4">MÃ LƯU TRỮ</th>
                             <th className="py-3 px-4">TIÊU ĐỀ BẢN THẢO / TÀI LIỆU</th>

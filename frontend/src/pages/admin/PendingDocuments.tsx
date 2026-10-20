@@ -150,7 +150,7 @@ export default function PendingDocuments() {
                 {documents.map((doc) => (
                   <tr key={doc.id} className="hover:bg-slate-50/70 transition-colors">
                     <td className="py-4 px-6 max-w-sm">
-                      <p className="font-bold text-slate-900 line-clamp-1">{doc.title}</p>
+                      <p className="font-bold text-stone-900 dark:text-stone-100 line-clamp-1">{doc.title}</p>
                       <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5">
                         {doc.abstractText}
                       </p>
@@ -222,7 +222,7 @@ export default function PendingDocuments() {
             <div className="p-5 space-y-4">
               <div>
                 <span className="text-[11px] font-semibold text-slate-400 uppercase">Đề tài:</span>
-                <p className="text-xs font-bold text-slate-800 mt-0.5">{activeModal.doc.title}</p>
+                <p className="text-xs font-bold text-stone-800 dark:text-stone-100 mt-0.5">{activeModal.doc.title}</p>
               </div>
 
               <div>

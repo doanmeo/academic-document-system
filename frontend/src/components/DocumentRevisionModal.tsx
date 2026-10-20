@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useToast } from '../contexts/ToastContext'
 import type { DocumentSummary } from '../types'
+import CustomCheckbox from './ui/CustomCheckbox'
 
 interface DocumentRevisionModalProps {
   doc: DocumentSummary | null
@@ -311,43 +312,35 @@ export default function DocumentRevisionModal({
                 <span>☑️</span> Kiểm tra trước khi nộp
               </h3>
 
-              <div className="space-y-2.5 text-xs text-slate-700">
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={check1}
-                    onChange={(e) => setCheck1(e.target.checked)}
-                    className="mt-0.5 rounded text-blue-600"
-                  />
-                  <span>Đã nhúng sơ đồ ERD vector chuẩn tại Chương 2</span>
-                </label>
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={check2}
-                    onChange={(e) => setCheck2(e.target.checked)}
-                    className="mt-0.5 rounded text-blue-600"
-                  />
-                  <span>Repo có file README hướng dẫn chạy Docker/K8s</span>
-                </label>
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={check3}
-                    onChange={(e) => setCheck3(e.target.checked)}
-                    className="mt-0.5 rounded text-blue-600"
-                  />
-                  <span>Điểm đạo văn đạt chuẩn quy chế UTC (&lt; 20%)</span>
-                </label>
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={check4}
-                    onChange={(e) => setCheck4(e.target.checked)}
-                    className="mt-0.5 rounded text-blue-600"
-                  />
-                  <span>Đã gắn quyền sở hữu trí tuệ học thuật Khoa CNTT</span>
-                </label>
+              <div className="space-y-3 text-xs text-slate-700">
+                <CustomCheckbox
+                  checked={check1}
+                  onChange={setCheck1}
+                  label="Đã nhúng sơ đồ ERD vector chuẩn tại Chương 2"
+                  color="blue"
+                  size="sm"
+                />
+                <CustomCheckbox
+                  checked={check2}
+                  onChange={setCheck2}
+                  label="Repo có file README hướng dẫn chạy Docker/K8s"
+                  color="blue"
+                  size="sm"
+                />
+                <CustomCheckbox
+                  checked={check3}
+                  onChange={setCheck3}
+                  label="Điểm đạo văn đạt chuẩn quy chế UTC (< 20%)"
+                  color="blue"
+                  size="sm"
+                />
+                <CustomCheckbox
+                  checked={check4}
+                  onChange={setCheck4}
+                  label="Đã gắn quyền sở hữu trí tuệ học thuật Khoa CNTT"
+                  color="blue"
+                  size="sm"
+                />
               </div>
 
               <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-blue-700">

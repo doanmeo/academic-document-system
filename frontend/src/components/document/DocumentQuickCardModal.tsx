@@ -100,48 +100,51 @@ export default function DocumentQuickCardModal({
     SAMPLE_CODE: {
       label: 'Mã nguồn mẫu',
       badge: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
-      icon: <FolderGit2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />,
+      icon: <FileCode2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />,
     },
-    REFERENCE: {
-      label: 'Tài liệu tham khảo',
+    EXAM_PAPER: {
+      label: 'Đề thi & Lời giải',
       badge: 'bg-purple-100 text-purple-800 dark:bg-purple-950/80 dark:text-purple-300 border-purple-300 dark:border-purple-800',
-      icon: <BookOpen className="w-4 h-4 text-purple-600 dark:text-purple-400" />,
+      icon: <Award className="w-4 h-4 text-purple-600 dark:text-purple-400" />,
     },
     EXAM: {
       label: 'Đề thi & Lời giải',
-      badge: 'bg-orange-100 text-orange-800 dark:bg-orange-950/80 dark:text-orange-300 border-orange-300 dark:border-orange-800',
-      icon: <Award className="w-4 h-4 text-orange-600 dark:text-orange-400" />,
+      badge: 'bg-purple-100 text-purple-800 dark:bg-purple-950/80 dark:text-purple-300 border-purple-300 dark:border-purple-800',
+      icon: <Award className="w-4 h-4 text-purple-600 dark:text-purple-400" />,
+    },
+    SYLLABUS: {
+      label: 'Đề cương môn học',
+      badge: 'bg-teal-100 text-teal-800 dark:bg-teal-950/80 dark:text-teal-300 border-teal-300 dark:border-teal-800',
+      icon: <FileText className="w-4 h-4 text-teal-600 dark:text-teal-400" />,
     },
     LAB: {
       label: 'Hướng dẫn thực hành Lab',
-      badge: 'bg-teal-100 text-teal-800 dark:bg-teal-950/80 dark:text-teal-300 border-teal-300 dark:border-teal-800',
-      icon: <FileCode2 className="w-4 h-4 text-teal-600 dark:text-teal-400" />,
-    },
-    EXERCISE: {
-      label: 'Bài tập & Hướng dẫn',
-      badge: 'bg-teal-100 text-teal-800 dark:bg-teal-950/80 dark:text-teal-300 border-teal-300 dark:border-teal-800',
-      icon: <FileCode2 className="w-4 h-4 text-teal-600 dark:text-teal-400" />,
+      badge: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950/80 dark:text-cyan-300 border-cyan-300 dark:border-cyan-800',
+      icon: <FolderGit2 className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />,
     },
   }
 
   const currentType = typeConfig[doc.documentTypeCode] || {
-    label: doc.documentTypeName || doc.documentTypeCode,
-    badge: 'bg-stone-100 text-stone-800 dark:bg-stone-800 dark:text-stone-300 border-stone-300',
-    icon: <FileText className="w-4 h-4 text-stone-600" />,
+    label: doc.documentTypeLabel || doc.documentTypeCode || 'Học liệu',
+    badge: 'bg-stone-100 text-stone-800 dark:bg-stone-800 dark:text-stone-300 border-stone-300 dark:border-stone-700',
+    icon: <FileText className="w-4 h-4 text-stone-600 dark:text-stone-400" />,
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-stone-950/60 dark:bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
-      {/* Background click to dismiss */}
-      <div className="absolute inset-0" onClick={onClose} />
-
-      {/* Main Card Modal Container — Compact, Focused, Archival Paper Aesthetic */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      {/* Blurred Backdrop */}
       <div
-        className="relative z-10 w-full max-w-xl bg-[#faf9f5] dark:bg-[#111622] rounded-2xl border-2 border-stone-800 dark:border-stone-700 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] bg-paper-grid animate-in zoom-in-95 duration-150"
+        className="fixed inset-0 bg-stone-950/80 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      />
+
+      {/* Main Card Modal Container — Uniform Dark Theme Matching Search Page */}
+      <div
+        className="relative z-10 w-full max-w-xl bg-white dark:bg-[#0c1322] rounded-2xl border-2 border-stone-800 dark:border-stone-700 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] bg-paper-grid animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Ledger Header */}
-        <div className="px-5 py-3.5 bg-stone-100/90 dark:bg-stone-850/90 border-b border-stone-300 dark:border-stone-800 flex items-center justify-between">
+        <div className="px-5 py-3.5 bg-stone-100 dark:bg-[#080d18] border-b border-stone-300 dark:border-stone-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5 font-mono text-xs">
             <span className="font-bold text-stone-600 dark:text-stone-400">
               ACCESSION:
@@ -176,7 +179,7 @@ export default function DocumentQuickCardModal({
             </span>
 
             {doc.subjectName && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-mono text-xs font-semibold border border-stone-300 dark:border-stone-700">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-stone-100 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 font-mono text-xs font-semibold border border-stone-300 dark:border-stone-700">
                 <BookOpen className="w-3.5 h-3.5 text-stone-500" />
                 <span className="truncate max-w-[200px]">{doc.subjectName}</span>
               </span>
@@ -195,7 +198,7 @@ export default function DocumentQuickCardModal({
           </h3>
 
           {/* Core Meta Table / Grid */}
-          <div className="p-3.5 rounded-xl bg-white dark:bg-stone-900 border border-stone-300/80 dark:border-stone-800 text-xs font-sans space-y-2 shadow-2xs">
+          <div className="p-3.5 rounded-xl bg-stone-50 dark:bg-stone-900/90 border border-stone-300/80 dark:border-stone-800 text-xs font-sans space-y-2 shadow-2xs">
             {doc.advisorName && (
               <div className="flex items-center justify-between gap-3">
                 <span className="text-stone-500 dark:text-stone-400 font-mono flex items-center gap-1.5 shrink-0">
@@ -245,11 +248,11 @@ export default function DocumentQuickCardModal({
             {/* Read & Download Count */}
             <div className="pt-2 border-t border-dashed border-stone-200 dark:border-stone-800 flex items-center justify-between text-stone-500 font-mono text-[11px]">
               <span className="flex items-center gap-1">
-                <Eye className="w-3.5 h-3.5 text-blue-600" />
+                <Eye className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                 <span>{doc.viewCount || 0} lượt đọc</span>
               </span>
               <span className="flex items-center gap-1">
-                <Download className="w-3.5 h-3.5 text-emerald-600" />
+                <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                 <span>{doc.downloadCount || 0} lượt tải</span>
               </span>
             </div>
@@ -257,7 +260,7 @@ export default function DocumentQuickCardModal({
 
           {/* Description / Abstract */}
           {doc.description && (
-            <div className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed font-sans bg-stone-100/60 dark:bg-stone-850/60 p-3 rounded-lg border border-stone-200 dark:border-stone-800">
+            <div className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed font-sans bg-stone-100/60 dark:bg-stone-900/60 p-3 rounded-lg border border-stone-200 dark:border-stone-800">
               <span className="font-mono font-bold text-stone-400 text-[10px] uppercase block mb-1">
                 TÓM TẮT HỌC THUẬT:
               </span>
@@ -283,7 +286,7 @@ export default function DocumentQuickCardModal({
         </div>
 
         {/* Bottom Action Footer */}
-        <div className="px-5 py-3.5 bg-stone-100/90 dark:bg-stone-850/90 border-t border-stone-300 dark:border-stone-800 flex flex-wrap items-center justify-between gap-2.5">
+        <div className="px-5 py-3.5 bg-stone-100 dark:bg-[#080d18] border-t border-stone-300 dark:border-stone-800 flex flex-wrap items-center justify-between gap-2.5">
           {/* Secondary Actions */}
           <div className="flex items-center gap-1.5">
             <button
@@ -327,7 +330,7 @@ export default function DocumentQuickCardModal({
             <button
               type="button"
               onClick={() => onReadPdf(doc)}
-              className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer"
+              className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
             >
               <Eye className="w-4 h-4" />
               <span>Đọc PDF</span>
@@ -335,7 +338,7 @@ export default function DocumentQuickCardModal({
 
             <Link
               to={`/documents/${doc.id}`}
-              className="px-3.5 py-2 rounded-lg bg-stone-900 hover:bg-stone-800 dark:bg-stone-100 dark:hover:bg-white text-white dark:text-stone-900 font-mono text-xs font-bold uppercase tracking-wider transition-colors shadow-xs flex items-center gap-1.5"
+              className="px-3.5 py-2 rounded-lg bg-stone-900 hover:bg-stone-800 dark:bg-stone-800 dark:hover:bg-stone-750 text-white border border-transparent dark:border-stone-700 font-mono text-xs font-bold uppercase tracking-wider transition-colors shadow-xs flex items-center gap-1.5 whitespace-nowrap"
             >
               <span>Toàn văn</span>
               <ArrowRight className="w-3.5 h-3.5" />
