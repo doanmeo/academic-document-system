@@ -2,9 +2,38 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getAllDocuments, hideDocument } from '../../api/adminApi'
 import type { PageResponse, DocumentSummary } from '../../types/document'
+import { OFFICIAL_DOCUMENT_TYPES } from '../../types/document'
 import Spinner from '../../components/ui/Spinner'
 import Badge from '../../components/ui/Badge'
 import Pagination from '../../components/ui/Pagination'
+
+const docTypeLabelMap: Record<string, string> = {
+  SLIDE: 'Slide bài giảng',
+  NOTE: 'Ghi chú ôn tập',
+  ASSIGNMENT: 'Bài tập lớn (BTL)',
+  SAMPLE_CODE: 'Mã nguồn mẫu',
+  REFERENCE: 'Tài liệu tham khảo',
+  THESIS: 'Đồ án / Khóa luận tốt nghiệp',
+  EXAM: 'Đề thi & Lời giải',
+  LAB: 'Lab & Thực hành',
+  CAPSTONE: 'Đồ án tốt nghiệp',
+  PROJECT: 'Đồ án môn học',
+  LECTURE: 'Bài giảng',
+  EXERCISE: 'Bài tập',
+  OTHER: 'Khác',
+}
+
+function getDocTypeLabel(codeOrLabel?: string | null): string {
+  if (!codeOrLabel) return 'Tài liệu'
+  const trimmed = codeOrLabel.trim()
+  const upper = trimmed.toUpperCase()
+  if (docTypeLabelMap[upper]) return docTypeLabelMap[upper]
+  const matched = OFFICIAL_DOCUMENT_TYPES.find(
+    (t) => t.code.toUpperCase() === upper || t.label.toLowerCase() === trimmed.toLowerCase()
+  )
+  if (matched) return matched.label
+  return codeOrLabel
+}
 
 export default function AllDocuments() {
   const [data, setData] = useState<PageResponse<DocumentSummary> | null>(null)
@@ -84,11 +113,11 @@ export default function AllDocuments() {
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-surface-container">
         <div>
-          <div className="flex items-center gap-1.5 text-secondary font-label-code text-caption font-bold tracking-widest uppercase mb-1">
-            <span className="material-symbols-outlined text-[18px]">library_books</span>
+          <div className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400 font-label-code text-caption font-bold tracking-widest uppercase mb-1">
+            <span className="material-symbols-outlined text-[18px] text-stone-400 dark:text-stone-300">library_books</span>
             <span>CƠ SỞ DỮ LIỆU ĐỒ ÁN &amp; HỌC LIỆU TOÀN TRƯỜNG</span>
           </div>
-          <h1 className="font-headline-xl text-headline-xl text-primary font-bold">
+          <h1 className="font-headline-xl text-headline-xl text-stone-900 dark:text-stone-50 font-bold">
             Quản Lý Tất Cả Tài Liệu &amp; Đề Tài
           </h1>
           <p className="font-body-md text-body-md text-on-surface-variant mt-1">
@@ -98,11 +127,11 @@ export default function AllDocuments() {
 
         <div className="flex items-center gap-3">
           <div className="bg-surface-container-lowest px-4 py-2.5 rounded-xl shadow-xs border border-surface-container flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-surface-container text-stone-500 dark:text-stone-300 flex items-center justify-center">
               <span className="material-symbols-outlined text-[24px]">article</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-label-code text-body-sm font-bold text-primary">
+              <span className="font-label-code text-body-sm font-bold text-stone-900 dark:text-stone-100">
                 {data ? data.totalElements : 0} tài liệu
               </span>
               <span className="font-caption text-caption text-on-surface-variant">Tổng tài liệu</span>
@@ -181,7 +210,7 @@ export default function AllDocuments() {
                     <span className="material-symbols-outlined text-[36px] text-outline mx-auto mb-2 block">
                       folder_off
                     </span>
-                    <p className="font-semibold text-primary">Không tìm thấy tài liệu phù hợp</p>
+                    <p className="font-semibold text-stone-900 dark:text-stone-100">Không tìm thấy tài liệu phù hợp</p>
                   </td>
                 </tr>
               ) : (
@@ -190,14 +219,14 @@ export default function AllDocuments() {
                     key={doc.id}
                     className="hover:bg-surface-container-low/60 transition-colors"
                   >
-                    <td className="py-3.5 px-4 font-mono font-bold text-secondary text-caption">
+                    <td className="py-3.5 px-4 font-mono font-bold text-stone-500 dark:text-stone-400 text-caption">
                       #DOC-{doc.id}
                     </td>
 
                     <td className="py-3.5 px-4 max-w-sm">
                       <Link
                         to={`/documents/${doc.id}`}
-                        className="font-headline-sm font-semibold text-primary hover:text-secondary line-clamp-2 transition-colors"
+                        className="font-headline-sm font-semibold text-stone-900 dark:text-stone-100 hover:text-blue-600 dark:hover:text-blue-400 line-clamp-2 transition-colors"
                         title={doc.title}
                       >
                         {doc.title}
@@ -206,7 +235,7 @@ export default function AllDocuments() {
 
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <span className="px-2.5 py-1 rounded-lg bg-surface-container text-on-surface-variant font-label-code text-[11px] font-semibold">
-                        {doc.documentTypeLabel || doc.documentTypeCode}
+                        {getDocTypeLabel(doc.documentTypeLabel || doc.documentTypeCode)}
                       </span>
                     </td>
 
@@ -214,7 +243,7 @@ export default function AllDocuments() {
                       <Badge status={doc.status} />
                     </td>
 
-                    <td className="py-3.5 px-4 text-on-surface">
+                    <td className="py-3.5 px-4 font-medium text-stone-900 dark:text-white">
                       {doc.uploaderName}
                     </td>
 
@@ -232,7 +261,7 @@ export default function AllDocuments() {
                     <td className="py-3.5 px-4 whitespace-nowrap text-center space-x-1.5">
                       <Link
                         to={`/documents/${doc.id}`}
-                        className="px-2.5 py-1 bg-surface-container hover:bg-primary hover:text-on-primary text-primary rounded-lg font-label-code text-caption font-bold transition-colors inline-block"
+                        className="px-2.5 py-1 bg-surface-container hover:bg-primary hover:text-on-primary text-primary dark:text-blue-400 rounded-lg font-label-code text-caption font-bold transition-colors inline-block"
                       >
                         Xem
                       </Link>
@@ -270,7 +299,7 @@ export default function AllDocuments() {
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-surface-container space-y-4">
             <div className="flex items-center gap-2.5 pb-2 border-b border-surface-container">
               <span className="material-symbols-outlined text-error text-[24px]">visibility_off</span>
-              <h3 className="font-headline-md font-bold text-primary">
+              <h3 className="font-headline-md font-bold text-stone-900 dark:text-stone-100">
                 Ẩn tài liệu #DOC-{hideModal.docId}
               </h3>
             </div>
@@ -280,7 +309,7 @@ export default function AllDocuments() {
             </p>
 
             <div className="space-y-1.5">
-              <label className="font-headline-sm text-body-sm text-primary font-bold">
+              <label className="font-headline-sm text-body-sm text-stone-900 dark:text-stone-100 font-bold">
                 Lý do ẩn tài liệu *
               </label>
               <textarea

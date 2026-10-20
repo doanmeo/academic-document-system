@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getMyBookmarks, removeBookmark } from '../api/interactionApi';
 import { DocumentSummary, PageResponse } from '../types/document';
@@ -90,8 +90,8 @@ export default function Bookmarks() {
     <div className="min-h-screen flex flex-col bg-surface antialiased">
       <Navbar />
 
-      <main className="w-full pt-20 pb-16 flex-grow bg-surface">
-        <div className="max-w-7xl mx-auto px-4 lg:px-gutter-desktop space-y-6">
+      <main className="w-full pt-20 pb-16 flex-grow bg-paper-grid">
+        <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 space-y-6">
           {/* Header Ribbon */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-surface-container">
             <div className="flex flex-col">

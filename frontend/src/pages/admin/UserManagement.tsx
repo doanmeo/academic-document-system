@@ -82,11 +82,11 @@ export default function UserManagement() {
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-surface-container">
         <div>
-          <div className="flex items-center gap-1.5 text-secondary font-label-code text-caption font-bold tracking-widest uppercase mb-1">
-            <span className="material-symbols-outlined text-[18px]">manage_accounts</span>
+          <div className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400 font-label-code text-caption font-bold tracking-widest uppercase mb-1">
+            <span className="material-symbols-outlined text-[18px] text-stone-400 dark:text-stone-300">manage_accounts</span>
             <span>QUẢN TRỊ NGƯỜI DÙNG &amp; PHÂN QUYỀN HỆ THỐNG</span>
           </div>
-          <h1 className="font-headline-xl text-headline-xl text-primary font-bold">
+          <h1 className="font-headline-xl text-headline-xl text-stone-900 dark:text-stone-50 font-bold">
             Quản Lý Tài Khoản Người Dùng
           </h1>
           <p className="font-body-md text-body-md text-on-surface-variant mt-1">
@@ -96,11 +96,11 @@ export default function UserManagement() {
 
         <div className="flex items-center gap-3">
           <div className="bg-surface-container-lowest px-4 py-2.5 rounded-xl shadow-xs border border-surface-container flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-surface-container text-stone-500 dark:text-stone-300 flex items-center justify-center">
               <span className="material-symbols-outlined text-[24px]">group</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-label-code text-body-sm font-bold text-primary">
+              <span className="font-label-code text-body-sm font-bold text-stone-900 dark:text-stone-100">
                 {data ? data.totalElements : 0} người dùng
               </span>
               <span className="font-caption text-caption text-on-surface-variant">Tổng tài khoản</span>
@@ -179,7 +179,7 @@ export default function UserManagement() {
                     <span className="material-symbols-outlined text-[36px] text-outline mx-auto mb-2 block">
                       person_off
                     </span>
-                    <p className="font-semibold text-primary">Không tìm thấy tài khoản người dùng phù hợp</p>
+                    <p className="font-semibold text-stone-900 dark:text-stone-100">Không tìm thấy tài khoản người dùng phù hợp</p>
                   </td>
                 </tr>
               ) : (
@@ -193,12 +193,12 @@ export default function UserManagement() {
                       }`}
                     >
                       <td className="py-3.5 px-4 text-center">
-                        <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm mx-auto shadow-2xs">
+                        <div className="w-9 h-9 rounded-full bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-200 border border-stone-300 dark:border-stone-700 flex items-center justify-center font-bold text-sm mx-auto shadow-2xs">
                           {user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
                         </div>
                       </td>
 
-                      <td className="py-3.5 px-4 font-headline-sm font-semibold text-primary">
+                      <td className="py-3.5 px-4 font-headline-sm font-semibold text-stone-900 dark:text-white">
                         {user.fullName}
                       </td>
 
@@ -214,11 +214,11 @@ export default function UserManagement() {
                         <span
                           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-label-badge text-caption font-bold ${
                             isAdmin
-                              ? 'bg-primary/10 text-primary border border-primary/20'
-                              : 'bg-secondary/10 text-secondary border border-secondary/20'
+                              ? 'bg-amber-100/80 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700'
+                              : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-700'
                           }`}
                         >
-                          <span className={`w-1.5 h-1.5 rounded-full ${isAdmin ? 'bg-primary' : 'bg-secondary'}`} />
+                          <span className={`w-1.5 h-1.5 rounded-full ${isAdmin ? 'bg-amber-500' : 'bg-stone-400'}`} />
                           <span>{isAdmin ? 'ADMIN' : 'STUDENT'}</span>
                         </span>
                       </td>
@@ -289,14 +289,14 @@ export default function UserManagement() {
               >
                 {confirmToggle.user.active ? 'lock' : 'lock_open'}
               </span>
-              <h3 className="font-headline-md font-bold text-primary">
+              <h3 className="font-headline-md font-bold text-stone-900 dark:text-stone-100">
                 {confirmToggle.user.active ? 'Khóa tài khoản người dùng' : 'Mở khóa tài khoản'}
               </h3>
             </div>
 
             <p className="font-body-sm text-on-surface leading-relaxed">
               Bạn có chắc chắn muốn {confirmToggle.user.active ? 'khóa' : 'mở khóa'} quyền truy cập của tài khoản{' '}
-              <strong className="text-primary">{confirmToggle.user.fullName}</strong> ({confirmToggle.user.email})?
+              <strong className="text-stone-900 dark:text-white font-bold">{confirmToggle.user.fullName}</strong> ({confirmToggle.user.email})?
             </p>
 
             <div className="flex justify-end gap-2.5 pt-2">

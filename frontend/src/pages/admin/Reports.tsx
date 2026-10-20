@@ -230,7 +230,7 @@ export default function Reports() {
                     </td>
 
                     <td className="py-3.5 px-4 align-top max-w-xs">
-                      <span className="font-headline-sm text-body-sm font-semibold text-primary line-clamp-2 hover:text-secondary">
+                      <span className="font-headline-sm text-body-sm font-semibold text-stone-900 dark:text-stone-100 line-clamp-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                         {report.documentTitle}
                       </span>
                     </td>
@@ -301,7 +301,7 @@ export default function Reports() {
             <div className="space-y-3 bg-surface-container-low p-4 rounded-xl">
               <div>
                 <span className="font-caption uppercase text-on-surface-variant font-bold">Tài liệu bị báo cáo:</span>
-                <h4 className="font-headline-sm font-bold text-primary mt-0.5">{selected.documentTitle}</h4>
+                <h4 className="font-headline-sm font-bold text-stone-900 dark:text-stone-100 mt-0.5">{selected.documentTitle}</h4>
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-body-sm pt-2 border-t border-surface-container">

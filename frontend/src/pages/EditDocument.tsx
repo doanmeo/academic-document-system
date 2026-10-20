@@ -25,6 +25,7 @@ import { useToast } from '../contexts/ToastContext'
 import Badge from '../components/ui/Badge'
 import Spinner from '../components/ui/Spinner'
 import CustomSelect from '../components/ui/CustomSelect'
+import CustomCheckbox from '../components/ui/CustomCheckbox'
 
 export default function EditDocument() {
   const { id } = useParams()
@@ -278,7 +279,7 @@ export default function EditDocument() {
     return (
       <div className="min-h-screen flex flex-col bg-surface antialiased">
         <Navbar />
-        <main className="flex-1 max-w-7xl mx-auto w-full px-gutter-desktop pt-24 pb-16 flex flex-col justify-center items-center">
+        <main className="flex-1 max-w-[1680px] mx-auto w-full px-gutter-desktop pt-24 pb-16 flex flex-col justify-center items-center">
           <Spinner />
           <p className="mt-3 font-body-sm text-on-surface-variant">Đang tải hồ sơ đề tài...</p>
         </main>
@@ -291,8 +292,8 @@ export default function EditDocument() {
     <div className="min-h-screen flex flex-col justify-between bg-surface font-body-md text-on-surface antialiased">
       <Navbar />
 
-      <main className="w-full pt-20 pb-16 flex-grow bg-surface">
-        <div className="max-w-7xl mx-auto px-4 lg:px-gutter-desktop py-space-lg">
+      <main className="w-full pt-20 pb-16 flex-grow bg-paper-grid">
+        <div className="max-w-[1680px] mx-auto px-4 lg:px-gutter-desktop py-space-lg">
           <div className="flex flex-col w-full">
 
             {/* BREADCRUMB & CONTEXT META */}
@@ -767,53 +768,45 @@ export default function EditDocument() {
                   </h3>
 
                   <div className="space-y-2.5">
-                    <label className="flex items-start gap-3 p-2.5 rounded-lg bg-surface-container-low cursor-pointer hover:bg-surface-container transition-colors">
-                      <input
-                        type="checkbox"
+                    <div className="p-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors">
+                      <CustomCheckbox
                         checked={checklist.c1}
-                        onChange={(e) => setChecklist(prev => ({ ...prev, c1: e.target.checked }))}
-                        className="mt-1 w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer"
+                        onChange={(checked) => setChecklist((prev) => ({ ...prev, c1: checked }))}
+                        label="Đã nhúng sơ đồ ERD vector chuẩn tại Chương 3"
+                        color="blue"
+                        size="md"
                       />
-                      <span className="font-body-sm text-body-sm text-on-surface leading-tight">
-                        Đã nhúng sơ đồ ERD vector chuẩn tại Chương 3
-                      </span>
-                    </label>
+                    </div>
 
-                    <label className="flex items-start gap-3 p-2.5 rounded-lg bg-surface-container-low cursor-pointer hover:bg-surface-container transition-colors">
-                      <input
-                        type="checkbox"
+                    <div className="p-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors">
+                      <CustomCheckbox
                         checked={checklist.c2}
-                        onChange={(e) => setChecklist(prev => ({ ...prev, c2: e.target.checked }))}
-                        className="mt-1 w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer"
+                        onChange={(checked) => setChecklist((prev) => ({ ...prev, c2: checked }))}
+                        label="Repository GitHub ở chế độ Công khai (Public)"
+                        color="blue"
+                        size="md"
                       />
-                      <span className="font-body-sm text-body-sm text-on-surface leading-tight">
-                        Repository GitHub ở chế độ Công khai (Public)
-                      </span>
-                    </label>
+                    </div>
 
-                    <label className="flex items-start gap-3 p-2.5 rounded-lg bg-surface-container-low cursor-pointer hover:bg-surface-container transition-colors">
-                      <input
-                        type="checkbox"
+                    <div className="p-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors">
+                      <CustomCheckbox
                         checked={checklist.c3}
-                        onChange={(e) => setChecklist(prev => ({ ...prev, c3: e.target.checked }))}
-                        className="mt-1 w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer"
+                        onChange={(checked) => setChecklist((prev) => ({ ...prev, c3: checked }))}
+                        label="Đã kiểm tra đạo văn theo quy chế UTC (< 20%)"
+                        color="blue"
+                        size="md"
                       />
-                      <span className="font-body-sm text-body-sm text-on-surface leading-tight">
-                        Đã kiểm tra đạo văn theo quy chế UTC (&lt; 20%)
-                      </span>
-                    </label>
+                    </div>
 
-                    <label className="flex items-start gap-3 p-2.5 rounded-lg bg-surface-container-low cursor-pointer hover:bg-surface-container transition-colors">
-                      <input
-                        type="checkbox"
+                    <div className="p-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors">
+                      <CustomCheckbox
                         checked={checklist.c4}
-                        onChange={(e) => setChecklist(prev => ({ ...prev, c4: e.target.checked }))}
-                        className="mt-1 w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer"
+                        onChange={(checked) => setChecklist((prev) => ({ ...prev, c4: checked }))}
+                        label="Giữ nguyên cấu trúc bìa chuẩn Khoa CNTT"
+                        color="blue"
+                        size="md"
                       />
-                      <span className="font-body-sm text-body-sm text-on-surface leading-tight">
-                        Giữ nguyên cấu trúc bìa chuẩn Khoa CNTT
-                      </span>
-                    </label>
+                    </div>
                   </div>
 
                   <div className="p-space-sm rounded-lg bg-surface-container-high/60 flex items-center justify-between text-on-surface-variant font-caption text-caption">

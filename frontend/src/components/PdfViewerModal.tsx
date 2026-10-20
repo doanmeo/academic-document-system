@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { getPreviewUrl, getDownloadUrl } from '../api/fileApi'
+﻿import { useState, useEffect } from 'react'
+import { getPreviewUrl, getDownloadUrl, getFileBlob } from '../api/fileApi'
 import { useToast } from '../contexts/ToastContext'
 
 interface PdfViewerModalProps {
@@ -104,16 +104,17 @@ export default function PdfViewerModal({
     if (fileId) {
       setLoading(true)
       setError(null)
-      getPreviewUrl(fileId)
-        .then((res) => {
+      getFileBlob(fileId)
+        .then((blob) => {
           if (!active) return
-          const u = res?.url && !res.url.includes('YOUR_PROJECT.supabase.co') ? res.url : '/sample.pdf'
-          setResolvedUrl(u)
-          fetchAsBlob(u)
+          if (!blob || blob.size === 0) throw new Error('Học liệu rỗng')
+          const pdfBlob = new Blob([blob], { type: 'application/pdf' })
+          currentBlobUrl = URL.createObjectURL(pdfBlob)
+          setBlobUrl(currentBlobUrl)
+          setLoading(false)
         })
         .catch(() => {
           if (!active) return
-          setResolvedUrl('/sample.pdf')
           fetchAsBlob('/sample.pdf')
         })
     } else {

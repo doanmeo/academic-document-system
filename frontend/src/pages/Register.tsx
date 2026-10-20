@@ -5,6 +5,7 @@ import { getMajors } from '../api/catalogApi'
 import { getErrorMessage, getFieldErrors } from '../utils/errorMessages'
 import type { Major } from '../types/catalog'
 import CustomSelect from '../components/ui/CustomSelect'
+import CustomCheckbox from '../components/ui/CustomCheckbox'
 
 interface FormState {
   fullName: string
@@ -318,18 +319,19 @@ export default function Register() {
           </div>
 
           {/* Terms checkbox */}
-          <div className="flex items-start gap-2.5 pt-1">
-            <input
+          <div className="pt-1">
+            <CustomCheckbox
               id="terms"
-              type="checkbox"
-              required
               checked={agreed}
-              onChange={(e) => setAgreed(e.target.checked)}
-              className="mt-1 w-4 h-4 rounded text-primary focus:ring-0 cursor-pointer accent-primary"
+              onChange={setAgreed}
+              label={
+                <span className="font-body-sm text-body-sm text-on-surface">
+                  Tôi đồng ý với <span className="text-primary font-semibold hover:underline">Quy chế chia sẻ học liệu</span> và cam kết tuân thủ quy định <span className="text-primary font-semibold hover:underline">Bản quyền Khoa CNTT UTC</span>.
+                </span>
+              }
+              color="blue"
+              size="md"
             />
-            <label htmlFor="terms" className="font-body-sm text-body-sm text-on-surface cursor-pointer select-none">
-              Tôi đồng ý với <span className="text-primary font-semibold hover:underline">Quy chế chia sẻ học liệu</span> và cam kết tuân thủ quy định <span className="text-primary font-semibold hover:underline">Bản quyền Khoa CNTT UTC</span>.
-            </label>
           </div>
 
           {/* Submit button */}

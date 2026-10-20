@@ -131,11 +131,11 @@ export default function PendingList() {
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-surface-container">
         <div>
-          <div className="flex items-center gap-1.5 text-secondary font-label-code text-caption font-bold tracking-widest uppercase mb-1">
-            <span className="material-symbols-outlined text-[18px]">verified_user</span>
+          <div className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400 font-label-code text-caption font-bold tracking-widest uppercase mb-1">
+            <span className="material-symbols-outlined text-[18px] text-stone-400 dark:text-stone-300">verified_user</span>
             <span>HỘI ĐỒNG THẨM ĐỊNH &amp; KIỂM DUYỆT HỌC THUẬT</span>
           </div>
-          <h1 className="font-headline-xl text-headline-xl text-primary font-bold">
+          <h1 className="font-headline-xl text-headline-xl text-stone-900 dark:text-stone-50 font-bold">
             Hàng Đợi Duyệt Tài Liệu
           </h1>
           <p className="font-body-md text-body-md text-on-surface-variant mt-1">
@@ -149,7 +149,7 @@ export default function PendingList() {
               <span className="material-symbols-outlined text-[24px]">hourglass_top</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-label-code text-body-sm font-bold text-primary">
+              <span className="font-label-code text-body-sm font-bold text-stone-900 dark:text-stone-100">
                 {docs ? docs.totalElements : 0} tài liệu
               </span>
               <span className="font-caption text-caption text-on-surface-variant">Chờ thẩm định</span>
@@ -232,10 +232,10 @@ export default function PendingList() {
           {/* Left Column: Documents List (4 cols) */}
           <div className="lg:col-span-4 bg-surface-container-lowest rounded-2xl border border-surface-container shadow-xs overflow-hidden flex flex-col">
             <div className="p-4 border-b border-surface-container bg-surface-container-low/60 flex items-center justify-between">
-              <span className="font-headline-sm font-bold text-primary text-body-sm">
+              <span className="font-headline-sm font-bold text-stone-900 dark:text-stone-100 text-body-sm">
                 Đề tài chờ duyệt ({docs.totalElements})
               </span>
-              <span className="font-label-code text-caption text-secondary font-bold uppercase tracking-wider">
+              <span className="font-label-code text-caption text-stone-400 dark:text-stone-400 font-bold uppercase tracking-wider">
                 UTC • FIT
               </span>
             </div>
@@ -254,7 +254,7 @@ export default function PendingList() {
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <span className="font-label-code text-caption font-bold text-secondary">
+                      <span className="font-label-code text-caption font-bold text-stone-500 dark:text-stone-400">
                         #DOC-{doc.id}
                       </span>
                       <span className="font-label-code text-[11px] text-on-surface-variant">
@@ -264,7 +264,7 @@ export default function PendingList() {
 
                     <h4
                       className={`font-headline-sm text-body-sm font-bold line-clamp-2 ${
-                        isSelected ? 'text-primary' : 'text-on-surface'
+                        isSelected ? 'text-primary dark:text-blue-400' : 'text-stone-900 dark:text-stone-100'
                       }`}
                     >
                       {doc.title}
@@ -325,14 +325,14 @@ export default function PendingList() {
                     <Link
                       to={`/documents/${selectedDetail.id}`}
                       target="_blank"
-                      className="inline-flex items-center gap-1 font-body-sm text-body-sm font-semibold text-secondary hover:underline"
+                      className="inline-flex items-center gap-1 font-body-sm text-body-sm font-semibold text-stone-700 dark:text-stone-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     >
                       <span>Xem toàn văn PDF</span>
                       <span className="material-symbols-outlined text-[16px]">open_in_new</span>
                     </Link>
                   </div>
 
-                  <h2 className="font-headline-lg text-headline-lg font-bold text-primary leading-tight mt-1">
+                  <h2 className="font-headline-lg text-headline-lg font-bold text-stone-900 dark:text-stone-100 leading-tight mt-1">
                     {selectedDetail.title}
                   </h2>
                 </div>
@@ -340,50 +340,50 @@ export default function PendingList() {
                 {/* Academic Metadata Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="p-3.5 bg-surface-container-low rounded-xl border border-surface-container flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary shrink-0 mt-0.5">
+                    <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-stone-400 dark:text-stone-300 shrink-0 mt-0.5">
                       <span className="material-symbols-outlined text-[18px]">menu_book</span>
                     </div>
                     <div>
                       <span className="font-caption uppercase text-on-surface-variant font-bold text-[11px]">Học phần / Môn học</span>
-                      <p className="font-headline-sm text-body-sm font-semibold text-primary">{selectedDetail.subjectName}</p>
+                      <p className="font-headline-sm text-body-sm font-semibold text-stone-900 dark:text-stone-100">{selectedDetail.subjectName}</p>
                     </div>
                   </div>
 
                   <div className="p-3.5 bg-surface-container-low rounded-xl border border-surface-container flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary shrink-0 mt-0.5">
+                    <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-stone-400 dark:text-stone-300 shrink-0 mt-0.5">
                       <span className="material-symbols-outlined text-[18px]">calendar_month</span>
                     </div>
                     <div>
                       <span className="font-caption uppercase text-on-surface-variant font-bold text-[11px]">Năm học &amp; Khóa</span>
-                      <p className="font-headline-sm text-body-sm font-semibold text-primary">{selectedDetail.academicYearName}</p>
+                      <p className="font-headline-sm text-body-sm font-semibold text-stone-900 dark:text-stone-100">{selectedDetail.academicYearName}</p>
                     </div>
                   </div>
 
                   <div className="p-3.5 bg-surface-container-low rounded-xl border border-surface-container flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary shrink-0 mt-0.5">
+                    <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-stone-400 dark:text-stone-300 shrink-0 mt-0.5">
                       <span className="material-symbols-outlined text-[18px]">person</span>
                     </div>
                     <div>
                       <span className="font-caption uppercase text-on-surface-variant font-bold text-[11px]">Người nộp</span>
-                      <p className="font-headline-sm text-body-sm font-semibold text-primary">{selectedDetail.uploaderName}</p>
+                      <p className="font-headline-sm text-body-sm font-bold text-stone-900 dark:text-white">{selectedDetail.uploaderName}</p>
                     </div>
                   </div>
 
                   <div className="p-3.5 bg-surface-container-low rounded-xl border border-surface-container flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary shrink-0 mt-0.5">
+                    <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-stone-400 dark:text-stone-300 shrink-0 mt-0.5">
                       <span className="material-symbols-outlined text-[18px]">supervisor_account</span>
                     </div>
                     <div>
                       <span className="font-caption uppercase text-on-surface-variant font-bold text-[11px]">Giảng viên hướng dẫn</span>
-                      <p className="font-headline-sm text-body-sm font-semibold text-primary">{selectedDetail.advisorName || 'Chưa cập nhật'}</p>
+                      <p className="font-headline-sm text-body-sm font-semibold text-stone-900 dark:text-stone-100">{selectedDetail.advisorName || 'Chưa cập nhật'}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Abstract */}
                 <div className="space-y-2">
-                  <h3 className="font-headline-sm text-body-sm font-bold text-primary flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[18px] text-secondary">description</span>
+                  <h3 className="font-headline-sm text-body-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[18px] text-stone-400 dark:text-stone-300">description</span>
                     <span>Tóm tắt đề tài (Abstract)</span>
                   </h3>
                   <div className="p-4 bg-surface-container-low rounded-xl border border-surface-container text-body-sm text-on-surface leading-relaxed whitespace-pre-line">
@@ -394,15 +394,15 @@ export default function PendingList() {
                 {/* Technologies */}
                 {selectedDetail.technologies && selectedDetail.technologies.length > 0 && (
                   <div className="space-y-2">
-                    <h3 className="font-headline-sm text-body-sm font-bold text-primary flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-[18px] text-secondary">code</span>
+                    <h3 className="font-headline-sm text-body-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[18px] text-stone-400 dark:text-stone-300">code</span>
                       <span>Công nghệ &amp; Thẻ kỹ thuật</span>
                     </h3>
                     <div className="flex flex-wrap gap-1.5">
                       {selectedDetail.technologies.map((tech) => (
                         <span
                           key={tech.id}
-                          className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 font-label-code text-caption font-semibold"
+                          className="px-2.5 py-1 rounded-lg bg-stone-200/80 dark:bg-stone-800 text-stone-800 dark:text-stone-200 border border-stone-300 dark:border-stone-700 font-label-code text-caption font-semibold"
                         >
                           {tech.name}
                         </span>
@@ -414,8 +414,8 @@ export default function PendingList() {
                 {/* Members */}
                 {selectedDetail.members && selectedDetail.members.length > 0 && (
                   <div className="space-y-2">
-                    <h3 className="font-headline-sm text-body-sm font-bold text-primary flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-[18px] text-secondary">group</span>
+                    <h3 className="font-headline-sm text-body-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[18px] text-stone-400 dark:text-stone-300">group</span>
                       <span>Thành viên nhóm sinh viên</span>
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -425,18 +425,18 @@ export default function PendingList() {
                           className="p-3 bg-surface-container-low rounded-xl border border-surface-container flex items-center justify-between"
                         >
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-xs">
+                            <div className="w-8 h-8 rounded-full bg-stone-200 dark:bg-stone-800 text-stone-800 dark:text-stone-100 border border-stone-300 dark:border-stone-700 font-bold flex items-center justify-center text-xs">
                               {m.fullName.charAt(0)}
                             </div>
                             <div>
-                              <p className="font-headline-sm text-body-sm font-bold text-primary">{m.fullName}</p>
+                              <p className="font-headline-sm text-body-sm font-bold text-stone-900 dark:text-white">{m.fullName}</p>
                               <span className="font-label-code text-caption text-on-surface-variant font-mono">
                                 {m.studentCode || 'MSSV'}
                               </span>
                             </div>
                           </div>
                           {m.isLeader && (
-                            <span className="px-2 py-0.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20 font-label-code text-[11px] font-bold">
+                            <span className="px-2 py-0.5 rounded-full bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-700 font-label-code text-[11px] font-bold">
                               Trưởng nhóm
                             </span>
                           )}
@@ -449,8 +449,8 @@ export default function PendingList() {
                 {/* Attachments */}
                 {selectedDetail.files && selectedDetail.files.length > 0 && (
                   <div className="space-y-2">
-                    <h3 className="font-headline-sm text-body-sm font-bold text-primary flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-[18px] text-secondary">attach_file</span>
+                    <h3 className="font-headline-sm text-body-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[18px] text-stone-400 dark:text-stone-300">attach_file</span>
                       <span>Tệp đính kèm ({selectedDetail.files.length})</span>
                     </h3>
                     <div className="space-y-1.5">
@@ -460,8 +460,8 @@ export default function PendingList() {
                           className="p-3 bg-surface-container-low rounded-xl border border-surface-container flex items-center justify-between"
                         >
                           <div className="flex items-center gap-2.5 truncate">
-                            <span className="material-symbols-outlined text-primary text-[20px]">picture_as_pdf</span>
-                            <span className="font-body-sm font-semibold text-on-surface truncate">{f.fileName}</span>
+                            <span className="material-symbols-outlined text-rose-500 dark:text-rose-400 text-[20px]">picture_as_pdf</span>
+                            <span className="font-body-sm font-semibold text-stone-900 dark:text-stone-100 truncate">{f.fileName}</span>
                           </div>
                           <span className="font-label-code text-caption text-on-surface-variant shrink-0 ml-2">
                             {(f.fileSize / 1024 / 1024).toFixed(2)} MB
@@ -475,8 +475,8 @@ export default function PendingList() {
                 {/* Review History */}
                 {reviews.length > 0 && (
                   <div className="space-y-3 pt-3 border-t border-surface-container">
-                    <h3 className="font-headline-sm text-body-sm font-bold text-primary flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-[18px] text-secondary">history</span>
+                    <h3 className="font-headline-sm text-body-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[18px] text-stone-400 dark:text-stone-300">history</span>
                       <span>Lịch sử đánh giá của Hội đồng</span>
                     </h3>
                     <div className="space-y-2.5">
@@ -486,7 +486,7 @@ export default function PendingList() {
                           className="p-3.5 bg-surface-container-low rounded-xl border border-surface-container space-y-1.5"
                         >
                           <div className="flex items-center justify-between gap-2">
-                            <span className="font-headline-sm text-body-sm font-bold text-primary">
+                            <span className="font-headline-sm text-body-sm font-bold text-stone-900 dark:text-white">
                               {rev.reviewerName}
                             </span>
                             <span className="font-label-code text-caption text-on-surface-variant">
@@ -494,11 +494,11 @@ export default function PendingList() {
                             </span>
                           </div>
                           <p className="text-body-sm text-on-surface-variant">
-                            Chuyển trạng thái từ <b className="text-primary">{rev.fromStatus}</b> sang{' '}
-                            <b className="text-primary">{rev.toStatus}</b>
+                            Chuyển trạng thái từ <b className="text-stone-900 dark:text-stone-200 font-mono">{rev.fromStatus}</b> sang{' '}
+                            <b className="text-stone-900 dark:text-stone-200 font-mono">{rev.toStatus}</b>
                           </p>
                           {rev.comment && (
-                            <p className="p-2.5 bg-white rounded-lg text-body-sm italic text-on-surface border border-surface-container">
+                            <p className="p-2.5 bg-stone-100 dark:bg-stone-900/90 rounded-lg text-body-sm italic text-stone-800 dark:text-stone-200 border border-stone-200 dark:border-stone-800">
                               "{rev.comment}"
                             </p>
                           )}

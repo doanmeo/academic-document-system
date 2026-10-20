@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import Navbar from '../components/layout/Navbar'
 import Footer from '../components/layout/Footer'
+import CustomCheckbox from '../components/ui/CustomCheckbox'
 
 export default function Profile() {
   const { user, logout } = useAuth()
@@ -53,8 +54,8 @@ export default function Profile() {
     <div className="min-h-screen flex flex-col bg-surface antialiased">
       <Navbar />
 
-      <main className="w-full pt-20 pb-16 flex-grow bg-surface">
-        <div className="max-w-7xl mx-auto px-4 lg:px-gutter-desktop space-y-6">
+      <main className="w-full pt-20 pb-16 flex-grow bg-paper-grid">
+        <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 space-y-6">
           {/* Header Block with Swiss Academic Tagging */}
           <div className="bg-surface-container-low p-6 lg:p-8 rounded-xl border border-surface-container shadow-xs">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -78,8 +79,8 @@ export default function Profile() {
               <div className="flex items-center gap-3">
                 <div className="text-right">
                   <span className="block font-label-code text-caption uppercase text-on-surface-variant">Trạng thái định danh</span>
-                  <span className="inline-flex items-center gap-1.5 font-label-code text-caption font-bold text-primary">
-                    <span className="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+                  <span className="inline-flex items-center gap-1.5 font-label-code text-caption font-bold text-emerald-600 dark:text-emerald-400">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     ĐÃ XÁC THỰC UTC ID
                   </span>
                 </div>
@@ -101,12 +102,12 @@ export default function Profile() {
                 {/* Avatar Module */}
                 <div className="flex flex-col items-center text-center">
                   <div className="relative group">
-                    <div className="w-28 h-28 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-3xl shadow-md border-4 border-surface-container">
+                    <div className="w-28 h-28 rounded-full bg-stone-200 dark:bg-stone-800 text-stone-800 dark:text-stone-100 border-4 border-stone-300 dark:border-stone-700 flex items-center justify-center font-bold text-3xl shadow-md">
                       {user?.fullName?.charAt(0) || 'U'}
                     </div>
                   </div>
                   <div className="mt-4">
-                    <h2 className="font-headline-sm text-headline-sm font-bold text-primary tracking-tight">
+                    <h2 className="font-headline-sm text-headline-sm font-bold text-stone-900 dark:text-white tracking-tight">
                       {user?.fullName || 'Vũ Đức An Ninh'}
                     </h2>
                     <div className="mt-1 flex items-center justify-center gap-2">
@@ -115,7 +116,7 @@ export default function Profile() {
                       </span>
                     </div>
                     <div className="mt-2">
-                      <span className="inline-block px-3 py-1 bg-primary text-on-primary font-label-code text-[11px] font-bold tracking-wider uppercase rounded-full">
+                      <span className="inline-block px-3 py-1 bg-stone-800 dark:bg-stone-800 text-white dark:text-stone-100 border border-stone-600 dark:border-stone-700 font-label-code text-[11px] font-bold tracking-wider uppercase rounded-full">
                         {user?.role === 'ADMIN' ? 'BAN QUẢN TRỊ KHOA' : 'SINH VIÊN (K64 - CNTT)'}
                       </span>
                     </div>
@@ -128,9 +129,9 @@ export default function Profile() {
                     <span className="font-label-code text-[11px] uppercase tracking-wider text-on-surface-variant font-bold">
                       Email UTC xác thực
                     </span>
-                    <span className="material-symbols-outlined text-secondary text-[18px]">verified</span>
+                    <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[18px]">verified</span>
                   </div>
-                  <p className="font-label-code text-body-sm font-semibold text-primary mt-1 break-all select-all">
+                  <p className="font-label-code text-body-sm font-semibold text-stone-900 dark:text-stone-200 mt-1 break-all select-all">
                     {user?.email || 'anninh231230859@utc.edu.vn'}
                   </p>
                 </div>
@@ -147,15 +148,15 @@ export default function Profile() {
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="bg-surface-container-low p-2.5 rounded-lg text-center">
-                      <span className="block font-headline-sm font-bold text-primary">06</span>
+                      <span className="block font-headline-sm font-bold text-stone-900 dark:text-stone-100">06</span>
                       <span className="font-caption text-[11px] text-on-surface-variant">Tài liệu</span>
                     </div>
                     <div className="bg-surface-container-low p-2.5 rounded-lg text-center">
-                      <span className="block font-headline-sm font-bold text-on-surface">14.8k</span>
+                      <span className="block font-headline-sm font-bold text-stone-900 dark:text-stone-100">14.8k</span>
                       <span className="font-caption text-[11px] text-on-surface-variant">Lượt xem</span>
                     </div>
                     <div className="bg-surface-container-low p-2.5 rounded-lg text-center">
-                      <span className="block font-headline-sm font-bold text-secondary">920</span>
+                      <span className="block font-headline-sm font-bold text-amber-600 dark:text-amber-400">920</span>
                       <span className="font-caption text-[11px] text-on-surface-variant">Điểm EXP</span>
                     </div>
                   </div>
@@ -164,10 +165,10 @@ export default function Profile() {
                   <div className="bg-surface-container-low p-3 rounded-lg">
                     <div className="flex justify-between font-label-code text-[11px] text-on-surface-variant mb-1">
                       <span>HẠNG HỌC HỘI // CẤP BẬC V</span>
-                      <span className="font-bold text-primary">920 / 1000 EXP</span>
+                      <span className="font-bold text-stone-800 dark:text-stone-200">920 / 1000 EXP</span>
                     </div>
                     <div className="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
-                      <div className="h-full bg-primary" style={{ width: '92%' }}></div>
+                      <div className="h-full bg-amber-500 dark:bg-amber-400" style={{ width: '92%' }}></div>
                     </div>
                   </div>
                 </div>
@@ -179,10 +180,10 @@ export default function Profile() {
                   </span>
                   <div className="flex items-center justify-between p-2.5 bg-surface-container-low rounded-lg text-body-sm">
                     <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[18px] text-primary">security</span>
+                      <span className="material-symbols-outlined text-[18px] text-stone-400 dark:text-stone-300">security</span>
                       <span className="font-body-sm font-medium">Bảo vệ 2FA (OTP UTC)</span>
                     </div>
-                    <span className="px-2 py-0.5 bg-primary text-on-primary font-label-code text-[10px] font-bold rounded">
+                    <span className="px-2 py-0.5 bg-emerald-600 text-white font-label-code text-[10px] font-bold rounded">
                       BẬT
                     </span>
                   </div>
@@ -206,11 +207,11 @@ export default function Profile() {
 
               {/* Guidelines Callout */}
               <div className="bg-surface-container-lowest p-5 rounded-xl border border-surface-container flex items-start gap-3">
-                <div className="w-8 h-8 bg-primary text-on-primary rounded-lg flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-700 rounded-lg flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-[18px]">info</span>
                 </div>
                 <div>
-                  <h3 className="font-body-sm font-bold text-on-surface">Lưu ý bản quyền Khoa CNTT</h3>
+                  <h3 className="font-body-sm font-bold text-stone-900 dark:text-stone-100">Lưu ý bản quyền Khoa CNTT</h3>
                   <p className="font-caption text-on-surface-variant mt-1 leading-relaxed">
                     Mọi tài liệu tải lên hệ thống chịu sự giám sát từ Hội đồng Khoa học Khoa CNTT - ĐH Giao thông Vận tải. Hãy đảm bảo tuân thủ li-xăng học thuật.
                   </p>
@@ -438,44 +439,38 @@ export default function Profile() {
                   </div>
 
                   <div className="space-y-4">
-                    <label className="flex items-start gap-3 p-3 bg-surface-container-low rounded-lg cursor-pointer">
-                      <input
-                        type="checkbox"
+                    <div className="p-3 bg-surface-container-low rounded-lg">
+                      <CustomCheckbox
                         checked={notifyApproval}
-                        onChange={(e) => setNotifyApproval(e.target.checked)}
-                        className="mt-1 w-4 h-4 accent-primary"
+                        onChange={setNotifyApproval}
+                        label="Thông báo kết quả kiểm duyệt đề tài"
+                        description="Gửi email khi đồ án hoặc tài liệu được Hội đồng Khoa phê duyệt hoặc yêu cầu chỉnh sửa."
+                        color="blue"
+                        size="md"
                       />
-                      <div>
-                        <span className="font-body-sm font-bold text-primary block">Thông báo kết quả kiểm duyệt đề tài</span>
-                        <span className="text-caption text-on-surface-variant">Gửi email khi đồ án hoặc tài liệu được Hội đồng Khoa phê duyệt hoặc yêu cầu chỉnh sửa.</span>
-                      </div>
-                    </label>
+                    </div>
 
-                    <label className="flex items-start gap-3 p-3 bg-surface-container-low rounded-lg cursor-pointer">
-                      <input
-                        type="checkbox"
+                    <div className="p-3 bg-surface-container-low rounded-lg">
+                      <CustomCheckbox
                         checked={notifyComment}
-                        onChange={(e) => setNotifyComment(e.target.checked)}
-                        className="mt-1 w-4 h-4 accent-primary"
+                        onChange={setNotifyComment}
+                        label="Tương tác và đánh giá mới"
+                        description="Thông báo khi có sinh viên khác lưu bộ sưu tập hoặc để lại đánh giá tài liệu của bạn."
+                        color="blue"
+                        size="md"
                       />
-                      <div>
-                        <span className="font-body-sm font-bold text-primary block">Tương tác và đánh giá mới</span>
-                        <span className="text-caption text-on-surface-variant">Thông báo khi có sinh viên khác lưu bộ sưu tập hoặc để lại đánh giá tài liệu của bạn.</span>
-                      </div>
-                    </label>
+                    </div>
 
-                    <label className="flex items-start gap-3 p-3 bg-surface-container-low rounded-lg cursor-pointer">
-                      <input
-                        type="checkbox"
+                    <div className="p-3 bg-surface-container-low rounded-lg">
+                      <CustomCheckbox
                         checked={notifyWeekly}
-                        onChange={(e) => setNotifyWeekly(e.target.checked)}
-                        className="mt-1 w-4 h-4 accent-primary"
+                        onChange={setNotifyWeekly}
+                        label="Bản tin học liệu nổi bật hàng tuần"
+                        description="Tổng hợp các đồ án xuất sắc và bài giảng mới cập nhật từ Khoa CNTT."
+                        color="blue"
+                        size="md"
                       />
-                      <div>
-                        <span className="font-body-sm font-bold text-primary block">Bản tin học liệu nổi bật hàng tuần</span>
-                        <span className="text-caption text-on-surface-variant">Tổng hợp các đồ án xuất sắc và bài giảng mới cập nhật từ Khoa CNTT.</span>
-                      </div>
-                    </label>
+                    </div>
                   </div>
                 </div>
               )}

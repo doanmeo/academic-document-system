@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getMyDocuments, deleteDocument, submitDocument } from '../api/documentApi';
 import { userApi } from '../api/userApi';
@@ -107,8 +107,8 @@ export default function MyDocuments() {
     <div className="min-h-screen flex flex-col bg-surface antialiased">
       <Navbar />
 
-      <main className="w-full pt-20 pb-16 flex-grow bg-surface">
-        <div className="max-w-7xl mx-auto px-4 lg:px-gutter-desktop space-y-6">
+      <main className="w-full pt-20 pb-16 flex-grow bg-paper-grid">
+        <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 space-y-6">
           {/* Main Grid: 4 Cols Profile Card + 8 Cols Documents Management */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* LEFT COLUMN: USER PROFILE CARD (4 Cols) */}
@@ -346,7 +346,7 @@ export default function MyDocuments() {
 
                           <h3
                             onClick={() => navigate(`/documents/${doc.id}`)}
-                            className="font-headline-sm text-body-md font-bold text-primary hover:text-secondary cursor-pointer leading-snug"
+                            className="font-headline-sm text-body-md font-bold text-stone-900 dark:text-stone-100 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer leading-snug transition-colors"
                           >
                             {doc.title}
                           </h3>

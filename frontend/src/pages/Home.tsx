@@ -401,19 +401,19 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#faf9f5] dark:bg-[#0c1017] text-stone-900 dark:text-stone-100 antialiased selection:bg-blue-600 selection:text-white dark:selection:bg-amber-400 dark:selection:text-stone-900">
+    <div className="min-h-screen flex flex-col bg-[#faf9f5] dark:bg-[#0c1017] text-stone-900 dark:text-stone-100 antialiased selection:bg-blue-600 selection:text-white dark:selection:bg-amber-400 dark:selection:text-stone-900 overflow-x-clip">
       <Navbar />
 
-      <main className="flex-grow pt-16">
+      <main className="flex-grow pt-16 bg-[#faf9f5] dark:bg-[#0c1017] bg-paper-grid overflow-x-clip">
         {/* ══════════════════════════════════════════════════════════════════
             1. HERO SECTION — ARCHIVAL PAPER CANVAS + VIBRANT EDITORIAL
            ══════════════════════════════════════════════════════════════════ */}
-        <section className="relative overflow-hidden pt-12 pb-20 md:pt-16 md:pb-24 border-b border-stone-200 dark:border-stone-800 bg-[#fbfbfa] dark:bg-[#0d1117] bg-paper-grid">
+        <section className="relative pt-12 pb-20 md:pt-16 md:pb-24 bg-transparent">
           {/* Subtle colored ambient glow in the background */}
-          <div className="absolute top-10 left-1/4 w-96 h-96 bg-blue-400/10 dark:bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute top-16 right-1/4 w-96 h-96 bg-amber-400/10 dark:bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-8 left-1/4 w-96 h-96 bg-blue-400/10 dark:bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-4 right-1/4 w-96 h-96 bg-amber-400/10 dark:bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="max-w-[1680px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10">
             {/* Archival metadata ledger line with colorful badges */}
             <div className="flex flex-wrap items-center justify-between gap-3 pb-6 mb-8 border-b border-dashed border-stone-300 dark:border-stone-800 text-[11px] font-mono text-stone-500 dark:text-stone-400">
               <div className="flex items-center gap-3">
@@ -438,7 +438,7 @@ export default function Home() {
             </div>
 
             {/* Main Editorial Hero Content */}
-            <div className="max-w-4xl mx-auto text-center flex flex-col items-center">
+            <div className="max-w-6xl xl:max-w-7xl 2xl:max-w-[1520px] w-full mx-auto text-center flex flex-col items-center">
               {/* Category tag */}
               <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-gradient-to-r from-blue-100 via-indigo-100 to-amber-100 dark:from-blue-950/70 dark:via-indigo-950/70 dark:to-amber-950/70 border border-blue-300/80 dark:border-blue-700 text-blue-900 dark:text-blue-200 font-mono text-xs font-bold uppercase tracking-wider mb-5 shadow-2xs">
                 <BookmarkCheck className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
@@ -457,20 +457,20 @@ export default function Home() {
               </h1>
 
               {/* Academic Abstract Style Paragraph */}
-              <p className="text-base sm:text-lg text-stone-600 dark:text-stone-300 max-w-2xl leading-relaxed mb-8 font-sans">
+              <p className="text-base sm:text-lg lg:text-xl text-stone-600 dark:text-stone-300 max-w-4xl lg:max-w-5xl leading-relaxed mb-10 font-sans">
                 Lưu trữ tập trung và đối soát học thuật toàn văn: Khóa luận tốt nghiệp xuất sắc,
                 báo cáo Bài tập lớn, mã nguồn mẫu đính kèm GitHub/GitLab, slide bài giảng chính khóa
                 và ngân hàng đề thi có lời giải chuẩn quy cách của Khoa CNTT.
               </p>
 
               {/* Index Card Filing Search Box with Warm Blue Border */}
-              <div className="w-full max-w-2xl bg-white dark:bg-stone-900 rounded-xl p-2.5 shadow-lg shadow-stone-400/10 dark:shadow-black/50 border-2 border-stone-800 dark:border-stone-700 focus-within:border-blue-600 dark:focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/15 transition-all mb-4 text-left relative">
+              <div className="w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl bg-white dark:bg-stone-900 rounded-2xl p-3.5 sm:p-4 shadow-xl shadow-stone-400/10 dark:shadow-black/50 border-2 border-stone-800 dark:border-stone-700 focus-within:border-blue-600 dark:focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/15 transition-all mb-6 text-left relative">
                 {/* Paper clip decor */}
                 <div className="absolute -top-4 right-6 text-amber-600 dark:text-amber-400 pointer-events-none drop-shadow-xs">
                   <Paperclip className="w-6 h-6 rotate-45" />
                 </div>
 
-                <form onSubmit={handleSearchSubmit} className="flex items-center gap-2.5 px-3 py-1.5">
+                <form onSubmit={handleSearchSubmit} className="flex items-center gap-3 px-3 py-2 sm:py-2.5">
                   <Search className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0" />
                   <input
                     ref={searchInputRef}
@@ -478,7 +478,7 @@ export default function Home() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     type="text"
                     placeholder="Tra cứu theo môn học, giảng viên (PGS. TS...), công nghệ..."
-                    className="w-full bg-transparent text-sm sm:text-base font-mono text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none"
+                    className="w-full bg-transparent text-base sm:text-lg font-mono text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none"
                   />
                   <div className="hidden sm:flex items-center gap-1 shrink-0 px-2 py-1 rounded bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 text-xs font-mono font-bold border border-stone-200 dark:border-stone-700">
                     <span>Ctrl</span>
@@ -486,7 +486,7 @@ export default function Home() {
                   </div>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-mono text-xs font-bold uppercase tracking-wider transition-all shrink-0 cursor-pointer shadow-md shadow-blue-600/20 flex items-center gap-1.5"
+                    className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-mono text-xs sm:text-sm font-bold uppercase tracking-wider transition-all shrink-0 cursor-pointer shadow-md shadow-blue-600/20 flex items-center gap-2"
                   >
                     <span>Truy vấn</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -494,7 +494,7 @@ export default function Home() {
                 </form>
 
                 {/* Index Card Tabs for Quick Type Selection */}
-                <div className="flex items-center gap-1.5 pt-2.5 mt-2 border-t border-stone-200 dark:border-stone-800 overflow-x-auto no-scrollbar px-2 text-xs">
+                <div className="flex items-center gap-1.5 sm:gap-2 pt-3 mt-2.5 border-t border-stone-200 dark:border-stone-800 overflow-x-auto no-scrollbar px-1 text-xs sm:text-sm flex-nowrap lg:justify-center">
                   <span className="text-[10px] font-mono font-bold text-stone-400 uppercase tracking-widest shrink-0 mr-1">
                     MỤC LỤC:
                   </span>
@@ -509,7 +509,7 @@ export default function Home() {
                   >
                     TẤT CẢ
                   </button>
-                  {OFFICIAL_DOCUMENT_TYPES.slice(0, 5).map((t) => (
+                  {OFFICIAL_DOCUMENT_TYPES.map((t) => (
                     <button
                       key={t.code}
                       type="button"
@@ -520,14 +520,14 @@ export default function Home() {
                           : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'
                       }`}
                     >
-                      {t.label}
+                      {t.code === 'THESIS' ? 'Đồ án / Khóa luận' : t.code === 'LAB' ? 'Lab & Thực hành' : t.label}
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* Research Index Hot Pills with Color-coding */}
-              <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-mono mt-2">
+              <div className="flex flex-wrap lg:flex-nowrap items-center justify-center gap-2 sm:gap-2.5 text-xs sm:text-sm font-mono mt-3 w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto overflow-x-auto no-scrollbar">
                 <span className="text-amber-700 dark:text-amber-400 font-bold uppercase tracking-wider text-[11px] flex items-center gap-1">
                   <Flame className="w-3.5 h-3.5 fill-current" />
                   CHỦ ĐỀ HOT:
@@ -546,7 +546,7 @@ export default function Home() {
                       if (pill.type) navigate(`/search?type=${pill.type}`)
                       else navigate(`/search?q=${encodeURIComponent(pill.q || '')}`)
                     }}
-                    className={`px-2.5 py-0.5 rounded border ${pill.color} hover:brightness-95 transition-all cursor-pointer shadow-2xs font-semibold`}
+                    className={`px-2.5 sm:px-3 py-1 rounded-md border ${pill.color} hover:brightness-95 transition-all cursor-pointer shadow-2xs font-semibold shrink-0 whitespace-nowrap`}
                   >
                     #{pill.name}
                   </button>
@@ -554,33 +554,33 @@ export default function Home() {
               </div>
 
               {/* Swiss Minimalist Ledger — 4 High-Contrast Colored Numbers */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-3xl mt-12 pt-8 border-t border-stone-300 dark:border-stone-800 text-left">
-                <div className="p-3 border-l-4 border-blue-600 bg-white/70 dark:bg-stone-900/60 rounded-r-md border-y border-r border-stone-200/60 dark:border-stone-800">
-                  <span className="block font-mono text-3xl sm:text-4xl font-bold text-blue-600 dark:text-blue-400">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mt-14 pt-10 border-t border-stone-300 dark:border-stone-800 text-left">
+                <div className="p-4 sm:p-5 lg:p-6 border-l-4 border-blue-600 bg-white/70 dark:bg-stone-900/60 rounded-r-xl border-y border-r border-stone-200/60 dark:border-stone-800 shadow-xs">
+                  <span className="block font-mono text-3xl sm:text-4xl lg:text-5xl font-bold text-blue-600 dark:text-blue-400">
                     55
                   </span>
-                  <span className="block text-[11px] font-mono text-stone-600 dark:text-stone-400 uppercase tracking-wider mt-0.5 font-bold">
+                  <span className="block text-xs sm:text-sm font-mono text-stone-600 dark:text-stone-400 uppercase tracking-wider mt-1.5 font-bold">
                     Môn học UTC FIT
                   </span>
                 </div>
-                <div className="p-3 border-l-4 border-purple-600 bg-white/70 dark:bg-stone-900/60 rounded-r-md border-y border-r border-stone-200/60 dark:border-stone-800">
-                  <span className="block font-mono text-3xl sm:text-4xl font-bold text-purple-600 dark:text-purple-400">
+                <div className="p-4 sm:p-5 lg:p-6 border-l-4 border-purple-600 bg-white/70 dark:bg-stone-900/60 rounded-r-xl border-y border-r border-stone-200/60 dark:border-stone-800 shadow-xs">
+                  <span className="block font-mono text-3xl sm:text-4xl lg:text-5xl font-bold text-purple-600 dark:text-purple-400">
                     06
                   </span>
                   <span className="block text-[11px] font-mono text-stone-600 dark:text-stone-400 uppercase tracking-wider mt-0.5 font-bold">
                     Hồ sơ ngành học
                   </span>
                 </div>
-                <div className="p-3 border-l-4 border-amber-500 bg-white/70 dark:bg-stone-900/60 rounded-r-md border-y border-r border-stone-200/60 dark:border-stone-800">
-                  <span className="block font-mono text-3xl sm:text-4xl font-bold text-amber-600 dark:text-amber-400">
+                <div className="p-4 sm:p-5 lg:p-6 border-l-4 border-amber-500 bg-white/70 dark:bg-stone-900/60 rounded-r-xl border-y border-r border-stone-200/60 dark:border-stone-800 shadow-xs">
+                  <span className="block font-mono text-3xl sm:text-4xl lg:text-5xl font-bold text-amber-600 dark:text-amber-400">
                     08
                   </span>
                   <span className="block text-[11px] font-mono text-stone-600 dark:text-stone-400 uppercase tracking-wider mt-0.5 font-bold">
                     Loại học liệu chuẩn
                   </span>
                 </div>
-                <div className="p-3 border-l-4 border-emerald-600 bg-white/70 dark:bg-stone-900/60 rounded-r-md border-y border-r border-stone-200/60 dark:border-stone-800">
-                  <span className="block font-mono text-3xl sm:text-4xl font-bold text-emerald-600 dark:text-emerald-400">
+                <div className="p-4 sm:p-5 lg:p-6 border-l-4 border-emerald-600 bg-white/70 dark:bg-stone-900/60 rounded-r-xl border-y border-r border-stone-200/60 dark:border-stone-800 shadow-xs">
+                  <span className="block font-mono text-3xl sm:text-4xl lg:text-5xl font-bold text-emerald-600 dark:text-emerald-400">
                     100%
                   </span>
                   <span className="block text-[11px] font-mono text-stone-600 dark:text-stone-400 uppercase tracking-wider mt-0.5 font-bold">
@@ -595,29 +595,22 @@ export default function Home() {
         {/* ══════════════════════════════════════════════════════════════════
             2. 6 BÌA HỒ SƠ CHUYÊN NGÀNH (COLORFUL ARCHIVAL DOSSIERS)
            ══════════════════════════════════════════════════════════════════ */}
-        <section className="py-16 sm:py-20 bg-[#faf9f5] dark:bg-[#090d14] border-b border-stone-200 dark:border-stone-800">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 pb-4 border-b border-stone-300 dark:border-stone-800">
-              <div>
-                <span className="text-xs font-mono font-bold tracking-widest uppercase text-blue-700 dark:text-blue-400">
-                  MỤC LỤC ĐÀO TẠO · KHOA CNTT UTC
-                </span>
-                <h2 className="font-serif-academic text-3xl sm:text-4xl font-bold text-stone-950 dark:text-stone-50 mt-1">
-                  6 Hồ Sơ Chuyên Ngành Đào Tạo
-                </h2>
-                <p className="text-sm text-stone-600 dark:text-stone-400 mt-1 max-w-2xl font-sans">
-                  Hồ sơ học liệu phân định rõ ràng theo từng ngành: đồ án tốt nghiệp, bài tập lớn,
-                  slide bài giảng và tài liệu nghiên cứu chuyên ngành.
-                </p>
-              </div>
+        <section className="relative py-16 sm:py-20 md:py-24 bg-transparent">
+          {/* Subtle colored ambient glow behind centered title */}
+          <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-full max-w-5xl h-80 sm:h-96 bg-gradient-to-r from-blue-500/10 via-indigo-500/15 to-blue-500/10 dark:from-blue-600/15 dark:via-indigo-600/20 dark:to-blue-600/15 rounded-full blur-3xl pointer-events-none -z-0" />
 
-              <Link
-                to="/search"
-                className="inline-flex items-center gap-1.5 text-xs font-mono font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400 hover:underline shrink-0"
-              >
-                <span>Xem mục lục toàn bộ học liệu</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+          <div className="max-w-[1680px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10">
+            <div className="text-center max-w-3xl mx-auto mb-12 flex flex-col items-center">
+              <span className="text-xs font-mono font-bold tracking-widest uppercase text-blue-700 dark:text-blue-400">
+                MỤC LỤC ĐÀO TẠO · KHOA CNTT UTC
+              </span>
+              <h2 className="font-serif-academic text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-950 dark:text-stone-50 mt-2">
+                6 Hồ Sơ Chuyên Ngành Đào Tạo
+              </h2>
+              <p className="text-sm sm:text-base text-stone-600 dark:text-stone-400 mt-2.5 font-sans max-w-2xl leading-relaxed">
+                Hồ sơ học liệu phân định rõ ràng theo từng ngành: đồ án tốt nghiệp, bài tập lớn,
+                slide bài giảng và tài liệu nghiên cứu chuyên ngành.
+              </p>
             </div>
 
             {/* Grid of Archival Dossiers with Rich Color Identities */}
@@ -681,22 +674,35 @@ export default function Home() {
                 )
               })}
             </div>
+
+            <div className="text-center mt-10">
+              <Link
+                to="/search"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-xs font-mono font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400 hover:border-blue-500 transition-all shadow-xs hover:shadow-md"
+              >
+                <span>Xem mục lục toàn bộ học liệu</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         </section>
 
         {/* ══════════════════════════════════════════════════════════════════
             3. KHUNG CHƯƠNG TRÌNH 4 KHỐI KIẾN THỨC (COLOR-CODED SYLLABUS LEDGER)
            ══════════════════════════════════════════════════════════════════ */}
-        <section className="py-16 sm:py-20 bg-[#fbfbfa] dark:bg-[#0c1017] border-b border-stone-200 dark:border-stone-800 bg-paper-dots">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-2xl mx-auto mb-10">
+        <section className="relative py-16 sm:py-20 md:py-24 bg-transparent">
+          {/* Subtle colored ambient glow behind centered title */}
+          <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-full max-w-5xl h-80 sm:h-96 bg-gradient-to-r from-emerald-500/10 via-teal-500/15 to-emerald-500/10 dark:from-emerald-600/15 dark:via-teal-600/20 dark:to-emerald-600/15 rounded-full blur-3xl pointer-events-none -z-0" />
+
+          <div className="max-w-[1680px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10">
+            <div className="text-center max-w-3xl mx-auto mb-12 flex flex-col items-center">
               <span className="text-xs font-mono font-bold tracking-widest uppercase text-emerald-700 dark:text-emerald-400">
                 SỔ TAY KHUNG CHƯƠNG TRÌNH ĐÀO TẠO
               </span>
-              <h2 className="font-serif-academic text-3xl sm:text-4xl font-bold text-stone-950 dark:text-stone-50 mt-1">
+              <h2 className="font-serif-academic text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-950 dark:text-stone-50 mt-2">
                 4 Khối Kiến Thức Đào Tạo UTC FIT
               </h2>
-              <p className="text-sm text-stone-600 dark:text-stone-400 mt-2 font-sans">
+              <p className="text-sm sm:text-base text-stone-600 dark:text-stone-400 mt-2.5 font-sans max-w-2xl leading-relaxed">
                 Khung phân bổ 55 môn học chuẩn theo tín chỉ. Bấm vào từng môn để tra cứu trực tiếp toàn bộ tài liệu và bài giảng.
               </p>
             </div>
@@ -750,7 +756,7 @@ export default function Home() {
                     value={subjectSearch}
                     onChange={(e) => setSubjectSearch(e.target.value)}
                     placeholder="Lọc môn học / mã môn..."
-                    className="w-full bg-stone-50 dark:bg-stone-850 pl-9 pr-3 py-2 rounded-lg text-xs font-mono border border-stone-300 dark:border-stone-700 focus:outline-none focus:border-blue-600 dark:focus:border-blue-400 text-stone-900 dark:text-stone-100"
+                    className="w-full bg-stone-50 dark:bg-stone-800/90 pl-9 pr-3 py-2 rounded-lg text-xs font-mono border border-stone-300 dark:border-stone-700 focus:outline-none focus:border-blue-600 dark:focus:border-blue-400 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
                   />
                 </div>
               </div>
@@ -761,7 +767,7 @@ export default function Home() {
                   <div
                     key={sub.code}
                     onClick={() => handleSubjectClick(sub.name, sub.code)}
-                    className="group p-3.5 rounded-lg border border-stone-200 dark:border-stone-800 hover:border-blue-500 dark:hover:border-blue-400 bg-stone-50/60 dark:bg-stone-850/50 hover:bg-white dark:hover:bg-stone-850 transition-all cursor-pointer flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs"
+                    className="group p-3.5 rounded-lg border border-stone-200 dark:border-stone-800 hover:border-blue-500 dark:hover:border-blue-400 bg-stone-50/70 dark:bg-stone-800/60 hover:bg-white dark:hover:bg-stone-800 transition-all cursor-pointer flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs"
                   >
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 mb-1.5 flex-wrap">
@@ -801,16 +807,19 @@ export default function Home() {
         {/* ══════════════════════════════════════════════════════════════════
             4. 8 PHÂN LOẠI HỌC LIỆU CHUẨN HÓA (COLORFUL LIBRARY TILES)
            ══════════════════════════════════════════════════════════════════ */}
-        <section className="py-16 sm:py-20 bg-[#faf9f5] dark:bg-[#090d14] border-b border-stone-200 dark:border-stone-800">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-2xl mx-auto mb-10">
+        <section className="relative py-16 sm:py-20 md:py-24 bg-transparent">
+          {/* Subtle colored ambient glow behind centered title */}
+          <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-full max-w-5xl h-80 sm:h-96 bg-gradient-to-r from-purple-500/10 via-indigo-500/15 to-purple-500/10 dark:from-purple-600/15 dark:via-indigo-600/20 dark:to-purple-600/15 rounded-full blur-3xl pointer-events-none -z-0" />
+
+          <div className="max-w-[1680px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10">
+            <div className="text-center max-w-3xl mx-auto mb-12 flex flex-col items-center">
               <span className="text-xs font-mono font-bold tracking-widest uppercase text-purple-700 dark:text-purple-400">
                 DANH MỤC THỦ THƯ HỌC THUẬT
               </span>
-              <h2 className="font-serif-academic text-3xl sm:text-4xl font-bold text-stone-950 dark:text-stone-50 mt-1">
+              <h2 className="font-serif-academic text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-950 dark:text-stone-50 mt-2">
                 8 Loại Tài Liệu Chuẩn Hóa
               </h2>
-              <p className="text-sm text-stone-600 dark:text-stone-400 mt-2 font-sans">
+              <p className="text-sm sm:text-base text-stone-600 dark:text-stone-400 mt-2.5 font-sans max-w-2xl leading-relaxed">
                 Không trùng lặp, chuẩn quy chuẩn trích dẫn, phục vụ học tập và nghiên cứu thực tiễn.
               </p>
             </div>
@@ -910,22 +919,35 @@ export default function Home() {
                 )
               })}
             </div>
+
+            <div className="text-center mt-10">
+              <Link
+                to="/search"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-xs font-mono font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400 hover:border-blue-500 transition-all shadow-xs hover:shadow-md"
+              >
+                <span>Xem mục lục toàn bộ học liệu</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         </section>
 
         {/* ══════════════════════════════════════════════════════════════════
             5. BENTO GRID: CÔNG CỤ NGHIÊN CỨU ĐỘC BẢN (RICH VIBRANT RESEARCH WORKBENCH)
            ══════════════════════════════════════════════════════════════════ */}
-        <section className="py-16 sm:py-20 bg-[#fbfbfa] dark:bg-[#0c1017] border-b border-stone-200 dark:border-stone-800">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-2xl mx-auto mb-12">
+        <section className="relative py-16 sm:py-20 md:py-24 bg-transparent">
+          {/* Subtle colored ambient glow behind centered title */}
+          <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-full max-w-5xl h-80 sm:h-96 bg-gradient-to-r from-amber-500/10 via-orange-500/15 to-amber-500/10 dark:from-amber-600/15 dark:via-orange-600/20 dark:to-amber-600/15 rounded-full blur-3xl pointer-events-none -z-0" />
+
+          <div className="max-w-[1680px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10">
+            <div className="text-center max-w-3xl mx-auto mb-12 flex flex-col items-center">
               <span className="text-xs font-mono font-bold tracking-widest uppercase text-amber-700 dark:text-amber-400">
                 BÀN LÀM VIỆC NGHIÊN CỨU (RESEARCH WORKBENCH)
               </span>
-              <h2 className="font-serif-academic text-3xl sm:text-4xl font-bold text-stone-950 dark:text-stone-50 mt-1">
+              <h2 className="font-serif-academic text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-950 dark:text-stone-50 mt-2">
                 Công Cụ Học Thuật Độc Bản
               </h2>
-              <p className="text-sm text-stone-600 dark:text-stone-400 mt-2 font-sans">
+              <p className="text-sm sm:text-base text-stone-600 dark:text-stone-400 mt-2.5 font-sans max-w-2xl leading-relaxed">
                 Các tiện ích độc quyền hỗ trợ tra cứu, đối soát liêm chính và tải biểu mẫu chuẩn cho sinh viên Khoa CNTT.
               </p>
             </div>
@@ -1033,37 +1055,32 @@ export default function Home() {
         {/* ══════════════════════════════════════════════════════════════════
             6. FEATURED & VERIFIED DOCUMENTS SHOWCASE (RESEARCH MANUSCRIPTS)
            ══════════════════════════════════════════════════════════════════ */}
-        <section className="py-16 sm:py-20 bg-[#faf9f5] dark:bg-[#090d14] border-b border-stone-200 dark:border-stone-800">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 pb-4 border-b border-stone-300 dark:border-stone-800">
-              <div>
-                <span className="text-xs font-mono font-bold tracking-widest uppercase text-blue-700 dark:text-blue-400">
-                  HỌC LIỆU MỚI KIỂM DUYỆT
-                </span>
-                <h2 className="font-serif-academic text-3xl sm:text-4xl font-bold text-stone-950 dark:text-stone-50 mt-1">
-                  Bản Thảo &amp; Đề Tài Mới Thẩm Định
-                </h2>
-                <p className="text-sm text-stone-600 dark:text-stone-400 mt-1 font-sans">
-                  Tất cả tài liệu hiển thị đều đã trải qua quy trình phản biện chất lượng và cam kết liêm chính học thuật.
-                </p>
-              </div>
+        <section className="relative py-16 sm:py-20 md:py-24 bg-transparent">
+          {/* Subtle colored ambient glow behind centered title */}
+          <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-full max-w-5xl h-80 sm:h-96 bg-gradient-to-r from-blue-500/10 via-cyan-500/15 to-blue-500/10 dark:from-blue-600/15 dark:via-cyan-600/20 dark:to-blue-600/15 rounded-full blur-3xl pointer-events-none -z-0" />
 
-              <Link
-                to="/search"
-                className="inline-flex items-center gap-1.5 text-xs font-mono font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400 hover:underline shrink-0"
-              >
-                <span>Xem toàn văn kho lưu trữ</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+          <div className="max-w-[1680px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10">
+            <div className="text-center max-w-3xl mx-auto mb-12 flex flex-col items-center">
+              <span className="text-xs font-mono font-bold tracking-widest uppercase text-blue-700 dark:text-blue-400">
+                HỌC LIỆU MỚI KIỂM DUYỆT
+              </span>
+              <h2 className="font-serif-academic text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-950 dark:text-stone-50 mt-2">
+                Bản Thảo &amp; Đề Tài Mới Thẩm Định
+              </h2>
+              <p className="text-sm sm:text-base text-stone-600 dark:text-stone-400 mt-2.5 font-sans max-w-2xl leading-relaxed">
+                Tất cả tài liệu hiển thị đều đã trải qua quy trình phản biện chất lượng và cam kết liêm chính học thuật.
+              </p>
             </div>
 
             {loadingDocs ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="h-60 rounded-xl bg-stone-100 dark:bg-stone-850 animate-pulse border border-stone-200 dark:border-stone-800" />
+                  <div key={i} className="h-60 rounded-xl bg-stone-100 dark:bg-stone-800 animate-pulse border border-stone-200 dark:border-stone-800" />
                 ))}
               </div>
             ) : featuredDocs.length > 0 ? (
+              <>
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {featuredDocs.map((doc) => (
                   <div
@@ -1144,6 +1161,17 @@ export default function Home() {
                   </div>
                 ))}
               </div>
+
+              <div className="text-center mt-10">
+                <Link
+                  to="/search"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-xs font-mono font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400 hover:border-blue-500 transition-all shadow-xs hover:shadow-md"
+                >
+                  <span>Xem toàn văn kho lưu trữ học liệu</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+              </>
             ) : (
               <div className="text-center py-12 bg-white dark:bg-stone-900 rounded-xl border-2 border-dashed border-stone-300 dark:border-stone-700">
                 <FileSearch className="w-10 h-10 text-stone-400 mx-auto mb-2" />
@@ -1162,91 +1190,175 @@ export default function Home() {
         {/* ══════════════════════════════════════════════════════════════════
             7. BẢN CAM KẾT LIÊM CHÍNH HỌC THUẬT (ACADEMIC HONOR COVENANT)
            ══════════════════════════════════════════════════════════════════ */}
-        <section className="py-16 sm:py-20 bg-[#f4f3ee] dark:bg-[#0a0d12] border-b border-stone-300 dark:border-stone-800">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto bg-white dark:bg-stone-900 rounded-2xl p-8 sm:p-12 border-2 border-amber-300/80 dark:border-amber-700/60 shadow-lg relative overflow-hidden">
-              {/* Subtle gold ribbon top border */}
-              <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-500 via-rose-500 to-blue-600" />
+        <section className="relative py-16 sm:py-20 md:py-24 bg-transparent">
+          {/* Subtle colored ambient glow behind centered title */}
+          <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-full max-w-5xl h-80 sm:h-96 bg-gradient-to-r from-amber-500/10 via-rose-500/15 to-blue-500/10 dark:from-amber-600/15 dark:via-rose-600/20 dark:to-blue-600/15 rounded-full blur-3xl pointer-events-none -z-0" />
 
-              {/* Archival corner stamp */}
-              <div className="absolute top-6 right-6 hidden sm:block">
-                <span className="stamp-seal text-rose-700 dark:text-rose-400 border-rose-600 dark:border-rose-400 bg-rose-50 dark:bg-rose-950/50">
+          <div className="max-w-[1680px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10">
+            {/* Centered Section Header */}
+            <div className="text-center max-w-3xl mx-auto mb-12 flex flex-col items-center">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs font-mono font-bold tracking-widest uppercase text-amber-700 dark:text-amber-400">
+                  QUY CHẾ HỌC THUẬT NỘI BỘ
+                </span>
+                <span className="stamp-seal text-rose-700 dark:text-rose-400 border-rose-600 dark:border-rose-400 bg-rose-50 dark:bg-rose-950/50 text-[9px]">
                   HIẾN CHƯƠNG KHOA CNTT
                 </span>
               </div>
+              <h2 className="font-serif-academic text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-950 dark:text-stone-50 mt-1">
+                Bản Cam Kết Liêm Chính Học Thuật
+              </h2>
+              <p className="text-sm sm:text-base text-stone-600 dark:text-stone-400 mt-2.5 font-sans max-w-2xl leading-relaxed">
+                Cổng học liệu số Khoa Công nghệ Thông tin - Trường ĐH Giao thông Vận tải hoạt động trên nguyên tắc phi lợi nhuận. Mọi thành viên khi sử dụng hệ thống đều cam kết tuân thủ các chuẩn mực:
+              </p>
+            </div>
 
-              <div className="mb-6">
-                <span className="font-mono text-xs font-bold tracking-widest text-amber-700 dark:text-amber-400 uppercase">
-                  QUY CHẾ HỌC THUẬT NỘI BỘ
-                </span>
-                <h2 className="font-serif-academic text-3xl sm:text-4xl font-bold text-stone-950 dark:text-stone-50 mt-1">
-                  Bản Cam Kết Liêm Chính Học Thuật
-                </h2>
-                <p className="text-sm text-stone-600 dark:text-stone-400 mt-2 font-sans leading-relaxed">
-                  Cổng học liệu số Khoa Công nghệ Thông tin - Trường ĐH Giao thông Vận tải hoạt động trên nguyên tắc phi lợi nhuận. Mọi thành viên khi sử dụng hệ thống đều cam kết tuân thủ các chuẩn mực:
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-stone-200 dark:border-stone-800">
-                {[
-                  {
-                    no: '01',
-                    title: 'Phi thương mại hóa',
-                    badge: 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300',
-                    desc: 'Nghiêm cấm mọi hành vi mua bán, thương mại hóa học liệu và đề tài nghiên cứu của Khoa dưới mọi hình thức.',
-                  },
-                  {
-                    no: '02',
-                    title: 'Minh bạch nguồn gốc & GVHD',
-                    badge: 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300',
-                    desc: 'Mọi báo cáo, khóa luận công bố phải ghi danh đầy đủ tác giả, người hướng dẫn và trích dẫn theo chuẩn IEEE / APA.',
-                  },
-                  {
-                    no: '03',
-                    title: 'Thẩm định chất lượng 2 vòng',
-                    badge: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300',
-                    desc: 'Chỉ các đề tài đạt điểm giỏi, xuất sắc và được bộ môn phê duyệt mới được cấp quyền hiển thị toàn văn.',
-                  },
-                  {
-                    no: '04',
-                    title: 'Phản biện & Phòng chống đạo văn',
-                    badge: 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300',
-                    desc: 'Hệ thống tự động lưu trữ chữ ký số nội dung để đối soát và bảo vệ quyền tác giả học thuật của sinh viên.',
-                  },
-                ].map((item) => (
-                  <div key={item.no} className="p-4 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50/70 dark:bg-stone-850/60">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="font-mono text-xs font-bold text-stone-400">
-                        QUY TẮC // {item.no}
-                      </span>
-                      <span className={`font-mono text-[9px] font-bold px-1.5 py-0.5 rounded ${item.badge}`}>
-                        BẮT BUỘC
-                      </span>
-                    </div>
-                    <h4 className="font-serif-academic text-base font-bold text-stone-900 dark:text-stone-100">
-                      {item.title}
-                    </h4>
-                    <p className="text-xs text-stone-600 dark:text-stone-400 mt-1 leading-relaxed font-sans">
-                      {item.desc}
-                    </p>
+            {/* 4 Academic Integrity Rules as First-Class Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Rule 1 */}
+              <div className="group bg-white dark:bg-stone-900 rounded-xl p-6 border-2 border-stone-200 dark:border-stone-800 hover:border-rose-500 dark:hover:border-rose-400 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl flex flex-col justify-between shadow-xs">
+                <div>
+                  <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3 mb-4">
+                    <span className="font-mono text-[10px] font-bold text-stone-500 dark:text-stone-400 tracking-wider">
+                      QUY TẮC // 01
+                    </span>
+                    <span className="font-mono text-[9px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300 border border-rose-200 dark:border-rose-800 uppercase">
+                      BẮT BUỘC
+                    </span>
                   </div>
-                ))}
+
+                  <div className="w-11 h-11 rounded-lg bg-rose-50 dark:bg-rose-950/50 flex items-center justify-center border border-rose-200 dark:border-rose-900 mb-3.5">
+                    <ShieldCheck className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                  </div>
+
+                  <h3 className="font-serif-academic text-lg font-bold text-stone-950 dark:text-stone-50 mb-2">
+                    Phi thương mại hóa
+                  </h3>
+                  <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-sans">
+                    Nghiêm cấm mọi hành vi mua bán, thương mại hóa học liệu và đề tài nghiên cứu của Khoa dưới mọi hình thức.
+                  </p>
+                </div>
+
+                <div className="pt-4 mt-5 border-t border-dashed border-stone-200 dark:border-stone-800 text-[11px] font-mono text-rose-600 dark:text-rose-400 font-bold">
+                  #KhoaHocPhiLoiNhuan
+                </div>
               </div>
 
-              <div className="mt-8 pt-6 border-t border-stone-200 dark:border-stone-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <span className="text-xs font-mono text-stone-500">
-                  BAN CHỦ NHIỆM KHOA CÔNG NGHỆ THÔNG TIN · TRƯỜNG ĐH GIAO THÔNG VẬN TẢI
-                </span>
-                <Link
-                  to="/documents/upload"
-                  className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors shadow-md shadow-blue-600/20 shrink-0"
-                >
-                  Đóng góp học liệu cho Khoa →
-                </Link>
+              {/* Rule 2 */}
+              <div className="group bg-white dark:bg-stone-900 rounded-xl p-6 border-2 border-stone-200 dark:border-stone-800 hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl flex flex-col justify-between shadow-xs">
+                <div>
+                  <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3 mb-4">
+                    <span className="font-mono text-[10px] font-bold text-stone-500 dark:text-stone-400 tracking-wider">
+                      QUY TẮC // 02
+                    </span>
+                    <span className="font-mono text-[9px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-950/70 dark:text-blue-300 border border-blue-200 dark:border-blue-800 uppercase">
+                      BẮT BUỘC
+                    </span>
+                  </div>
+
+                  <div className="w-11 h-11 rounded-lg bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center border border-blue-200 dark:border-blue-900 mb-3.5">
+                    <UserCheck className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+
+                  <h3 className="font-serif-academic text-lg font-bold text-stone-950 dark:text-stone-50 mb-2">
+                    Minh bạch nguồn gốc &amp; GVHD
+                  </h3>
+                  <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-sans">
+                    Mọi báo cáo, khóa luận công bố phải ghi danh đầy đủ tác giả, người hướng dẫn và trích dẫn theo chuẩn IEEE / APA.
+                  </p>
+                </div>
+
+                <div className="pt-4 mt-5 border-t border-dashed border-stone-200 dark:border-stone-800 text-[11px] font-mono text-blue-600 dark:text-blue-400 font-bold">
+                  #ChuanTrichDanIEEE
+                </div>
               </div>
+
+              {/* Rule 3 */}
+              <div className="group bg-white dark:bg-stone-900 rounded-xl p-6 border-2 border-stone-200 dark:border-stone-800 hover:border-emerald-500 dark:hover:border-emerald-400 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl flex flex-col justify-between shadow-xs">
+                <div>
+                  <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3 mb-4">
+                    <span className="font-mono text-[10px] font-bold text-stone-500 dark:text-stone-400 tracking-wider">
+                      QUY TẮC // 03
+                    </span>
+                    <span className="font-mono text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 uppercase">
+                      BẮT BUỘC
+                    </span>
+                  </div>
+
+                  <div className="w-11 h-11 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center border border-emerald-200 dark:border-emerald-900 mb-3.5">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+
+                  <h3 className="font-serif-academic text-lg font-bold text-stone-950 dark:text-stone-50 mb-2">
+                    Thẩm định chất lượng 2 vòng
+                  </h3>
+                  <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-sans">
+                    Chỉ các đề tài đạt điểm giỏi, xuất sắc và được bộ môn phê duyệt mới được cấp quyền hiển thị toàn văn.
+                  </p>
+                </div>
+
+                <div className="pt-4 mt-5 border-t border-dashed border-stone-200 dark:border-stone-800 text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+                  #HoiDongKhoaDuyet
+                </div>
+              </div>
+
+              {/* Rule 4 */}
+              <div className="group bg-white dark:bg-stone-900 rounded-xl p-6 border-2 border-stone-200 dark:border-stone-800 hover:border-purple-500 dark:hover:border-purple-400 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl flex flex-col justify-between shadow-xs">
+                <div>
+                  <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3 mb-4">
+                    <span className="font-mono text-[10px] font-bold text-stone-500 dark:text-stone-400 tracking-wider">
+                      QUY TẮC // 04
+                    </span>
+                    <span className="font-mono text-[9px] font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-300 border border-purple-200 dark:border-purple-800 uppercase">
+                      BẮT BUỘC
+                    </span>
+                  </div>
+
+                  <div className="w-11 h-11 rounded-lg bg-purple-50 dark:bg-purple-950/50 flex items-center justify-center border border-purple-200 dark:border-purple-900 mb-3.5">
+                    <FileCheck2 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+
+                  <h3 className="font-serif-academic text-lg font-bold text-stone-950 dark:text-stone-50 mb-2">
+                    Phản biện &amp; Phòng chống đạo văn
+                  </h3>
+                  <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-sans">
+                    Hệ thống tự động lưu trữ chữ ký số nội dung để đối soát và bảo vệ quyền tác giả học thuật của sinh viên.
+                  </p>
+                </div>
+
+                <div className="pt-4 mt-5 border-t border-dashed border-stone-200 dark:border-stone-800 text-[11px] font-mono text-purple-600 dark:text-purple-400 font-bold">
+                  #ChuKySoBaoVeBanQuyen
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Department Authority Strip & CTA */}
+            <div className="mt-10 p-6 rounded-2xl bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-800 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+              <div className="flex items-center gap-3.5 text-center sm:text-left">
+                <div className="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/50 flex items-center justify-center border border-amber-200 dark:border-amber-800 shrink-0">
+                  <GraduationCap className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <span className="text-xs font-mono font-bold text-stone-900 dark:text-stone-100 block uppercase tracking-wider">
+                    BAN CHỦ NHIỆM KHOA CÔNG NGHỆ THÔNG TIN
+                  </span>
+                  <span className="text-[11px] font-mono text-stone-500 dark:text-stone-400">
+                    Trường Đại học Giao thông Vận tải · Hà Nội
+                  </span>
+                </div>
+              </div>
+
+              <Link
+                to="/documents/upload"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-mono text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-blue-600/20 shrink-0 cursor-pointer"
+              >
+                <span>Đóng góp học liệu cho Khoa</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
           </div>
         </section>
+      
       </main>
 
       <Footer />

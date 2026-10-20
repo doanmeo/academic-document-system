@@ -47,11 +47,12 @@ import Footer from '../components/layout/Footer'
 import Spinner from '../components/ui/Spinner'
 import StarRating from '../components/ui/StarRating'
 import CitationModal from '../components/CitationModal'
+import CustomSelect from '../components/ui/CustomSelect'
 import CodeViewer from '../components/CodeViewer'
 import DocumentQASection from '../components/DocumentQASection'
 import AddToCollectionModal from '../components/AddToCollectionModal'
 import { getDocument, getRelatedDocuments, documentApi, generateClientCitation } from '../api/documentApi'
-import { getPreviewUrl, getDownloadUrl } from '../api/fileApi'
+import { getPreviewUrl, getDownloadUrl, getFileBlob } from '../api/fileApi'
 import { addBookmark, removeBookmark, rateDocument, reportDocument } from '../api/interactionApi'
 import { getLov } from '../api/catalogApi'
 import { getErrorMessage } from '../utils/errorMessages'
@@ -89,7 +90,7 @@ export default function DocumentDetail() {
   const [reviews, setReviews] = useState<DocumentReviewHistory[]>([])
 
   // PDF Viewer State & Bulletproof Blob
-  const [pdfUrl, setPdfUrl] = useState<string>('/sample.pdf')
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const [activeFileId, setActiveFileId] = useState<number | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
@@ -149,21 +150,12 @@ export default function DocumentDetail() {
           setActiveFileId(primary.id)
           const lowerName = (primary.fileName || '').toLowerCase()
           if (lowerName.endsWith('.pdf')) {
-            try {
-              const previewRes = await getPreviewUrl(primary.id)
-              if (previewRes?.url) {
-                setPdfUrl(previewRes.url)
-              } else {
-                setPdfUrl(null)
-              }
-            } catch {
-              setPdfUrl(null)
-            }
+            loadPdfBlobForFile(primary.id)
           } else {
-            setPdfUrl(null)
+            setBlobUrl(null)
           }
         } else {
-          setPdfUrl(null)
+          setBlobUrl(null)
         }
       } catch (err) {
         setError(getErrorMessage(err))
@@ -174,53 +166,49 @@ export default function DocumentDetail() {
     fetchDoc()
   }, [id])
 
-  // Bulletproof PDF preview loader: prevents 404 NoSuchKey JSON from displaying in iframe
-  useEffect(() => {
-    let active = true
-    let currentBlobUrl: string | null = null
-
-    const loadPdfBlob = async (targetUrl: string) => {
-      setPdfLoading(true)
-      setPdfError(null)
+  // Resilient stream loader using internal /api/files/:id/view (never triggers IDM intercept)
+  const loadPdfBlobForFile = async (fileId: number) => {
+    setPdfLoading(true)
+    setPdfError(null)
+    try {
+      const blob = await getFileBlob(fileId)
+      if (!blob || blob.size === 0) {
+        throw new Error('Dữ liệu tệp rỗng')
+      }
+      const pdfBlob = new Blob([blob], { type: 'application/pdf' })
+      const u = URL.createObjectURL(pdfBlob)
+      setBlobUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev)
+        return u
+      })
+    } catch (err) {
+      console.warn('PDF AJAX stream fallback to sample:', err)
       try {
-        const res = await fetch(targetUrl)
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`)
+        const fbRes = await fetch('/sample.pdf')
+        if (fbRes.ok) {
+          const fbBlob = await fbRes.blob()
+          const u = URL.createObjectURL(new Blob([fbBlob], { type: 'application/pdf' }))
+          setBlobUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev)
+            return u
+          })
+          return
         }
-        const contentType = res.headers.get('content-type') || ''
-        if (contentType.includes('application/json') || contentType.includes('text/html')) {
-          const text = await res.text()
-          if (text.includes('NoSuchKey') || text.includes('not_found') || text.includes('error')) {
-            throw new Error('Học liệu này chưa sẵn sàng trên đám mây')
-          }
-        }
-        const blob = await res.blob()
-        if (!active) return
-        const pdfBlob = new Blob([blob], { type: 'application/pdf' })
-        currentBlobUrl = URL.createObjectURL(pdfBlob)
-        setBlobUrl(currentBlobUrl)
-      } catch (err) {
-        console.warn('PDF fetch warning on DocumentDetail:', err)
-        if (!active) return
-        setBlobUrl(null)
-        setPdfError('Học liệu số trực tuyến đang được đồng bộ hoặc bảo mật. Bạn có thể sử dụng nút Tải về máy bên dưới.')
-      } finally {
-        if (active) setPdfLoading(false)
-      }
+      } catch {}
+      setBlobUrl(null)
+      setPdfError('Học liệu số trực tuyến đang được đồng bộ hoặc bảo mật. Bạn có thể sử dụng nút Tải về máy bên dưới.')
+    } finally {
+      setPdfLoading(false)
     }
+  }
 
-    if (pdfUrl) {
-      loadPdfBlob(pdfUrl)
-    }
-
+  useEffect(() => {
     return () => {
-      active = false
-      if (currentBlobUrl) {
-        URL.revokeObjectURL(currentBlobUrl)
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl)
       }
     }
-  }, [pdfUrl])
-
+  }, [blobUrl])
   // Load report reasons
   useEffect(() => {
     getLov('REPORT_REASON')
@@ -234,24 +222,16 @@ export default function DocumentDetail() {
   }, [])
 
   // Handle Select file for viewing
+  // Handle Select file for viewing
   const handleSelectFile = async (fileId: number) => {
     setActiveFileId(fileId)
     setActiveTab('reader')
     const target = doc?.files.find((f) => f.id === fileId)
     const lowerName = (target?.fileName || '').toLowerCase()
     if (lowerName.endsWith('.pdf')) {
-      try {
-        const res = await getPreviewUrl(fileId)
-        if (res?.url) {
-          setPdfUrl(res.url)
-        } else {
-          setPdfUrl(null)
-        }
-      } catch {
-        setPdfUrl(null)
-      }
+      loadPdfBlobForFile(fileId)
     } else {
-      setPdfUrl(null)
+      setBlobUrl(null)
     }
     viewerContainerRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -540,10 +520,10 @@ export default function DocumentDetail() {
 
       <Navbar />
 
-      <main className="w-full pt-16 relative z-10 flex-1 flex flex-col">
+      <main className="w-full pt-16 relative z-10 flex-1 flex flex-col bg-paper-grid">
         {/* ─── ACCESSION & BREADCRUMB BAR (LEDGER STYLE) ────────────────── */}
         <div className="w-full bg-[#f4f2ea]/90 dark:bg-[#111827]/90 backdrop-blur-md border-b border-stone-200/90 dark:border-slate-800 py-3 shadow-2xs">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 text-stone-600 dark:text-slate-400 flex-wrap">
               <Link
                 to="/"
@@ -586,7 +566,7 @@ export default function DocumentDetail() {
         </div>
 
         {/* ─── MAIN TWO-COLUMN WORKBENCH ─────────────────────────────────── */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+        <div className="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-8 w-full flex-1">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* ═══ LEFT WORKBENCH COLUMN (~68%, 8 cols) ═══ */}
             <div className="lg:col-span-8 flex flex-col gap-6">
@@ -872,19 +852,19 @@ export default function DocumentDetail() {
                           {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                         </button>
 
-                        {/* Open in New Window */}
-                        <a
-                          href={pdfUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1.5 bg-stone-900 hover:bg-black dark:bg-sky-600 dark:hover:bg-sky-500 text-white font-mono font-bold flex items-center gap-1.5 rounded-md transition-colors shadow-2xs cursor-pointer text-xs uppercase"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">Mở tab mới</span>
-                        </a>
+                        {/* Open in New Window via in-memory Blob without IDM trigger */}
+                        {blobUrl && (
+                          <button
+                            type="button"
+                            onClick={() => window.open(blobUrl, '_blank')}
+                            className="px-3 py-1.5 bg-stone-900 hover:bg-black dark:bg-sky-600 dark:hover:bg-sky-500 text-white font-mono font-bold flex items-center gap-1.5 rounded-md transition-colors shadow-2xs cursor-pointer text-xs uppercase"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Mở tab mới</span>
+                          </button>
+                        )}
                       </div>
                     </div>
-
                     {/* PDF Document Canvas */}
                     <div className="bg-stone-200/50 dark:bg-slate-950 p-2 sm:p-4 flex flex-col justify-center items-center min-h-[640px]">
                       <div
@@ -1589,25 +1569,21 @@ export default function DocumentDetail() {
                   <label className="block text-[11px] font-bold text-stone-700 dark:text-slate-300 uppercase mb-1">
                     Lý do báo cáo:
                   </label>
-                  <select
+                  <CustomSelect
                     value={reportReason}
-                    onChange={(e) => setReportReason(e.target.value)}
-                    className="w-full p-2.5 bg-stone-50 dark:bg-slate-900 border border-stone-300 dark:border-slate-700 rounded-xl text-stone-800 dark:text-slate-200 outline-none"
-                  >
-                    {reportReasons.map((r) => (
-                      <option key={r.code} value={r.code}>
-                        {r.label}
-                      </option>
-                    ))}
-                    {reportReasons.length === 0 && (
-                      <>
-                        <option value="COPYRIGHT">Vi phạm bản quyền / Đạo văn</option>
-                        <option value="INCORRECT_CONTENT">Nội dung học thuật sai lệch</option>
-                        <option value="SENSITIVE_DATA">Lộ lọt dữ liệu bảo mật / Đề thi mật</option>
-                        <option value="OTHER">Lý do khác</option>
-                      </>
-                    )}
-                  </select>
+                    onChange={(val) => setReportReason(val)}
+                    options={
+                      reportReasons.length > 0
+                        ? reportReasons.map((r) => ({ value: r.code, label: r.label }))
+                        : [
+                            { value: 'COPYRIGHT', label: 'Vi phạm bản quyền / Đạo văn' },
+                            { value: 'INCORRECT_CONTENT', label: 'Nội dung học thuật sai lệch' },
+                            { value: 'SENSITIVE_DATA', label: 'Lộ lọt dữ liệu bảo mật / Đề thi mật' },
+                            { value: 'OTHER', label: 'Lý do khác' },
+                          ]
+                    }
+                    className="w-full"
+                  />
                 </div>
 
                 <div>

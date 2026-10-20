@@ -174,20 +174,29 @@ export default function TopicNoveltyChecker() {
 
   return (
     <div className="space-y-6">
-      {/* ── CLEAN TOP HEADER (NO FORMULA TUTORIALS) ─────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200 dark:border-stone-800">
+      {/* ── TOP HEADER WITH ARCHIVAL METADATA ─────────────────────────── */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-5 border-b border-stone-300 dark:border-stone-800">
         <div>
-          <h1 className="font-serif-academic text-2xl sm:text-3xl font-bold text-stone-950 dark:text-stone-50 tracking-tight">
-            Đối Soát Đề Tài &amp; Tính Mới
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="stamp-seal text-blue-700 dark:text-blue-400 border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-950/60 text-[10px]">
+              [ HỆ THỐNG ĐỐI SOÁT ĐỀ TÀI AI ]
+            </span>
+            <span className="text-stone-400">/</span>
+            <span className="font-mono text-xs text-stone-500">KHOA CNTT · ĐH GIAO THÔNG VẬN TẢI</span>
+          </div>
+
+          <h1 className="font-serif-academic text-3xl sm:text-4xl font-bold text-stone-950 dark:text-stone-50 tracking-tight">
+            Đối Soát Trùng Lặp &amp; Tính Mới Đề Tài
           </h1>
-          <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-1 font-sans">
-            Đối chiếu nội dung tóm tắt và tên đề tài với kho Khóa luận &amp; Đồ án tốt nghiệp của Khoa CNTT - ĐH Giao thông Vận tải.
+
+          <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 max-w-2xl font-sans">
+            Hệ thống AI đối chiếu tự động nội dung tóm tắt, tên đề tài với kho lưu trữ Khóa luận &amp; Đồ án tốt nghiệp của Khoa CNTT - ĐH Giao thông Vận tải.
           </p>
         </div>
 
         {/* Total Documents in Archive Counter */}
-        <div className="px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 font-mono text-xs text-stone-700 dark:text-stone-300 self-start sm:self-auto shrink-0">
-          Kho lưu trữ: <span className="font-bold text-blue-600 dark:text-blue-400">50+ Đồ án &amp; KLTN</span>
+        <div className="px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 font-mono text-xs font-bold text-stone-700 dark:text-stone-300 shrink-0">
+          KHO ĐỐI CHIẾU: <span className="text-blue-600 dark:text-blue-400">50+ ĐỒ ÁN &amp; KLTN</span>
         </div>
       </div>
 
@@ -229,7 +238,7 @@ export default function TopicNoveltyChecker() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ví dụ: Nghiên cứu kỹ thuật phòng thủ tấn công DDoS trên mạng SDN sử dụng mô hình học máy..."
-                className="w-full p-3 text-xs font-sans bg-stone-50 dark:bg-stone-800/80 border border-stone-300 dark:border-stone-700 rounded-xl focus:bg-white dark:focus:bg-stone-800 focus:ring-2 focus:ring-blue-600 focus:outline-none resize-none leading-relaxed text-stone-900 dark:text-stone-100 transition-all"
+                className="w-full p-3 text-xs font-sans bg-stone-100/80 dark:bg-stone-950 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-xl focus:bg-white dark:focus:bg-stone-950 focus:ring-2 focus:ring-blue-600 focus:outline-none resize-none leading-relaxed text-stone-900 dark:text-stone-100 transition-all"
               />
             </div>
 
@@ -297,7 +306,7 @@ export default function TopicNoveltyChecker() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Mô tả tóm tắt bài toán nghiên cứu, công nghệ áp dụng, tập dữ liệu hoặc bấm '✨ AI sinh tóm tắt' ở trên để hệ thống tự động soạn thảo..."
-                className="w-full p-3 text-xs font-sans bg-stone-50 dark:bg-stone-800/80 border border-stone-300 dark:border-stone-700 rounded-xl focus:bg-white dark:focus:bg-stone-800 focus:ring-2 focus:ring-blue-600 focus:outline-none resize-none leading-relaxed text-stone-900 dark:text-stone-100 transition-all"
+                className="w-full p-3 text-xs font-sans bg-stone-100/80 dark:bg-stone-950 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-xl focus:bg-white dark:focus:bg-stone-950 focus:ring-2 focus:ring-blue-600 focus:outline-none resize-none leading-relaxed text-stone-900 dark:text-stone-100 transition-all"
               />
               <span className="text-[10px] text-stone-400 block mt-1">
                 Thuật toán sẽ so sánh ngữ nghĩa nội dung tóm tắt này với bản tóm tắt học thuật của các KLTN đã bảo vệ.

@@ -4,6 +4,7 @@ import { getDashboard } from '../../api/adminApi'
 import type { DashboardStats } from '../../types/admin'
 import Spinner from '../../components/ui/Spinner'
 import Badge from '../../components/ui/Badge'
+import { OFFICIAL_DOCUMENT_TYPES } from '../../types/document'
 
 export default function Dashboard() {
   const [data, setData] = useState<DashboardStats | null>(null)
@@ -32,6 +33,34 @@ export default function Dashboard() {
 
   if (!data) return null
 
+const docTypeLabelMap: Record<string, string> = {
+  SLIDE: 'Slide bài giảng',
+  NOTE: 'Ghi chú ôn tập',
+  ASSIGNMENT: 'Bài tập lớn (BTL)',
+  SAMPLE_CODE: 'Mã nguồn mẫu',
+  REFERENCE: 'Tài liệu tham khảo',
+  THESIS: 'Đồ án / Khóa luận tốt nghiệp',
+  EXAM: 'Đề thi & Lời giải',
+  LAB: 'Lab & Thực hành',
+  CAPSTONE: 'Đồ án tốt nghiệp',
+  PROJECT: 'Đồ án môn học',
+  LECTURE: 'Bài giảng',
+  EXERCISE: 'Bài tập',
+  OTHER: 'Khác',
+}
+
+function getDocTypeLabel(codeOrLabel?: string | null): string {
+  if (!codeOrLabel) return 'Tài liệu'
+  const trimmed = codeOrLabel.trim()
+  const upper = trimmed.toUpperCase()
+  if (docTypeLabelMap[upper]) return docTypeLabelMap[upper]
+  const matched = OFFICIAL_DOCUMENT_TYPES.find(
+    (t) => t.code.toUpperCase() === upper || t.label.toLowerCase() === trimmed.toLowerCase()
+  )
+  if (matched) return matched.label
+  return codeOrLabel
+}
+
   const statusMap: Record<string, { label: string; color: string }> = {
     APPROVED: { label: 'Đã duyệt', color: 'bg-emerald-500' },
     PENDING: { label: 'Chờ duyệt', color: 'bg-amber-500' },
@@ -46,11 +75,11 @@ export default function Dashboard() {
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-surface-container">
         <div>
-          <div className="flex items-center gap-1.5 text-secondary font-label-code text-caption font-bold tracking-widest uppercase mb-1">
-            <span className="material-symbols-outlined text-[18px]">dashboard</span>
+          <div className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400 font-label-code text-caption font-bold tracking-widest uppercase mb-1">
+            <span className="material-symbols-outlined text-[18px] text-stone-400 dark:text-stone-300">dashboard</span>
             <span>TỔNG QUAN HỆ THỐNG &amp; ĐO LƯỜNG HOẠT ĐỘNG</span>
           </div>
-          <h1 className="font-headline-xl text-headline-xl text-primary font-bold">
+          <h1 className="font-headline-xl text-headline-xl text-stone-900 dark:text-stone-50 font-bold">
             Bảng Điều Khiển Quản Trị Hệ Thống
           </h1>
           <p className="font-body-md text-body-md text-on-surface-variant mt-1">
@@ -62,7 +91,7 @@ export default function Dashboard() {
           <div className="bg-surface-container-lowest px-4 py-2.5 rounded-xl shadow-xs border border-surface-container flex items-center gap-2.5">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
             <div className="flex flex-col">
-              <span className="font-label-code text-body-sm font-bold text-primary">
+              <span className="font-label-code text-body-sm font-bold text-stone-900 dark:text-stone-100">
                 Hệ thống ổn định
               </span>
               <span className="font-caption text-caption text-on-surface-variant">UTC FIT Online</span>
@@ -83,11 +112,11 @@ export default function Dashboard() {
               <p className="text-on-surface-variant font-label-code text-caption uppercase font-semibold">
                 Tổng tài liệu
               </p>
-              <h3 className="font-headline-xl text-[32px] font-bold text-primary mt-1 leading-tight group-hover:text-secondary transition-colors">
+              <h3 className="font-headline-xl text-[32px] font-bold text-stone-900 dark:text-stone-50 mt-1 leading-tight transition-colors">
                 {data.totalDocuments}
               </h3>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 flex items-center justify-center">
               <span className="material-symbols-outlined text-[24px]">article</span>
             </div>
           </div>
@@ -135,11 +164,11 @@ export default function Dashboard() {
               <p className="text-on-surface-variant font-label-code text-caption uppercase font-semibold">
                 Người dùng
               </p>
-              <h3 className="font-headline-xl text-[32px] font-bold text-secondary mt-1 leading-tight group-hover:text-primary transition-colors">
+              <h3 className="font-headline-xl text-[32px] font-bold text-stone-900 dark:text-stone-50 mt-1 leading-tight transition-colors">
                 {data.totalUsers}
               </h3>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 flex items-center justify-center">
               <span className="material-symbols-outlined text-[24px]">groups</span>
             </div>
           </div>
@@ -184,8 +213,8 @@ export default function Dashboard() {
         <div className="lg:col-span-5 bg-surface-container-lowest rounded-2xl p-6 shadow-xs border border-surface-container space-y-5">
           <div className="flex items-center justify-between pb-3 border-b border-surface-container">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-secondary text-[22px]">pie_chart</span>
-              <h2 className="font-headline-sm font-bold text-primary">Tài liệu theo trạng thái</h2>
+              <span className="material-symbols-outlined text-stone-400 dark:text-stone-300 text-[22px]">pie_chart</span>
+              <h2 className="font-headline-sm font-bold text-stone-900 dark:text-stone-100">Tài liệu theo trạng thái</h2>
             </div>
             <span className="font-label-code text-caption text-on-surface-variant font-semibold">
               Tổng: {data.totalDocuments}
@@ -203,7 +232,7 @@ export default function Dashboard() {
                       <span className={`w-2 h-2 rounded-full ${info.color}`} />
                       <span>{info.label}</span>
                     </span>
-                    <span className="font-mono text-primary font-bold">
+                    <span className="font-mono text-stone-900 dark:text-stone-100 font-bold">
                       {count} <span className="text-outline text-caption font-normal">({Math.round(width)}%)</span>
                     </span>
                   </div>
@@ -223,15 +252,15 @@ export default function Dashboard() {
         <div className="lg:col-span-7 bg-surface-container-lowest rounded-2xl shadow-xs border border-surface-container overflow-hidden flex flex-col">
           <div className="p-4 md:px-6 border-b border-surface-container flex flex-wrap items-center justify-between gap-2 bg-surface-container-low/40">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-secondary text-[22px]">history</span>
-              <div className="flex items-center gap-1 bg-slate-200/70 p-1 rounded-xl text-xs font-bold">
+              <span className="material-symbols-outlined text-stone-400 dark:text-stone-300 text-[22px]">history</span>
+              <div className="flex items-center gap-1 bg-surface-container p-1 rounded-xl text-xs font-bold">
                 <button
                   type="button"
                   onClick={() => setRecentTab('submissions')}
                   className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
                     recentTab === 'submissions'
-                      ? 'bg-white text-primary shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-surface-container-lowest text-primary shadow-2xs'
+                      : 'text-on-surface-variant hover:text-on-surface'
                   }`}
                 >
                   Cần thẩm định ({data.recentSubmissions?.length ?? 0})
@@ -241,8 +270,8 @@ export default function Dashboard() {
                   onClick={() => setRecentTab('all')}
                   className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
                     recentTab === 'all'
-                      ? 'bg-white text-primary shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-surface-container-lowest text-primary shadow-2xs'
+                      : 'text-on-surface-variant hover:text-on-surface'
                   }`}
                 >
                   Tất cả gần đây ({data.recentDocuments.length})
@@ -251,7 +280,7 @@ export default function Dashboard() {
             </div>
             <Link
               to={recentTab === 'submissions' ? '/admin/pending' : '/admin/documents'}
-              className="text-secondary hover:text-primary font-body-sm text-caption font-bold flex items-center gap-1 transition-colors"
+              className="text-stone-600 dark:text-stone-300 hover:text-blue-600 dark:hover:text-blue-400 font-body-sm text-caption font-bold flex items-center gap-1 transition-colors"
             >
               <span>{recentTab === 'submissions' ? 'Đến hàng đợi duyệt' : 'Xem tất cả'}</span>
               <span className="material-symbols-outlined text-[16px]">chevron_right</span>
@@ -293,7 +322,7 @@ export default function Dashboard() {
                       <td className="py-3.5 px-4 max-w-[200px]">
                         <Link
                           to={`/documents/${doc.id}`}
-                          className="font-headline-sm font-semibold text-primary hover:text-secondary truncate block transition-colors"
+                          className="font-headline-sm font-semibold text-stone-900 dark:text-stone-100 hover:text-blue-600 dark:hover:text-blue-400 truncate block transition-colors"
                           title={doc.title}
                         >
                           {doc.title}
@@ -302,7 +331,7 @@ export default function Dashboard() {
 
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         <span className="px-2 py-0.5 rounded-lg bg-surface-container text-on-surface-variant font-label-code text-[11px] font-semibold">
-                          {doc.documentTypeLabel || doc.documentTypeCode}
+                          {getDocTypeLabel(doc.documentTypeLabel || doc.documentTypeCode)}
                         </span>
                       </td>
 
@@ -317,7 +346,7 @@ export default function Dashboard() {
                       <td className="py-3.5 px-4 text-center whitespace-nowrap">
                         <Link
                           to={`/documents/${doc.id}`}
-                          className="px-2.5 py-1 bg-surface-container hover:bg-primary hover:text-on-primary text-primary rounded-lg font-label-code text-caption font-bold transition-colors inline-block"
+                          className="px-2.5 py-1 bg-surface-container hover:bg-primary hover:text-on-primary text-primary dark:text-blue-400 rounded-lg font-label-code text-caption font-bold transition-colors inline-block"
                         >
                           Xem
                         </Link>
@@ -337,9 +366,9 @@ export default function Dashboard() {
         <div className="lg:col-span-7 bg-surface-container-lowest rounded-2xl p-6 shadow-xs border border-surface-container space-y-6">
           <div className="flex items-center justify-between pb-3 border-b border-surface-container">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-secondary text-[22px]">domain</span>
+              <span className="material-symbols-outlined text-stone-400 dark:text-stone-300 text-[22px]">domain</span>
               <div>
-                <h2 className="font-headline-sm font-bold text-primary">Cơ cấu Ngành &amp; Môn học Khoa CNTT</h2>
+                <h2 className="font-headline-sm font-bold text-stone-900 dark:text-stone-100">Cơ cấu Ngành &amp; Môn học Khoa CNTT</h2>
                 <p className="text-[11px] text-on-surface-variant">Phân bổ học liệu theo chuyên ngành và bộ môn đào tạo</p>
               </div>
             </div>
@@ -362,7 +391,7 @@ export default function Dashboard() {
                     <span className="text-[10px] font-bold text-slate-500 uppercase block truncate" title={major}>
                       {major}
                     </span>
-                    <span className="text-xl font-extrabold text-primary block mt-1">
+                    <span className="text-xl font-extrabold text-stone-900 dark:text-stone-100 block mt-1">
                       {count} <span className="text-[10px] font-normal text-slate-400">tài liệu</span>
                     </span>
                   </div>
@@ -387,13 +416,13 @@ export default function Dashboard() {
                         <span className="text-on-surface truncate pr-2" title={subject}>
                           📚 {subject}
                         </span>
-                        <span className="font-mono text-primary font-bold shrink-0">
+                        <span className="font-mono text-stone-800 dark:text-stone-200 font-bold shrink-0">
                           {count}
                         </span>
                       </div>
                       <div className="h-2 bg-surface-container-low rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-indigo-600 rounded-full transition-all duration-500"
+                          className="h-full bg-stone-500 dark:bg-stone-400 rounded-full transition-all duration-500"
                           style={{ width: `${pct}%` }}
                         />
                       </div>
@@ -411,9 +440,9 @@ export default function Dashboard() {
           <div className="bg-surface-container-lowest rounded-2xl p-6 shadow-xs border border-surface-container space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-surface-container">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-secondary text-[22px]">school</span>
+                <span className="material-symbols-outlined text-stone-400 dark:text-stone-300 text-[22px]">school</span>
                 <div>
-                  <h2 className="font-headline-sm font-bold text-primary">Top Giảng viên Hướng dẫn</h2>
+                  <h2 className="font-headline-sm font-bold text-stone-900 dark:text-stone-100">Top Giảng viên Hướng dẫn</h2>
                   <p className="text-[11px] text-on-surface-variant">Thống kê đồ án &amp; KLTN hướng dẫn tiêu biểu</p>
                 </div>
               </div>
@@ -427,11 +456,11 @@ export default function Dashboard() {
                     className="p-3 bg-surface-container-low rounded-xl border border-surface-container flex items-center justify-between gap-3"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-[11px] font-extrabold flex items-center justify-center shrink-0">
+                      <span className="w-6 h-6 rounded-full bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-200 text-[11px] font-extrabold flex items-center justify-center shrink-0">
                         {idx + 1}
                       </span>
                       <div className="min-w-0">
-                        <p className="font-bold text-body-sm text-primary truncate" title={adv.advisorName}>
+                        <p className="font-bold text-body-sm text-stone-900 dark:text-white truncate" title={adv.advisorName}>
                           {adv.advisorName}
                         </p>
                         <p className="text-[10px] text-slate-500">
@@ -455,20 +484,26 @@ export default function Dashboard() {
           {data.documentsByType && Object.keys(data.documentsByType).length > 0 && (
             <div className="bg-surface-container-lowest rounded-2xl p-6 shadow-xs border border-surface-container space-y-3">
               <div className="flex items-center gap-2 pb-2 border-b border-surface-container">
-                <span className="material-symbols-outlined text-secondary text-[20px]">category</span>
-                <h3 className="font-headline-sm font-bold text-primary">Cơ cấu Thể loại Học liệu</h3>
+                <span className="material-symbols-outlined text-stone-400 dark:text-stone-300 text-[20px]">category</span>
+                <h3 className="font-headline-sm font-bold text-stone-900 dark:text-stone-100">Cơ cấu Thể loại Học liệu</h3>
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                {Object.entries(data.documentsByType).map(([type, count]) => (
-                  <div key={type} className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between">
-                    <span className="font-medium text-slate-700 truncate pr-1" title={type}>
-                      {type}
-                    </span>
-                    <span className="font-bold text-primary bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
-                      {count}
-                    </span>
-                  </div>
-                ))}
+                {Object.entries(data.documentsByType).map(([type, count]) => {
+                  const label = getDocTypeLabel(type)
+                  return (
+                    <div
+                      key={type}
+                      className="p-2.5 bg-surface-container-low rounded-xl border border-surface-container flex items-center justify-between transition-colors"
+                    >
+                      <span className="font-medium text-on-surface truncate pr-1" title={label}>
+                        {label}
+                      </span>
+                      <span className="font-bold text-stone-800 dark:text-stone-200 bg-stone-200 dark:bg-stone-800 px-2 py-0.5 rounded-md border border-stone-300 dark:border-stone-700 font-mono text-[11px]">
+                        {count}
+                      </span>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}
