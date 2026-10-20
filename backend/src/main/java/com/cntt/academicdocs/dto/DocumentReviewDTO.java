@@ -37,6 +37,19 @@ public class DocumentReviewDTO {
     public String getComment() { return comment; }
     public void setComment(String comment) { this.comment = comment; }
 
+    public String getNote() { return comment; }
+
+    public String getAction() {
+        if (toStatus == null) return "SUBMIT";
+        return switch (toStatus) {
+            case APPROVED -> "APPROVE";
+            case REJECTED -> "REJECT";
+            case REVISION_REQUIRED -> "REQUEST_REVISION";
+            case HIDDEN -> "HIDE";
+            default -> toStatus.name();
+        };
+    }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

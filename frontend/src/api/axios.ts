@@ -55,13 +55,30 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean }
+    const reqUrl = originalRequest?.url ?? ''
 
-    // Chỉ retry khi: 401, chưa retry lần nào, và không phải chính endpoint refresh
+    // Chỉ retry khi: 401, chưa retry lần nào, và không phải các endpoint auth (login/register/refresh)
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !originalRequest.url?.includes('/auth/refresh')
+      !reqUrl.includes('/auth/refresh') &&
+      !reqUrl.includes('/auth/login') &&
+      !reqUrl.includes('/auth/register')
     ) {
+      const refreshToken = localStorage.getItem('refreshToken')
+      const hadAccessToken = Boolean(localStorage.getItem('accessToken'))
+
+      // Nếu khách chưa đăng nhập (không có refreshToken) → trả lỗi về cho component tự xử lý, không ép reload /login trên trang công khai
+      if (!refreshToken) {
+        if (hadAccessToken) {
+          localStorage.clear()
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login'
+          }
+        }
+        return Promise.reject(error)
+      }
+
       // Nếu đang có request refresh đang chạy → xếp hàng chờ
       if (isRefreshing) {
         return new Promise<string>((resolve, reject) => {
@@ -79,15 +96,6 @@ api.interceptors.response.use(
 
       originalRequest._retry = true
       isRefreshing = true
-
-      const refreshToken = localStorage.getItem('refreshToken')
-
-      // Không có refreshToken → logout ngay
-      if (!refreshToken) {
-        localStorage.clear()
-        window.location.href = '/login'
-        return Promise.reject(error)
-      }
 
       try {
         // Dùng axios thuần (không qua interceptor) để tránh vòng lặp vô tận
@@ -112,7 +120,9 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null)
         localStorage.clear()
-        window.location.href = '/login'
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
+        }
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false

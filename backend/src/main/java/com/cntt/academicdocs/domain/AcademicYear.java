@@ -11,7 +11,7 @@ public class AcademicYear {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 20)
+    @Column(nullable = false, unique = true, length = 50)
     private String code;
 
     @Column(nullable = false, length = 100)
@@ -19,6 +19,9 @@ public class AcademicYear {
 
     @Column(name = "start_year")
     private Short startYear;
+
+    @Column(name = "end_year")
+    private Short endYear;
 
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
@@ -34,7 +37,8 @@ public class AcademicYear {
     public AcademicYear(String code, String name, Short startYear) {
         this.code = code;
         this.name = name;
-        this.startYear = startYear;
+        this.startYear = startYear != null ? startYear : 2025;
+        this.endYear = (short) (this.startYear + 1);
         this.active = true;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
@@ -50,7 +54,15 @@ public class AcademicYear {
     public void setName(String name) { this.name = name; }
 
     public Short getStartYear() { return startYear; }
-    public void setStartYear(Short startYear) { this.startYear = startYear; }
+    public void setStartYear(Short startYear) {
+        this.startYear = startYear;
+        if (this.endYear == null && startYear != null) {
+            this.endYear = (short) (startYear + 1);
+        }
+    }
+
+    public Short getEndYear() { return endYear; }
+    public void setEndYear(Short endYear) { this.endYear = endYear; }
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
@@ -61,8 +73,28 @@ public class AcademicYear {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
+    @PrePersist
+    public void onCreate() {
+        if (this.startYear == null) {
+            this.startYear = 2025;
+        }
+        if (this.endYear == null) {
+            this.endYear = (short) (this.startYear + 1);
+        }
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+        this.updatedAt = LocalDateTime.now();
+    }
+
     @PreUpdate
     public void onUpdate() {
+        if (this.startYear == null) {
+            this.startYear = 2025;
+        }
+        if (this.endYear == null) {
+            this.endYear = (short) (this.startYear + 1);
+        }
         this.updatedAt = LocalDateTime.now();
     }
 }

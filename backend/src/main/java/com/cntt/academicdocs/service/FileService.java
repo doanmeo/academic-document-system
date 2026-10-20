@@ -153,7 +153,7 @@ public class FileService {
         checkFileAccess(file, currentUserId, isAdmin);
 
         String signedUrl = fileStorageService.createSignedUrl(file.getStorageKey(), signedUrlExpirySeconds);
-        return Map.of("url", signedUrl, "expiresIn", signedUrlExpirySeconds);
+        return Map.of("url", signedUrl, "signedUrl", signedUrl, "expiresIn", signedUrlExpirySeconds);
     }
 
     @Transactional
@@ -168,7 +168,7 @@ public class FileService {
         }
 
         String signedUrl = fileStorageService.createSignedUrl(file.getStorageKey(), signedUrlExpirySeconds);
-        return Map.of("url", signedUrl, "expiresIn", signedUrlExpirySeconds);
+        return Map.of("url", signedUrl, "signedUrl", signedUrl, "expiresIn", signedUrlExpirySeconds);
     }
 
     @Transactional

@@ -224,50 +224,89 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void initUsers() {
+        // 1. Admin account (@cntt.edu.vn and @cntt.local)
+        if (!userRepository.existsByEmail("admin@cntt.edu.vn")) {
+            User adminEdu = new User();
+            adminEdu.setEmail("admin@cntt.edu.vn");
+            adminEdu.setPasswordHash(passwordEncoder.encode("admin123"));
+            adminEdu.setFullName("Quản trị viên Khoa CNTT");
+            adminEdu.setRole(UserRole.ADMIN);
+            adminEdu.setActive(true);
+            userRepository.save(adminEdu);
+            log.info("Seeded admin user: admin@cntt.edu.vn / admin123");
+        }
         if (!userRepository.existsByEmail("admin@cntt.local")) {
             User admin = new User();
             admin.setEmail("admin@cntt.local");
-            admin.setPasswordHash(passwordEncoder.encode("Admin@123"));
+            admin.setPasswordHash(passwordEncoder.encode("admin123"));
             admin.setFullName("Admin Khoa");
             admin.setRole(UserRole.ADMIN);
             admin.setActive(true);
             userRepository.save(admin);
-            log.info("Seeded default admin user: admin@cntt.local / Admin@123");
+            log.info("Seeded default admin user: admin@cntt.local / admin123");
         }
 
         Major seMajor = majorRepository.findByCode("SE").orElse(null);
 
+        // 2. Student 01 (@cntt.edu.vn and @cntt.local)
+        if (!userRepository.existsByEmail("sv01@cntt.edu.vn")) {
+            User student1 = new User();
+            student1.setEmail("sv01@cntt.edu.vn");
+            student1.setPasswordHash(passwordEncoder.encode("student123"));
+            student1.setFullName("Nguyễn Văn An");
+            student1.setStudentCode("211200001");
+            student1.setRole(UserRole.STUDENT);
+            student1.setMajor(seMajor);
+            student1.setActive(true);
+            userRepository.save(student1);
+            log.info("Seeded student: sv01@cntt.edu.vn / student123");
+        }
         if (!userRepository.existsByEmail("sv01@cntt.local")) {
             User student1 = new User();
             student1.setEmail("sv01@cntt.local");
-            student1.setPasswordHash(passwordEncoder.encode("Student@123"));
-            student1.setFullName("Nguyen Van A");
+            student1.setPasswordHash(passwordEncoder.encode("student123"));
+            student1.setFullName("Nguyễn Văn An");
             student1.setStudentCode("SV001");
             student1.setRole(UserRole.STUDENT);
             student1.setMajor(seMajor);
             student1.setActive(true);
             userRepository.save(student1);
-            log.info("Seeded default student: sv01@cntt.local / Student@123");
+            log.info("Seeded default student: sv01@cntt.local / student123");
         }
 
+        // 3. Student 02 (@cntt.edu.vn and @cntt.local)
+        if (!userRepository.existsByEmail("sv02@cntt.edu.vn")) {
+            User student2 = new User();
+            student2.setEmail("sv02@cntt.edu.vn");
+            student2.setPasswordHash(passwordEncoder.encode("student123"));
+            student2.setFullName("Trần Thị Bình");
+            student2.setStudentCode("211200002");
+            student2.setRole(UserRole.STUDENT);
+            student2.setMajor(seMajor);
+            student2.setActive(true);
+            userRepository.save(student2);
+            log.info("Seeded student: sv02@cntt.edu.vn / student123");
+        }
         if (!userRepository.existsByEmail("sv02@cntt.local")) {
             User student2 = new User();
             student2.setEmail("sv02@cntt.local");
-            student2.setPasswordHash(passwordEncoder.encode("Student@123"));
-            student2.setFullName("Tran Thi B");
+            student2.setPasswordHash(passwordEncoder.encode("student123"));
+            student2.setFullName("Trần Thị Bình");
             student2.setStudentCode("SV002");
             student2.setRole(UserRole.STUDENT);
             student2.setMajor(seMajor);
             student2.setActive(true);
             userRepository.save(student2);
-            log.info("Seeded default student: sv02@cntt.local / Student@123");
+            log.info("Seeded default student: sv02@cntt.local / student123");
         }
     }
 
     private void initDocuments() {
         if (documentRepository.count() == 0) {
-            User student1 = userRepository.findByEmail("sv01@cntt.local").orElse(null);
-            User admin = userRepository.findByEmail("admin@cntt.local").orElse(null);
+            User student1 = userRepository.findByEmail("sv01@cntt.edu.vn")
+                    .or(() -> userRepository.findByEmail("sv01@cntt.local")).orElse(null);
+            User admin = userRepository.findByEmail("admin@cntt.edu.vn")
+                    .or(() -> userRepository.findByEmail("admin@cntt.local")).orElse(null);
             AcademicYear y1 = academicYearRepository.findByCode("2024-2025").orElse(null);
             Major se = majorRepository.findByCode("SE").orElse(null);
             Major is = majorRepository.findByCode("IS").orElse(null);

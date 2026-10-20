@@ -71,8 +71,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/api/documents",
                                 "/api/documents/*",
+                                "/api/documents/*/related",
+                                "/api/documents/*/reviews",
                                 "/api/documents/*/citation",
                                 "/api/documents/*/qa",
+                                "/api/documents/course-hub/**",
                                 "/api/documents/search",
                                 "/api/files/**",
                                 "/api/collections/public/**"

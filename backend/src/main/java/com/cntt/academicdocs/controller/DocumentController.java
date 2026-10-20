@@ -356,7 +356,7 @@ public class DocumentController {
         boolean isAdmin = "ADMIN".equalsIgnoreCase(currentRole);
 
         if (!isOwner && !isAdmin) {
-            throw new BusinessException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bạn không có quyền xem lịch sử thẩm định của tài liệu này");
+            return ResponseEntity.ok(ApiResponse.success(java.util.Collections.emptyList()));
         }
 
         java.util.List<DocumentReviewDTO> reviews = documentService.getDocumentReviews(id);

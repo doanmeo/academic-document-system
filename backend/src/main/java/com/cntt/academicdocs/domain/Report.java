@@ -31,7 +31,7 @@ public class Report {
     private String status = "PENDING";
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "handled_by")
+    @JoinColumn(name = "handler_id")
     private User handledBy;
 
     @Column(name = "handled_at")

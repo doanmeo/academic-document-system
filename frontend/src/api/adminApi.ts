@@ -110,7 +110,7 @@ export const hideDocument = async (
 /** GET /admin/documents/:id/reviews */
 export const getDocumentReviews = async (id: number): Promise<ReviewHistory[]> => {
   try {
-    const res = await api.get(`/admin/documents/${id}/reviews`)
+    const res = await api.get(`/documents/${id}/reviews`)
     return unwrap(res)
   } catch {
     return []
