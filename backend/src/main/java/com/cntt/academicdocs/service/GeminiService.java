@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
@@ -343,6 +344,43 @@ public class GeminiService {
 
         // 3. Fallback generator: Sinh tóm tắt học thuật súc tích ngữ cảnh UTC
         return generateRuleBasedAbstract(title, docType, subject, keywords, documentExcerpt);
+    }
+
+    public Map<String, Object> generateAbstractFromFile(
+            MultipartFile file,
+            String title,
+            String documentTypeCode,
+            String subjectName
+    ) {
+        String extractedExcerpt = "";
+        if (file != null && !file.isEmpty()) {
+            try {
+                extractedExcerpt = extractTextFromFile(file.getBytes(), file.getOriginalFilename());
+            } catch (Exception e) {
+                // If parsing fails, fallback to title
+            }
+        }
+
+        GenerateAbstractRequest req = new GenerateAbstractRequest();
+        String effectiveTitle = (title != null && !title.isBlank())
+                ? title.trim()
+                : (file != null ? file.getOriginalFilename().replaceFirst("[.][^.]+$", "") : "Tài liệu");
+        req.setTitle(effectiveTitle);
+        req.setDocumentTypeCode(documentTypeCode);
+        req.setSubjectName(subjectName);
+        req.setDraftDescription(extractedExcerpt);
+
+        String generated;
+        try {
+            generated = generateAcademicAbstract(req);
+        } catch (Exception e) {
+            generated = "Tài liệu học tập và nghiên cứu thực hiện tại Khoa Công nghệ Thông tin - Trường Đại học Giao thông Vận tải (UTC).";
+        }
+        Map<String, Object> result = new HashMap<>();
+        result.put("abstractText", generated);
+        result.put("extractedExcerptLength", extractedExcerpt.length());
+        result.put("suggestedTargetYear", "2026-2027");
+        return result;
     }
 
     private String buildPrompt(String title, String docType, String subject, String keywords, String documentExcerpt) {

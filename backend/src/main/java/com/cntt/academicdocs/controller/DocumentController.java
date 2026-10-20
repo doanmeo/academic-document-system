@@ -336,34 +336,7 @@ public class DocumentController {
             @RequestParam(value = "documentTypeCode", required = false) String documentTypeCode,
             @RequestParam(value = "subjectName", required = false) String subjectName
     ) {
-        String extractedExcerpt = "";
-        if (file != null && !file.isEmpty()) {
-            try {
-                extractedExcerpt = geminiService.extractTextFromFile(file.getBytes(), file.getOriginalFilename());
-            } catch (Exception e) {
-                // If parsing fails, fallback to title
-            }
-        }
-
-        GenerateAbstractRequest req = new GenerateAbstractRequest();
-        String effectiveTitle = (title != null && !title.isBlank()) 
-                ? title.trim() 
-                : (file != null ? file.getOriginalFilename().replaceFirst("[.][^.]+$", "") : "Tài liệu");
-        req.setTitle(effectiveTitle);
-        req.setDocumentTypeCode(documentTypeCode);
-        req.setSubjectName(subjectName);
-        req.setDraftDescription(extractedExcerpt);
-
-        String generated;
-        try {
-            generated = geminiService.generateAcademicAbstract(req);
-        } catch (Exception e) {
-            generated = "Tài liệu học tập và nghiên cứu thực hiện tại Khoa Công nghệ Thông tin - Trường Đại học Giao thông Vận tải (UTC).";
-        }
-        java.util.Map<String, Object> result = new java.util.HashMap<>();
-        result.put("abstractText", generated);
-        result.put("extractedExcerptLength", extractedExcerpt.length());
-        result.put("suggestedTargetYear", "2026-2027");
+        java.util.Map<String, Object> result = geminiService.generateAbstractFromFile(file, title, documentTypeCode, subjectName);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
