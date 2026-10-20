@@ -1,6 +1,18 @@
 import axios, { AxiosRequestConfig } from 'axios'
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api'
+const resolveBaseUrl = () => {
+  let url = (import.meta.env.VITE_API_BASE_URL || '').trim()
+  if (!url) {
+    return 'http://localhost:8080/api'
+  }
+  url = url.replace(/\/+$/, '')
+  if (!url.endsWith('/api')) {
+    url += '/api'
+  }
+  return url
+}
+
+const BASE_URL = resolveBaseUrl()
 
 // ─── Instance chính ───────────────────────────────────────────────────────────
 const api = axios.create({

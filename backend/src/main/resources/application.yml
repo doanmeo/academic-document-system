@@ -39,7 +39,7 @@ app:
     secret: ${JWT_SECRET:change_me_to_long_random_string_at_least_32_chars}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000,https://*.vercel.app,https://*.onrender.com}
   supabase:
     url: ${SUPABASE_URL:https://qsxuyysnqmyristjiwws.supabase.co}
     key: ${SUPABASE_SERVICE_ROLE_KEY:your_supabase_service_role_key}
