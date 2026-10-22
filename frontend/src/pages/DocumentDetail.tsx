@@ -285,6 +285,11 @@ export default function DocumentDetail() {
 
   // Handle Direct Instant Rating
   const handleDirectRate = async (score: number) => {
+    if (!isAuthenticated) {
+      toast.info('Yêu cầu đăng nhập', 'Bạn cần đăng nhập tài khoản sinh viên/giảng viên để đánh giá học liệu.')
+      navigate('/login')
+      return
+    }
     const isFirstTime = !userRating
     const oldScore = userRating || 0
 
@@ -316,6 +321,12 @@ export default function DocumentDetail() {
   // Handle Rating
   const handleRateSubmit = async () => {
     if (!doc) return
+    if (!isAuthenticated) {
+      toast.info('Yêu cầu đăng nhập', 'Bạn cần đăng nhập tài khoản sinh viên/giảng viên để đánh giá học liệu.')
+      setShowRateModal(false)
+      navigate('/login')
+      return
+    }
     const isFirstTime = !userRating
     const oldScore = userRating || 0
 
@@ -1482,7 +1493,14 @@ export default function DocumentDetail() {
 
                 {/* Add to Collection Button */}
                 <button
-                  onClick={() => setShowCollectionModal(true)}
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      toast.info('Yêu cầu đăng nhập', 'Bạn cần đăng nhập để thêm tài liệu vào bộ sưu tập cá nhân.')
+                      navigate('/login')
+                      return
+                    }
+                    setShowCollectionModal(true)
+                  }}
                   className="w-full py-2.5 px-4 bg-stone-50 dark:bg-slate-900 hover:bg-stone-100 dark:hover:bg-slate-800 border border-stone-300 dark:border-slate-700 text-stone-800 dark:text-slate-200 text-xs font-mono font-bold flex items-center justify-center gap-2 rounded-xl transition-colors cursor-pointer uppercase tracking-wider"
                   type="button"
                 >
@@ -1492,7 +1510,14 @@ export default function DocumentDetail() {
 
                 {/* Report Infringement Trigger */}
                 <button
-                  onClick={() => setShowReport(true)}
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      toast.info('Yêu cầu đăng nhập', 'Bạn cần đăng nhập tài khoản sinh viên/giảng viên để gửi báo cáo vi phạm.')
+                      navigate('/login')
+                      return
+                    }
+                    setShowReport(true)
+                  }}
                   className="w-full py-1.5 px-3 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-mono font-bold flex items-center justify-center gap-1.5 rounded-lg transition-colors cursor-pointer"
                   type="button"
                 >
@@ -1610,7 +1635,14 @@ export default function DocumentDetail() {
                     </div>
 
                     <button
-                      onClick={() => setShowRateModal(true)}
+                      onClick={() => {
+                        if (!isAuthenticated) {
+                          toast.info('Yêu cầu đăng nhập', 'Bạn cần đăng nhập tài khoản sinh viên/giảng viên để đánh giá học liệu.')
+                          navigate('/login')
+                          return
+                        }
+                        setShowRateModal(true)
+                      }}
                       className="mt-1 py-1 px-3 bg-white dark:bg-slate-800 hover:bg-stone-50 text-stone-800 dark:text-slate-200 font-mono text-[10px] font-bold rounded-lg border border-amber-300 dark:border-slate-700 transition-colors cursor-pointer uppercase"
                       type="button"
                     >

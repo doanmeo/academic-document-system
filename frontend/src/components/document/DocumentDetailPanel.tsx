@@ -20,7 +20,7 @@ interface DocumentDetailPanelProps {
 export default function DocumentDetailPanel({ doc, onClose, onOpenPdf }: DocumentDetailPanelProps) {
   const navigate = useNavigate();
   const toast = useToast();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
@@ -91,6 +91,11 @@ export default function DocumentDetailPanel({ doc, onClose, onOpenPdf }: Documen
   };
 
   const handleToggleBookmark = async () => {
+    if (!isAuthenticated) {
+      toast.info('Yêu cầu đăng nhập', 'Bạn cần đăng nhập để lưu tài liệu vào Tủ cá nhân.');
+      navigate('/login');
+      return;
+    }
     try {
       setBookmarkLoading(true);
       if (bookmarked) {

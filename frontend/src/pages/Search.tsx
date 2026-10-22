@@ -30,6 +30,7 @@ import {
   ArrowLeft
 } from 'lucide-react'
 import { useToast } from '../contexts/ToastContext'
+import { useAuth } from '../contexts/AuthContext'
 import Navbar from '../components/layout/Navbar'
 import Footer from '../components/layout/Footer'
 import type { DocumentSummary, Subject, AcademicYear, Technology, Major } from '../types'
@@ -59,6 +60,7 @@ const HOT_SUBJECTS = [
 
 export default function Search() {
   const toast = useToast()
+  const { isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const initialQ = searchParams.get('q') || ''
@@ -226,6 +228,11 @@ export default function Search() {
   }
 
   const handleBookmarkToggle = async (doc: DocumentSummary) => {
+    if (!isAuthenticated) {
+      toast.info('Yêu cầu đăng nhập', 'Bạn cần đăng nhập để lưu tài liệu vào Tủ cá nhân.')
+      navigate('/login')
+      return
+    }
     try {
       if (doc.bookmarked) {
         await removeBookmark(doc.id)

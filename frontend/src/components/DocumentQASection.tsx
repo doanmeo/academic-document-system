@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   MessageSquare,
   ThumbsUp,
@@ -21,7 +22,8 @@ interface DocumentQASectionProps {
 }
 
 export const DocumentQASection: React.FC<DocumentQASectionProps> = ({ documentId }) => {
-  const { user } = useAuth()
+  const { user, isAuthenticated } = useAuth()
+  const navigate = useNavigate()
   const toast = useToast()
 
   const [questions, setQuestions] = useState<DocumentQA[]>([])
@@ -55,6 +57,11 @@ export const DocumentQASection: React.FC<DocumentQASectionProps> = ({ documentId
 
   const handlePostQuestion = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!isAuthenticated) {
+      toast.info('Yêu cầu đăng nhập', 'Bạn cần đăng nhập tài khoản sinh viên/giảng viên để đặt câu hỏi thảo luận.')
+      navigate('/login')
+      return
+    }
     const content = newQuestion.trim()
     if (!content) return
 
@@ -111,6 +118,11 @@ export const DocumentQASection: React.FC<DocumentQASectionProps> = ({ documentId
   }
 
   const handlePostReply = async (parentId: number) => {
+    if (!isAuthenticated) {
+      toast.info('Yêu cầu đăng nhập', 'Bạn cần đăng nhập để trả lời thảo luận học thuật.')
+      navigate('/login')
+      return
+    }
     const text = replyText.trim()
     if (!text) return
 
@@ -183,6 +195,11 @@ export const DocumentQASection: React.FC<DocumentQASectionProps> = ({ documentId
   }
 
   const handleUpvote = async (qaId: number) => {
+    if (!isAuthenticated) {
+      toast.info('Yêu cầu đăng nhập', 'Bạn cần đăng nhập để biểu quyết câu hỏi.')
+      navigate('/login')
+      return
+    }
     // Optimistic upvote count update
     setQuestions((prev) =>
       prev.map((q) => (q.id === qaId ? { ...q, upvotes: (q.upvotes || 0) + 1 } : q))

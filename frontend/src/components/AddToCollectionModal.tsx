@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { FolderPlus, Plus, Check, X, Loader2, BookOpen } from 'lucide-react'
 import { Collection } from '../types/document'
 import { collectionApi } from '../api/collectionApi'
 import { useToast } from '../contexts/ToastContext'
+import { useAuth } from '../contexts/AuthContext'
 
 interface AddToCollectionModalProps {
   documentId: number
@@ -18,6 +20,8 @@ export const AddToCollectionModal: React.FC<AddToCollectionModalProps> = ({
   onClose,
 }) => {
   const { addToast } = useToast()
+  const { isAuthenticated } = useAuth()
+  const navigate = useNavigate()
   const [collections, setCollections] = useState<Collection[]>([])
   const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -40,9 +44,15 @@ export const AddToCollectionModal: React.FC<AddToCollectionModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
+      if (!isAuthenticated) {
+        onClose()
+        addToast('info', 'Yêu cầu đăng nhập', 'Bạn cần đăng nhập để thêm tài liệu vào bộ sưu tập cá nhân.')
+        navigate('/login')
+        return
+      }
       fetchCollections()
     }
-  }, [isOpen])
+  }, [isOpen, isAuthenticated])
 
   if (!isOpen) return null
 
