@@ -38,6 +38,7 @@ import { OFFICIAL_DOCUMENT_TYPES } from '../types/document'
 import { documentApi } from '../api/documentApi'
 import { catalogApi } from '../api/catalogApi'
 import { addBookmark, removeBookmark } from '../api/interactionApi'
+import { getDownloadUrl } from '../api/fileApi'
 import DocumentCard from '../components/document/DocumentCard'
 import DocumentQuickCardModal from '../components/document/DocumentQuickCardModal'
 import PdfViewerModal from '../components/PdfViewerModal'
@@ -217,8 +218,17 @@ export default function Search() {
         detailRes?.data?.files?.[0]
 
       if (primaryFile?.id) {
-        window.open(`/api/files/${primaryFile.id}/download`, '_blank')
-        toast.success(`Đang bắt đầu tải tệp: ${doc.title}`)
+        const { url } = await getDownloadUrl(primaryFile.id)
+        if (url) {
+          const a = document.createElement('a')
+          a.href = url
+          a.download = primaryFile.fileName || `${doc.title}.pdf`
+          a.target = '_blank'
+          a.click()
+          toast.success(`Đang bắt đầu tải tệp: ${doc.title}`)
+        } else {
+          toast.info('Tài liệu này xem trực tuyến hoặc liên kết mã nguồn.')
+        }
       } else {
         toast.info('Tài liệu này xem trực tuyến hoặc liên kết mã nguồn.')
       }
@@ -829,7 +839,7 @@ export default function Search() {
         <PdfViewerModal
           isOpen={viewerModal.isOpen}
           onClose={() => setViewerModal({ isOpen: false, doc: null })}
-          fileId={viewerModal.doc?.primaryFileId}
+          fileId={viewerModal.doc?.primaryFileId || viewerModal.doc?.fileId}
           fileUrl={viewerModal.doc?.fileUrl}
           title={viewerModal.doc?.title || 'Tài liệu khoa học'}
           fileName={viewerModal.doc ? `${viewerModal.doc.title}.pdf` : undefined}

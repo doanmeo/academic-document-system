@@ -1369,7 +1369,7 @@ export default function Home() {
           isOpen={viewerModal.isOpen}
           onClose={() => setViewerModal({ isOpen: false, doc: null })}
           title={viewerModal.doc.title}
-          fileId={viewerModal.doc.fileId}
+          fileId={viewerModal.doc.primaryFileId || viewerModal.doc.fileId}
           fileUrl={viewerModal.doc.fileUrl}
           fileName={viewerModal.doc.fileName}
         />

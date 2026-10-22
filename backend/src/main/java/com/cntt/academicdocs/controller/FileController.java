@@ -64,7 +64,8 @@ public class FileController {
 
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDisposition(org.springframework.http.ContentDisposition.inline().filename("preview.pdf").build());
+        headers.set(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "inline");
+        headers.set("X-Content-Type-Options", "nosniff");
         headers.setCacheControl(org.springframework.http.CacheControl.noCache().getHeaderValue());
 
         return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);

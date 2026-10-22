@@ -46,7 +46,7 @@ import CodeViewer from '../components/CodeViewer'
 import DocumentQASection from '../components/DocumentQASection'
 import AddToCollectionModal from '../components/AddToCollectionModal'
 import { getDocument, getRelatedDocuments, documentApi, generateClientCitation } from '../api/documentApi'
-import { getDownloadUrl, getFileBlob } from '../api/fileApi'
+import { getDownloadUrl, getFileBlob, fetchSafePdfBlob } from '../api/fileApi'
 import { addBookmark, removeBookmark, rateDocument, reportDocument } from '../api/interactionApi'
 import { getLov } from '../api/catalogApi'
 import { getErrorMessage } from '../utils/errorMessages'
@@ -179,16 +179,13 @@ export default function DocumentDetail() {
     } catch (err) {
       console.warn('PDF AJAX stream fallback to sample:', err)
       try {
-        const fbRes = await fetch('/sample.pdf')
-        if (fbRes.ok) {
-          const fbBlob = await fbRes.blob()
-          const u = URL.createObjectURL(new Blob([fbBlob], { type: 'application/pdf' }))
-          setBlobUrl((prev) => {
-            if (prev) URL.revokeObjectURL(prev)
-            return u
-          })
-          return
-        }
+        const fbBlob = await fetchSafePdfBlob('/sample.dat')
+        const u = URL.createObjectURL(fbBlob)
+        setBlobUrl((prev) => {
+          if (prev) URL.revokeObjectURL(prev)
+          return u
+        })
+        return
       } catch {}
       setBlobUrl(null)
       setPdfError('Học liệu số trực tuyến đang được đồng bộ hoặc bảo mật. Bạn có thể sử dụng nút Tải về máy bên dưới.')

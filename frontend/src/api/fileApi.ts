@@ -52,8 +52,28 @@ export const getPreviewUrl = async (fileId: number): Promise<SignedUrlResponse> 
 export const getFileBlob = async (fileId: number): Promise<Blob> => {
   const res = await api.get(`/files/${fileId}/view`, {
     responseType: 'blob',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'Accept': 'application/pdf, application/octet-stream',
+    },
   })
   return res.data
+}
+
+/**
+ * Tải an toàn tệp PDF tĩnh hoặc từ xa dưới dạng Blob bộ nhớ.
+ * Sử dụng header X-Requested-With và fallback đuôi .dat để chặn hoàn toàn IDM can thiệp.
+ */
+export const fetchSafePdfBlob = async (url: string): Promise<Blob> => {
+  const resolved = (url === '/sample.pdf' || url.endsWith('/sample.pdf')) ? '/sample.dat' : url
+  const res = await fetch(resolved, {
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const rawBlob = await res.blob()
+  return new Blob([rawBlob], { type: 'application/pdf' })
 }
 
 /**

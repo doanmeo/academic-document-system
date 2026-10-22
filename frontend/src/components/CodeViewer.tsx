@@ -15,9 +15,15 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({
   const [copied, setCopied] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
 
+  // Normalize escaped linebreaks (\n, \r\n) and tabs into real multiline code
+  const normalizedCode = (code || '')
+    .replace(/\\r\\n/g, '\n')
+    .replace(/\\n/g, '\n')
+    .replace(/\\t/g, '    ')
+
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(code)
+      await navigator.clipboard.writeText(normalizedCode)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
@@ -40,16 +46,16 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({
     }
     const lang = (language || 'txt').toLowerCase()
     const ext = extMap[lang] || 'txt'
-    const blob = new Blob([code], { type: 'text/plain;charset=utf-8' })
+    const blob = new Blob([normalizedCode], { type: 'text/plain;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `utc_source_code.${ext}`
+    a.download = 'utc_source_code.' + ext
     a.click()
     URL.revokeObjectURL(url)
   }
 
-  const lines = code.split('\n')
+  const lines = normalizedCode.split('\n')
 
   // Simple token styler for keywords, strings, comments
   const highlightLine = (line: string) => {

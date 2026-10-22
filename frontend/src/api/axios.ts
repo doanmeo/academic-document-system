@@ -17,7 +17,10 @@ const BASE_URL = resolveBaseUrl()
 // ─── Instance chính ───────────────────────────────────────────────────────────
 const api = axios.create({
   baseURL: BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
+  },
 })
 
 // ─── REQUEST interceptor: gắn accessToken ────────────────────────────────────
