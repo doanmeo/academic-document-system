@@ -546,7 +546,7 @@ export const ExamBank: React.FC = () => {
   }
 
   const handleDownload = (exam: DocumentSummary) => {
-    toast.showToast(`Bắt đầu tải về: ${exam.title}`, 'info')
+    toast.info(`Bắt đầu tải về: ${exam.title}`)
     // Open sample or primary file
     const fileUrl = exam.primaryFileName ? `/documents/${exam.primaryFileName}` : '/sample.pdf'
     const link = document.createElement('a')

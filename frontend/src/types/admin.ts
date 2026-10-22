@@ -29,6 +29,8 @@ export interface ReviewHistory {
   fromStatus: string
   toStatus: string
   comment: string | null
+  action?: string
+  note?: string | null
   createdAt: string
 }
 
@@ -42,6 +44,7 @@ export interface Report {
   reporterId: number
   reporterName: string
   reasonCode: string
+  reasonName?: string | null
   /** Nhãn hiển thị của reasonCode (từ LOV) */
   reasonLabel: string | null
   description: string

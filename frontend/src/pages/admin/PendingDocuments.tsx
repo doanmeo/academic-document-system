@@ -22,12 +22,8 @@ export default function PendingDocuments() {
     setLoading(true)
     adminApi
       .getPendingDocuments(0, 20, keyword)
-      .then((res) => {
-        if (res.success && res.data) {
-          setDocuments(res.data.content || [])
-        } else {
-          setDocuments([])
-        }
+      .then((res: any) => {
+        setDocuments(res?.content ?? res?.data?.content ?? [])
       })
       .catch((err) => {
         const msg = err.response?.data?.message || 'Không thể tải danh sách tài liệu chờ duyệt'

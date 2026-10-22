@@ -6,35 +6,22 @@ import {
   Share2,
   Trash2,
   ExternalLink,
-  BookOpen,
   Check,
-  Calendar,
   Lock,
   Globe,
   Loader2,
-  FileText,
-  ChevronRight,
   FolderOpen,
   Search,
-  SlidersHorizontal,
-  Filter,
   Sparkles,
   Copy,
   Edit3,
-  Save,
   X,
   Eye,
-  Download,
   Star,
-  Tag,
-  ArrowUpDown,
-  GraduationCap,
   UserCheck,
   RefreshCw,
   Quote,
-  Layers,
   ArrowRight,
-  FileCheck2,
 } from 'lucide-react'
 import Navbar from '../components/layout/Navbar'
 import Footer from '../components/layout/Footer'
@@ -68,7 +55,7 @@ const ACADEMIC_PRESETS = [
 
 export const Collections: React.FC = () => {
   const { shareToken } = useParams<{ shareToken?: string }>()
-  const { user, isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuth()
   const toast = useToast()
   const navigate = useNavigate()
 
@@ -836,7 +823,7 @@ export const Collections: React.FC = () => {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {filteredItems.map((item, index) => (
+                      {filteredItems.map((item) => (
                         <div
                           key={item.id}
                           className="p-4 rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 hover:border-stone-400 dark:hover:border-stone-700 transition-all shadow-2xs space-y-3"

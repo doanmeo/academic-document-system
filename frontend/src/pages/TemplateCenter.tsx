@@ -237,7 +237,7 @@ export const TemplateCenter: React.FC = () => {
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null)
 
   const handleDownload = (tpl: AcademicTemplate) => {
-    toast.showToast(`Bắt đầu tải về biểu mẫu: ${tpl.title}`, 'info')
+    toast.info(`Bắt đầu tải về biểu mẫu: ${tpl.title}`)
     const link = document.createElement('a')
     link.href = tpl.filePath
     link.download = `${tpl.title.replace(/[^a-zA-Z0-9\-_]/g, '_')}.${tpl.format.toLowerCase()}`
@@ -277,7 +277,7 @@ export const TemplateCenter: React.FC = () => {
   const copyToClipboard = (text: string, formatName: string) => {
     navigator.clipboard.writeText(text)
     setCopiedFormat(formatName)
-    toast.showToast(`Đã sao chép định dạng ${formatName}!`, 'success')
+    toast.success(`Đã sao chép định dạng ${formatName}!`)
     setTimeout(() => setCopiedFormat(null), 2500)
   }
 

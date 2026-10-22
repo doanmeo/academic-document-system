@@ -35,11 +35,17 @@ export const getDashboard = async (): Promise<DashboardStats> => {
 // ─── Document management ──────────────────────────────────────────────────────
 
 /** GET /admin/documents/pending */
-export const getPendingDocuments = async (params: {
-  page?: number
-  size?: number
-  keyword?: string
-} = {}): Promise<PageResponse<DocumentSummary>> => {
+export const getPendingDocuments = async (
+  pageOrParams: number | { page?: number; size?: number; keyword?: string } = {},
+  sizeArg?: number,
+  keywordArg?: string
+): Promise<PageResponse<DocumentSummary>> => {
+  let params: { page?: number; size?: number; keyword?: string } = {}
+  if (typeof pageOrParams === 'number') {
+    params = { page: pageOrParams, size: sizeArg, keyword: keywordArg }
+  } else {
+    params = pageOrParams
+  }
   const res = await api.get('/admin/documents/pending', { params })
   return unwrap(res)
 }
@@ -58,12 +64,13 @@ export const getAllDocuments = async (params: {
 /** POST /admin/documents/:id/approve */
 export const approveDocument = async (
   id: number,
-  payload: ApproveRequest = {}
+  payload: ApproveRequest | string = {}
 ): Promise<void> => {
+  const note = typeof payload === 'string' ? payload : (payload.note || '')
   const body = {
-    note: payload.note || '',
-    comment: payload.note || '',
-    reason: payload.note || '',
+    note,
+    comment: note,
+    reason: note,
   }
   await api.post(`/admin/documents/${id}/approve`, body)
 }
@@ -71,12 +78,13 @@ export const approveDocument = async (
 /** POST /admin/documents/:id/reject */
 export const rejectDocument = async (
   id: number,
-  payload: RejectRequest
+  payload: RejectRequest | string
 ): Promise<void> => {
+  const note = typeof payload === 'string' ? payload : (payload.note || '')
   const body = {
-    note: payload.note || '',
-    comment: payload.note || '',
-    reason: payload.note || '',
+    note,
+    comment: note,
+    reason: note,
   }
   await api.post(`/admin/documents/${id}/reject`, body)
 }
@@ -84,12 +92,13 @@ export const rejectDocument = async (
 /** POST /admin/documents/:id/request-revision */
 export const requestRevision = async (
   id: number,
-  payload: RevisionRequest
+  payload: RevisionRequest | string
 ): Promise<void> => {
+  const note = typeof payload === 'string' ? payload : (payload.note || (payload as any).reason || '')
   const body = {
-    note: payload.note || '',
-    comment: payload.note || '',
-    reason: payload.note || '',
+    note,
+    comment: note,
+    reason: note,
   }
   await api.post(`/admin/documents/${id}/request-revision`, body)
 }
@@ -238,5 +247,6 @@ export const adminApi = {
   getAdminReports,
   handleReport,
   getAdminUsers,
+  getUsers: getAdminUsers,
   toggleUserActive,
 }

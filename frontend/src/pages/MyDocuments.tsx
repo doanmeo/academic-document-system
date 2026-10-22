@@ -20,6 +20,7 @@ const STATUS_CONFIG: Record<DocumentStatus, { label: string; badgeClass: string;
   REJECTED: { label: 'Bị từ chối', badgeClass: 'bg-red-100 text-red-800 border-red-200', icon: 'cancel' },
   DRAFT: { label: 'Bản nháp', badgeClass: 'bg-slate-100 text-slate-700 border-slate-200', icon: 'draft' },
   HIDDEN: { label: 'Đã ẩn', badgeClass: 'bg-gray-100 text-gray-600 border-gray-200', icon: 'visibility_off' },
+  ARCHIVED: { label: 'Lưu trữ', badgeClass: 'bg-stone-100 text-stone-700 border-stone-200', icon: 'archive' },
 };
 
 export default function MyDocuments() {

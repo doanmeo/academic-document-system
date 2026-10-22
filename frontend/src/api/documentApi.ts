@@ -337,6 +337,7 @@ export const getDocumentReviews = async (
 export const documentApi = {
   search: searchDocuments,
   searchDocuments,
+  getDocuments: searchDocuments,
   get: getDocument,
   getById: getDocument,
   getDocument,

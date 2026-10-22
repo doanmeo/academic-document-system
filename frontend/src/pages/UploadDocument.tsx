@@ -167,7 +167,7 @@ export default function UploadDocument() {
         )
       } else {
         res = await documentApi.generateAbstract({
-          title: title.trim() || (file ? file.name.replace(/\.[^/.]+$/, '') : 'Tài liệu học tập'),
+          title: title.trim() || 'Tài liệu học tập',
           subjectName: currentSub ? currentSub.name : undefined,
           documentType: documentTypeCode,
         })

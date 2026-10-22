@@ -12,10 +12,8 @@ export default function AdminLayout() {
   useEffect(() => {
     adminApi
       .getPendingDocuments(0, 1)
-      .then((res) => {
-        if (res.success && res.data) {
-          setPendingCount(res.data.totalElements || 0)
-        }
+      .then((res: any) => {
+        setPendingCount(res?.totalElements ?? res?.data?.totalElements ?? 0)
       })
       .catch(() => {})
   }, [])

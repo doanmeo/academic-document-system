@@ -9,7 +9,7 @@ import type {
 } from '../types/auth'
 
 // Helper: unwrap envelope data.data
-const unwrap = <T>(res: { data: { data: T } }): T => res.data.data
+const unwrap = <T>(res: any): T => (res.data?.data ?? res.data) as T
 
 // ─── Auth API ─────────────────────────────────────────────────────────────────
 

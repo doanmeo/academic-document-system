@@ -10,6 +10,7 @@ export interface Major {
   id: number
   code: string
   name: string
+  isActive?: boolean
 }
 
 export interface AcademicYear {

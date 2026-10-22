@@ -18,12 +18,8 @@ export default function Users() {
         keyword: keyword || undefined,
         role: roleFilter !== 'ALL' ? roleFilter : undefined,
       })
-      .then((res) => {
-        if (res.success && res.data) {
-          setUsers(res.data.content || [])
-        } else {
-          setUsers([])
-        }
+      .then((res: any) => {
+        setUsers(res?.content ?? res?.data?.content ?? [])
       })
       .catch((err) => {
         const msg = err.response?.data?.message || 'Không thể tải danh sách người dùng'
@@ -35,7 +31,7 @@ export default function Users() {
 
   const handleToggleActive = async (id: number, currentActive: boolean) => {
     try {
-      await adminApi.toggleUserActive(id, !currentActive)
+      await adminApi.toggleUserActive(id, { active: !currentActive })
       setUsers((prev) =>
         prev.map((u) => (u.id === id ? { ...u, active: !currentActive } : u))
       )

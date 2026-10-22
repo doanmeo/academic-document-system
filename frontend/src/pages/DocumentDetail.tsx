@@ -23,7 +23,6 @@ import {
   FolderPlus,
   Flag,
   ShieldCheck,
-  User,
   Calendar,
   X,
   AlertCircle,
@@ -33,13 +32,8 @@ import {
   Layers,
   Copy,
   Check,
-  Share2,
   Sparkles,
   Terminal,
-  BookmarkCheck,
-  Clock,
-  Award,
-  Hash,
   GraduationCap
 } from 'lucide-react'
 import Navbar from '../components/layout/Navbar'
@@ -52,7 +46,7 @@ import CodeViewer from '../components/CodeViewer'
 import DocumentQASection from '../components/DocumentQASection'
 import AddToCollectionModal from '../components/AddToCollectionModal'
 import { getDocument, getRelatedDocuments, documentApi, generateClientCitation } from '../api/documentApi'
-import { getPreviewUrl, getDownloadUrl, getFileBlob } from '../api/fileApi'
+import { getDownloadUrl, getFileBlob } from '../api/fileApi'
 import { addBookmark, removeBookmark, rateDocument, reportDocument } from '../api/interactionApi'
 import { getLov } from '../api/catalogApi'
 import { getErrorMessage } from '../utils/errorMessages'
@@ -70,11 +64,13 @@ const formatFileSize = (bytes: number) => {
 export default function DocumentDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   const toast = useToast()
   const viewerContainerRef = useRef<HTMLDivElement>(null)
 
   const [doc, setDoc] = useState<DocDetail | null>(null)
+  const canAdmin = user?.role === 'ADMIN'
+  const canEdit = isAuthenticated && (user?.id === doc?.uploaderId || canAdmin)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showCitation, setShowCitation] = useState(false)
@@ -90,7 +86,6 @@ export default function DocumentDetail() {
   const [reviews, setReviews] = useState<DocumentReviewHistory[]>([])
 
   // PDF Viewer State & Bulletproof Blob
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const [activeFileId, setActiveFileId] = useState<number | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
@@ -131,7 +126,7 @@ export default function DocumentDetail() {
       try {
         const data = await getDocument(docId)
         setDoc(data)
-        setBookmarked(data.bookmarked)
+        setBookmarked(!!data.bookmarked)
         if (data.userRating) setUserRating(data.userRating)
 
         // Fetch related academic documents in parallel

@@ -7,6 +7,7 @@ export type DocumentStatus =
   | 'REJECTED'
   | 'HIDDEN'
   | 'REVISION_REQUIRED'
+  | 'ARCHIVED'
 
 export type DocumentTypeCode =
   | 'SLIDE'
@@ -57,6 +58,13 @@ export interface DocumentSummary {
   primaryFileMimeType?: string
   primaryFileId?: number
   primaryFileName?: string
+  description?: string | null
+  repositoryUrl?: string | null
+  authorName?: string
+  fileUrl?: string
+  fileId?: number
+  fileName?: string
+  documentTypeName?: string | null
   bookmarked?: boolean
   isBookmarked?: boolean
   avgRating: number
@@ -99,6 +107,7 @@ export interface DocumentDetail extends DocumentSummary {
   description: string | null
   githubUrl: string | null
   gitlabUrl: string | null
+  repositoryUrl?: string | null
   majorId: number
   majorName: string
   technologies: { id: number; name: string; usageNote?: string }[]
@@ -305,6 +314,7 @@ export interface GenerateAbstractRequest {
   title: string
   subjectName?: string
   documentType?: string
+  documentTypeCode?: string
   keywords?: string[]
 }
 
