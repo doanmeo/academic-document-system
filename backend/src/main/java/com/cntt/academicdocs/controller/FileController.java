@@ -53,6 +53,23 @@ public class FileController {
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
+    @GetMapping(value = "/{fileId}/view", produces = MediaType.APPLICATION_PDF_VALUE)
+    @Operation(summary = "Xem trực tuyến nội dung PDF dạng stream (không kích hoạt IDM)")
+    public ResponseEntity<byte[]> viewFileInline(@PathVariable Long fileId) {
+        byte[] pdfBytes = fileService.getFileBytes(
+                fileId,
+                SecurityUtils.getCurrentUserId(),
+                SecurityUtils.isAdmin()
+        );
+
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(org.springframework.http.ContentDisposition.inline().filename("preview.pdf").build());
+        headers.setCacheControl(org.springframework.http.CacheControl.noCache().getHeaderValue());
+
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+    }
+
     @GetMapping("/{fileId}/download-url")
     @Operation(summary = "Lấy URL tải xuống tài liệu và tăng lượt tải")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getDownloadUrl(@PathVariable Long fileId) {

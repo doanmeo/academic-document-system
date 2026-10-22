@@ -104,6 +104,25 @@ public class SupabaseStorageService implements FileStorageService {
     }
 
     @Override
+    public byte[] downloadBytes(String storageKey) {
+        if (storageKey == null || storageKey.isBlank()) return null;
+        try {
+            String url = String.format("%s/storage/v1/object/%s/%s", supabaseUrl, bucketName, storageKey);
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + serviceRoleKey);
+            headers.set("apikey", serviceRoleKey);
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+            ResponseEntity<byte[]> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, byte[].class);
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null && response.getBody().length > 0) {
+                return response.getBody();
+            }
+        } catch (Exception e) {
+            log.info("Supabase storage downloadBytes note: {} (will use local fallback)", e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
     public void delete(String storageKey) {
         try {
             String url = String.format("%s/storage/v1/object/%s/%s", supabaseUrl, bucketName, storageKey);

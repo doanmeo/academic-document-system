@@ -290,23 +290,29 @@ export default function DocumentDetail() {
 
   // Handle Direct Instant Rating
   const handleDirectRate = async (score: number) => {
+    const isFirstTime = !userRating
+    const oldScore = userRating || 0
+
     setRateScore(score)
     setUserRating(score)
     if (!doc) return
+
+    const prevCount = doc.ratingCount || 0
+    const prevAvg = doc.avgRating || 5.0
+    const newCount = isFirstTime ? prevCount + 1 : prevCount
+    const newAvg = isFirstTime
+      ? Number(((prevAvg * prevCount + score) / newCount).toFixed(1))
+      : Number(((prevAvg * prevCount - oldScore + score) / (prevCount || 1)).toFixed(1))
+
     try {
       await rateDocument(doc.id, score)
-      const prevCount = doc.ratingCount || 0
-      const prevAvg = doc.avgRating || 5.0
-      const newCount = prevCount + 1
-      const newAvg = Number(((prevAvg * prevCount + score) / newCount).toFixed(1))
       setDoc({ ...doc, avgRating: newAvg, ratingCount: newCount, userRating: score })
-      toast.success(`Đã đánh giá ${score} sao thành công!`, 'Cảm ơn phản hồi học thuật của bạn.')
+      toast.success(
+        isFirstTime ? `Đã đánh giá ${score} sao thành công!` : `Đã cập nhật đánh giá thành ${score} sao!`,
+        'Cảm ơn phản hồi học thuật của bạn.'
+      )
     } catch (err) {
       console.warn('Fallback rating:', err)
-      const prevCount = doc.ratingCount || 0
-      const prevAvg = doc.avgRating || 5.0
-      const newCount = prevCount + 1
-      const newAvg = Number(((prevAvg * prevCount + score) / newCount).toFixed(1))
       setDoc({ ...doc, avgRating: newAvg, ratingCount: newCount, userRating: score })
       toast.success(`Đã ghi nhận đánh giá ${score} sao!`, 'Cảm ơn phản hồi học thuật của bạn.')
     }
@@ -315,31 +321,32 @@ export default function DocumentDetail() {
   // Handle Rating
   const handleRateSubmit = async () => {
     if (!doc) return
+    const isFirstTime = !userRating
+    const oldScore = userRating || 0
+
     setRateLoading(true)
+    const prevCount = doc.ratingCount || 0
+    const prevAvg = doc.avgRating || 5.0
+    const newCount = isFirstTime ? prevCount + 1 : prevCount
+    const newAvg = isFirstTime
+      ? Number(((prevAvg * prevCount + rateScore) / newCount).toFixed(1))
+      : Number(((prevAvg * prevCount - oldScore + rateScore) / (prevCount || 1)).toFixed(1))
+
     try {
       await rateDocument(doc.id, rateScore)
       setUserRating(rateScore)
       setShowRateModal(false)
-
-      // Dynamically calculate and update average rating in local state
-      const prevCount = doc.ratingCount || 0
-      const prevAvg = doc.avgRating || 5.0
-      const newCount = prevCount + 1
-      const newAvg = Number(((prevAvg * prevCount + rateScore) / newCount).toFixed(1))
       setDoc({ ...doc, avgRating: newAvg, ratingCount: newCount, userRating: rateScore })
-
-      toast.success(`Đã gửi đánh giá ${rateScore} sao thành công!`, 'Cảm ơn phản hồi học thuật của bạn.')
+      toast.success(
+        isFirstTime ? `Đã gửi đánh giá ${rateScore} sao thành công!` : `Đã cập nhật đánh giá thành ${rateScore} sao!`,
+        'Cảm ơn phản hồi học thuật của bạn.'
+      )
     } catch (err) {
       console.warn('Rating submit fallback:', err)
       // Optimistic update so the user is never blocked
       setUserRating(rateScore)
       setShowRateModal(false)
-      const prevCount = doc.ratingCount || 0
-      const prevAvg = doc.avgRating || 5.0
-      const newCount = prevCount + 1
-      const newAvg = Number(((prevAvg * prevCount + rateScore) / newCount).toFixed(1))
       setDoc({ ...doc, avgRating: newAvg, ratingCount: newCount, userRating: rateScore })
-
       toast.success(`Đã ghi nhận đánh giá ${rateScore} sao!`, 'Cảm ơn phản hồi học thuật của bạn.')
     } finally {
       setRateLoading(false)
