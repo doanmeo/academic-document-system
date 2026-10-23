@@ -1,3 +1,5 @@
+// === CHỈNH SỬA HỌC LIỆU (Edit Document) ===
+// Cập nhật thông tin tài liệu, bổ sung tệp đính kèm và nộp lại sau khi được yêu cầu sửa đổi (REVISION_REQUIRED)
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Navbar from '../components/layout/Navbar'

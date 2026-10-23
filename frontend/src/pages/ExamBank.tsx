@@ -1,3 +1,5 @@
+// === LUỒNG 5: NGÂN HÀNG ĐỀ THI & BIỂU MẪU HỌC THUẬT (ExamBank Flow) ===
+// Khai thác đề thi các kỳ trước, ma trận đề thi UTC FIT, các bẫy thi thường gặp và đáp án chi tiết
 import React, { useEffect, useState, useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -38,12 +40,13 @@ import PdfViewerModal from '../components/PdfViewerModal'
 import DocumentQuickCardModal from '../components/document/DocumentQuickCardModal'
 import { documentApi } from '../api/documentApi'
 import { catalogApi } from '../api/catalogApi'
+import { getDownloadUrl } from '../api/fileApi'
 import { DocumentSummary } from '../types/document'
 import { useToast } from '../contexts/ToastContext'
 import CustomSelect from '../components/ui/CustomSelect'
 import CustomCheckbox from '../components/ui/CustomCheckbox'
 
-// ─── UTC FIT Exam Matrix Reference Data ───────────────────────────────────────
+// LUỒNG 5: Ma trận cấu trúc đề thi và các bẫy thi chuẩn Khoa CNTT - UTC
 interface ExamMatrixItem {
   subjectCode: string
   subjectName: string
@@ -376,7 +379,7 @@ export const ExamBank: React.FC = () => {
   const [subjects, setSubjects] = useState<{ id: number; name: string; code: string }[]>([])
   const [loading, setLoading] = useState(false)
 
-  // Filters
+  // LUỒNG 5: Trạng thái các bộ lọc đề thi (Từ khóa, Môn học, Độ khó, Học kỳ, Lời giải)
   const [search, setSearch] = useState('')
   const [selectedSubject, setSelectedSubject] = useState<string>('')
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('')
@@ -386,7 +389,7 @@ export const ExamBank: React.FC = () => {
   const [onlyWithTips, setOnlyWithTips] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'ledger'>('grid')
 
-  // Modals
+  // Trạng thái các hộp thoại (Ma trận thi, Bẫy thi, Xem PDF)
   const [matrixModalOpen, setMatrixModalOpen] = useState(false)
   const [trapsModalOpen, setTrapsModalOpen] = useState(false)
   const [selectedMatrixSubject, setSelectedMatrixSubject] = useState<ExamMatrixItem>(UTC_EXAM_MATRIX[0])
@@ -398,7 +401,7 @@ export const ExamBank: React.FC = () => {
 
   const searchInputRef = useRef<HTMLInputElement>(null)
 
-  // Quick keyboard shortcut: Ctrl+K / Cmd+K focuses search
+  // Phím tắt Ctrl + K để focus nhanh vào ô tìm kiếm đề thi
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -420,7 +423,7 @@ export const ExamBank: React.FC = () => {
       const subs = await catalogApi.getSubjects()
       setSubjects(subs)
     } catch {
-      // Fallback subjects if offline
+      // Danh mục môn học dự phòng khi ngoại tuyến
       setSubjects([
         { id: 16, code: 'IT102', name: 'Kỹ thuật lập trình (C/C++)' },
         { id: 17, code: 'IT205', name: 'Lập trình hướng đối tượng (OOP) (Java / C++)' },
@@ -453,11 +456,23 @@ export const ExamBank: React.FC = () => {
           d.title.toLowerCase().includes('ôn tập')
       )
 
-      // Merge backend exams with curated UTC FIT exam database
+      // Kết hợp đề thi từ Backend với ngân hàng đề thi chuẩn UTC FIT
       // If backend has items, combine them, avoiding duplicate IDs
-      const backendIds = new Set(backendExams.map(b => b.id))
+      // Chuẩn hóa thông tin file từ Backend Document
+      const mappedBackendExams = backendExams.map((doc: any) => {
+        const primary = doc.files?.find((f: any) => f.isPrimary) || doc.files?.[0]
+        return {
+          ...doc,
+          primaryFileId: doc.primaryFileId || primary?.id || doc.fileId,
+          primaryFileName: doc.primaryFileName || primary?.fileName,
+          primaryFileMimeType: doc.primaryFileMimeType || primary?.mimeType,
+          fileUrl: doc.fileUrl || primary?.externalUrl,
+        }
+      })
+
+      const backendIds = new Set(mappedBackendExams.map(b => b.id))
       const combined = [
-        ...backendExams,
+        ...mappedBackendExams,
         ...(CURATED_UTC_EXAMS.filter(c => !backendIds.has(c.id as number)) as DocumentSummary[])
       ]
       setExams(combined)
@@ -481,7 +496,7 @@ export const ExamBank: React.FC = () => {
 
   const filteredExams = useMemo(() => {
     return exams.filter((exam) => {
-      // Keyword search
+      // 1. Tìm kiếm theo từ khóa
       if (search) {
         const q = search.toLowerCase()
         const matchTitle = exam.title.toLowerCase().includes(q)
@@ -491,22 +506,22 @@ export const ExamBank: React.FC = () => {
         if (!matchTitle && !matchSubject && !matchAdvisor && !matchTips) return false
       }
 
-      // Subject filter
+      // 2. Lọc theo Môn học
       if (selectedSubject && exam.subjectId !== parseInt(selectedSubject, 10)) {
         return false
       }
 
-      // Difficulty filter
+      // 3. Lọc theo Độ khó (Dễ / Trung bình / Khó)
       if (selectedDifficulty && exam.examDifficulty !== selectedDifficulty) {
         return false
       }
 
-      // Semester filter
+      // 4. Lọc theo Học kỳ
       if (selectedSemester && (!exam.examSemester || !exam.examSemester.includes(selectedSemester))) {
         return false
       }
 
-      // Exam Type filter (Final / Midterm / Practice)
+      // 5. Lọc theo Kỳ thi (Cuối kỳ, Giữa kỳ, Thực hành)
       if (selectedExamType !== 'ALL') {
         const titleLower = exam.title.toLowerCase()
         if (selectedExamType === 'FINAL' && !titleLower.includes('cuối kỳ') && !titleLower.includes('kthp')) return false
@@ -514,12 +529,12 @@ export const ExamBank: React.FC = () => {
         if (selectedExamType === 'LAB' && !titleLower.includes('thực hành') && !titleLower.includes('lab') && !titleLower.includes('phòng máy')) return false
       }
 
-      // Solution filter
+      // 6. Lọc chỉ lấy đề thi có bài giải chi tiết
       if (onlyWithSolution && !exam.hasSolution) {
         return false
       }
 
-      // Tips filter
+      // 7. Lọc đề thi có kèm mẹo làm bài
       if (onlyWithTips && !exam.examTips) {
         return false
       }
@@ -528,7 +543,7 @@ export const ExamBank: React.FC = () => {
     })
   }, [exams, search, selectedSubject, selectedDifficulty, selectedSemester, selectedExamType, onlyWithSolution, onlyWithTips])
 
-  // Statistics
+  // Thống kê tổng số đề thi và tỷ lệ có đáp án
   const stats = useMemo(() => {
     const total = exams.length
     const withSolution = exams.filter(e => e.hasSolution).length
@@ -538,15 +553,56 @@ export const ExamBank: React.FC = () => {
     return { total, withSolution, withTips, hardCount, solutionPercent }
   }, [exams])
 
-  const handleOpenPdf = (exam: DocumentSummary) => {
+  const handleOpenPdf = async (exam: DocumentSummary) => {
+    let fileId = exam.primaryFileId || exam.fileId || (exam as any).files?.find((f: any) => f.isPrimary)?.id || (exam as any).files?.[0]?.id
+    let fileUrl = exam.fileUrl || (exam.primaryFileName ? `/documents/${exam.primaryFileName}` : undefined)
+    if (!fileId && exam.id && !CURATED_UTC_EXAMS.some(c => c.id === exam.id)) {
+      try {
+        const detailRes: any = await documentApi.getById(exam.id)
+        const primary = detailRes?.files?.find((f: any) => f.isPrimary) || detailRes?.files?.[0]
+        if (primary?.id) fileId = primary.id
+        if (primary?.externalUrl) fileUrl = primary.externalUrl
+      } catch {
+        // Fallback
+      }
+    }
     setViewerModal({
       isOpen: true,
-      doc: exam
+      doc: {
+        ...exam,
+        primaryFileId: fileId,
+        fileId: fileId,
+        fileUrl: fileUrl
+      }
     })
   }
 
-  const handleDownload = (exam: DocumentSummary) => {
+  const handleDownload = async (exam: DocumentSummary) => {
     toast.info(`Bắt đầu tải về: ${exam.title}`)
+    try {
+      let fileId = exam.primaryFileId || exam.fileId || (exam as any).files?.find((f: any) => f.isPrimary)?.id || (exam as any).files?.[0]?.id
+      if (!fileId && exam.id && !CURATED_UTC_EXAMS.some(c => c.id === exam.id)) {
+        const detailRes: any = await documentApi.getById(exam.id)
+        const primary = detailRes?.files?.find((f: any) => f.isPrimary) || detailRes?.files?.[0]
+        if (primary?.id) fileId = primary.id
+      }
+      if (fileId) {
+        const { url } = await getDownloadUrl(fileId)
+        if (url) {
+          const a = document.createElement('a')
+          a.href = url
+          a.download = exam.primaryFileName || `${exam.title.replace(/[^a-zA-Z0-9\-_]/g, '_')}.pdf`
+          a.target = '_blank'
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          return
+        }
+      }
+    } catch {
+      // Fallback
+    }
+
     // Open sample or primary file
     const fileUrl = exam.primaryFileName ? `/documents/${exam.primaryFileName}` : '/sample.pdf'
     const link = document.createElement('a')
@@ -568,7 +624,7 @@ export const ExamBank: React.FC = () => {
       <main className="w-full pt-20 pb-20 flex-grow bg-paper-grid">
         <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
           
-          {/* Breadcrumb & Accession Code */}
+          {/* Thanh điều hướng Breadcrumb và mã đề thi */}
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs mb-6 pt-2">
             <div className="flex items-center gap-2 text-stone-500 dark:text-stone-400">
               <Link to="/" className="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Trang chủ</Link>
@@ -584,7 +640,7 @@ export const ExamBank: React.FC = () => {
             </div>
           </div>
 
-          {/* Header: Title, Academic Meta & Actions */}
+          {/* Tiêu đề trang, thông tin học thuật và các nút mở Ma trận / Bẫy thi */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-5 border-b border-stone-300 dark:border-stone-800 mb-6">
             <div>
               <div className="flex items-center gap-2 mb-1.5">
@@ -630,7 +686,7 @@ export const ExamBank: React.FC = () => {
             </div>
           </div>
 
-          {/* Quick Stats Strip */}
+          {/* Dải thông số thống kê nhanh */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             <div className="p-3.5 rounded-xl bg-white dark:bg-stone-900 border-2 border-stone-200/90 dark:border-stone-800/90 shadow-2xs">
               <div className="font-mono text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-100">{stats.total}</div>
@@ -650,9 +706,9 @@ export const ExamBank: React.FC = () => {
             </div>
           </div>
 
-          {/* Main Search & Filter Command Station */}
+          {/* LUỒNG 5: Trạm điều khiển tìm kiếm và lọc đề thi */}
           <div className="bg-white dark:bg-stone-900 rounded-2xl border-2 border-stone-300 dark:border-stone-800 p-5 sm:p-6 shadow-xs space-y-4 mb-6">
-            {/* Row 1: Search Omnibar */}
+            {/* Hàng 1: Thanh tìm kiếm toàn diện */}
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-amber-600 dark:text-amber-400">
                 <Search className="w-4 h-4" />
@@ -679,7 +735,7 @@ export const ExamBank: React.FC = () => {
               </kbd>
             </div>
 
-            {/* Quick Filter Subject Pills */}
+            {/* Các nhãn chọn nhanh môn học */}
             <div className="flex flex-wrap items-center gap-1.5 pt-1">
               <span className="text-[11px] font-mono font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mr-1">
                 Bộ môn:
@@ -711,7 +767,7 @@ export const ExamBank: React.FC = () => {
               })}
             </div>
 
-            {/* Row 2: Select Filters */}
+            {/* Hàng 2: Các hộp chọn lọc (Môn học, Độ khó, Học kỳ) */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-stone-200 dark:border-stone-800">
               <div>
                 <label className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-400 uppercase tracking-wider mb-1">
@@ -767,7 +823,7 @@ export const ExamBank: React.FC = () => {
               </div>
             </div>
 
-            {/* Row 3: Secondary Toggles, View Mode & Reset */}
+            {/* Hàng 3: Hộp kiểm lọc có đáp án, đổi chế độ hiển thị và đặt lại bộ lọc */}
             <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-stone-200 dark:border-stone-800">
               <div className="flex flex-wrap items-center gap-4 text-xs">
                 <div className="flex items-center gap-1.5">
@@ -845,7 +901,7 @@ export const ExamBank: React.FC = () => {
             </div>
           </div>
 
-          {/* Results Summary Bar */}
+          {/* Thanh tổng kết số lượng đề thi tìm thấy */}
           <div className="flex items-center justify-between mb-4 px-1 text-xs text-stone-500 dark:text-stone-400 font-mono">
             <div>
               Hiển thị <span className="font-bold text-stone-900 dark:text-stone-100">{filteredExams.length}</span> / {exams.length} đề thi học phần
@@ -856,7 +912,7 @@ export const ExamBank: React.FC = () => {
             </div>
           </div>
 
-          {/* Main Results View */}
+          {/* LUỒNG 5: Khu vực hiển thị danh sách đề thi */}
           {loading ? (
             <div className="py-24 text-center text-stone-400 text-xs">
               <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
@@ -877,7 +933,7 @@ export const ExamBank: React.FC = () => {
               </button>
             </div>
           ) : viewMode === 'grid' ? (
-            /* ─── Grid View (Tactile Exam Notebook Cards) ───────────────── */
+            /* ─── Hiển thị dạng lưới thẻ đề thi (Grid View) ─────────────── */
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {filteredExams.map((exam) => (
                 <div
@@ -885,7 +941,7 @@ export const ExamBank: React.FC = () => {
                   className="flex flex-col justify-between bg-[#fffdfa] dark:bg-[#12161f] border border-stone-200/90 dark:border-stone-800/90 hover:border-amber-500/80 dark:hover:border-amber-500/80 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all duration-200 relative group"
                 >
                   <div>
-                    {/* Top accession bar */}
+                    {/* Thanh mã số đề thi phía trên thẻ */}
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-stone-100 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 font-semibold border border-stone-200 dark:border-stone-700">
@@ -893,7 +949,7 @@ export const ExamBank: React.FC = () => {
                         </span>
                       </div>
                       
-                      {/* Difficulty and Solution Badges */}
+                      {/* Nhãn độ khó và huy hiệu có đáp án */}
                       <div className="flex items-center gap-1.5 shrink-0">
                         {exam.hasSolution ? (
                           <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
@@ -924,7 +980,7 @@ export const ExamBank: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Title */}
+                    {/* Tiêu đề đề thi */}
                     <Link
                       to={`/documents/${exam.id}`}
                       className="font-bold font-serif-academic text-stone-900 dark:text-stone-50 hover:text-amber-600 dark:hover:text-amber-400 text-sm sm:text-base leading-snug line-clamp-2 transition-colors mb-2 block"
@@ -932,7 +988,7 @@ export const ExamBank: React.FC = () => {
                       {exam.title}
                     </Link>
 
-                    {/* Meta Info */}
+                    {/* Môn học, Niên khóa và Học kỳ thi */}
                     <div className="flex flex-wrap items-center gap-y-1 gap-x-3 text-[11px] text-stone-500 dark:text-stone-400 mb-3 font-mono">
                       {exam.examSemester && (
                         <span className="flex items-center gap-1">
@@ -948,14 +1004,14 @@ export const ExamBank: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Abstract text preview */}
+                    {/* Xem trước tóm tắt nội dung đề thi */}
                     {exam.abstractText && (
                       <p className="text-xs text-stone-600 dark:text-stone-400 line-clamp-2 mb-3.5 font-sans leading-relaxed">
                         {exam.abstractText}
                       </p>
                     )}
 
-                    {/* Senior & Teacher Tips Callout */}
+                    {/* Hộp lưu ý / Mẹo làm bài từ thầy cô và anh chị khóa trước */}
                     {exam.examTips && (
                       <div className="bg-amber-50/90 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/40 rounded-xl p-3 text-xs text-amber-900 dark:text-amber-200 mb-4 shadow-xs">
                         <div className="flex items-start gap-2">
@@ -969,7 +1025,7 @@ export const ExamBank: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Card Bottom Actions */}
+                  {/* Các nút thao tác ở chân thẻ đề thi */}
                   <div className="pt-3 border-t border-stone-100 dark:border-stone-800/80 flex items-center justify-between text-xs mt-2">
                     <div className="flex items-center gap-2 text-stone-400 text-[11px] font-mono">
                       <span>{exam.viewCount || 0} xem</span>
@@ -978,7 +1034,7 @@ export const ExamBank: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                      {/* Quick Preview Button */}
+                      {/* Nút xem nhanh đề thi PDF */}
                       <button
                         onClick={() => handleOpenPdf(exam)}
                         className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-semibold transition-colors cursor-pointer"
@@ -988,7 +1044,7 @@ export const ExamBank: React.FC = () => {
                         <span>Xem nhanh</span>
                       </button>
 
-                      {/* Download Button */}
+                      {/* Nút tải đề thi về máy */}
                       <button
                         onClick={() => handleDownload(exam)}
                         className="p-1.5 rounded-lg border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-600 dark:text-stone-300 transition-colors cursor-pointer"
@@ -1011,7 +1067,7 @@ export const ExamBank: React.FC = () => {
               ))}
             </div>
           ) : (
-            /* ─── Ledger / Table View (Sổ lưu trữ đề thi) ───────────────── */
+            /* ─── Hiển thị dạng bảng danh sách (Ledger View) ────────────── */
             <div className="bg-[#fffdfa] dark:bg-[#12161f] border border-stone-200/90 dark:border-stone-800 rounded-2xl overflow-hidden shadow-xs">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
@@ -1131,7 +1187,7 @@ export const ExamBank: React.FC = () => {
         </div>
       </main>
 
-      {/* ─── Interactive Modal: Exam Matrix UTC FIT ────────────────────────── */}
+      {/* ─── Hộp thoại tương tác: Ma trận cấu trúc đề thi UTC FIT ────── */}
       {matrixModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="bg-[#fffdfa] dark:bg-[#12161f] border border-stone-200 dark:border-stone-800 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
@@ -1249,7 +1305,7 @@ export const ExamBank: React.FC = () => {
         </div>
       )}
 
-      {/* ─── Interactive Modal: Exam Traps & Tips (Bẫy đề thi) ───────────── */}
+      {/* ─── Hộp thoại tương tác: Các bẫy đề thi thường gặp & Mẹo ôn tập ─── */}
       {trapsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="bg-[#fffdfa] dark:bg-[#12161f] border border-stone-200 dark:border-stone-800 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
@@ -1337,7 +1393,8 @@ export const ExamBank: React.FC = () => {
         isOpen={viewerModal.isOpen}
         onClose={() => setViewerModal({ isOpen: false, doc: null })}
         title={viewerModal.doc?.title || 'Đề thi học phần PDF'}
-        fileUrl={viewerModal.doc?.primaryFileName ? `/documents/${viewerModal.doc.primaryFileName}` : '/sample.pdf'}
+        fileId={viewerModal.doc?.primaryFileId || viewerModal.doc?.fileId}
+        fileUrl={viewerModal.doc?.fileUrl || (viewerModal.doc?.primaryFileName ? `/documents/${viewerModal.doc.primaryFileName}` : '/sample.pdf')}
         fileName={viewerModal.doc?.primaryFileName || 'de_thi_hoc_phan.pdf'}
       />
 

@@ -1,3 +1,5 @@
+// === LUỒNG 5: NGÂN HÀNG ĐỀ THI & BIỂU MẪU HỌC THUẬT (TemplateCenter Flow) ===
+// Cung cấp các biểu mẫu chuẩn UTC: Mẫu Word BTL/Đồ án, Khóa luận LaTeX Overleaf, Slide PPTX 16:9, Quy chuẩn căn lề
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -33,7 +35,7 @@ import PdfViewerModal from '../components/PdfViewerModal'
 import CustomCheckbox from '../components/ui/CustomCheckbox'
 import { useToast } from '../contexts/ToastContext'
 
-// ─── Template Category Types ──────────────────────────────────────────────────
+// LUỒNG 5: Các phân loại danh mục biểu mẫu chuẩn UTC
 type CategoryType = 'ALL' | 'WORD' | 'LATEX' | 'PPTX' | 'FORM' | 'GUIDE'
 
 interface AcademicTemplate {
@@ -205,7 +207,7 @@ export const TemplateCenter: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>('ALL')
   const [searchQuery, setSearchQuery] = useState('')
   
-  // Modals & Tools
+  // Trạng thái các hộp thoại và công cụ phụ trợ
   const [viewerModal, setViewerModal] = useState<{ isOpen: boolean; title: string; fileUrl: string }>({
     isOpen: false,
     title: '',
@@ -214,7 +216,7 @@ export const TemplateCenter: React.FC = () => {
   const [rubricModalOpen, setRubricModalOpen] = useState(false)
   const [checklistModalOpen, setChecklistModalOpen] = useState(false)
 
-  // Interactive Checklist State (10 items)
+  // Trạng thái bảng kiểm tra 10 tiêu chí quy chuẩn nộp báo cáo
   const [checkedItems, setCheckedItems] = useState<{ [key: number]: boolean }>({
     1: true,
     2: true,
@@ -228,7 +230,7 @@ export const TemplateCenter: React.FC = () => {
     10: false
   })
 
-  // Citation Generator Tool State
+  // Trạng thái công cụ tạo trích dẫn học thuật tự động
   const [citationType, setCitationType] = useState<'paper' | 'book' | 'web'>('paper')
   const [citeAuthors, setCiteAuthors] = useState('Trần Văn Hùng, Đào Thị Lệ Thủy')
   const [citeTitle, setCiteTitle] = useState('Nghiên cứu ứng dụng K3s và MQTT trong Điện toán Biên IoT Công nghiệp')
@@ -264,7 +266,7 @@ export const TemplateCenter: React.FC = () => {
   const checklistScore = Object.values(checkedItems).filter(Boolean).length
   const checklistPercent = Math.round((checklistScore / 10) * 100)
 
-  // Generated Citations
+  // Kết quả trích dẫn được sinh ra
   const ieeeCitation = `[1] ${citeAuthors}, "${citeTitle}," ${citeVenue}, ${citeYear}.`
   const apaCitation = `${citeAuthors} (${citeYear}). ${citeTitle}. ${citeVenue}.`
   const bibtexCitation = `@article{utc_fit_${citeYear},
@@ -281,7 +283,7 @@ export const TemplateCenter: React.FC = () => {
     setTimeout(() => setCopiedFormat(null), 2500)
   }
 
-  // Filter templates
+  // Thuật toán lọc danh sách biểu mẫu theo danh mục và từ khóa
   const filteredTemplates = TEMPLATES.filter((tpl) => {
     if (selectedCategory !== 'ALL' && tpl.category !== selectedCategory) {
       return false
@@ -303,7 +305,7 @@ export const TemplateCenter: React.FC = () => {
       <main className="w-full pt-20 pb-20 flex-grow bg-paper-grid">
         <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
           
-          {/* Breadcrumb */}
+          {/* Thanh điều hướng Breadcrumb */}
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs mb-6 pt-2">
             <div className="flex items-center gap-2 text-stone-500 dark:text-stone-400">
               <Link to="/" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Trang chủ</Link>
@@ -317,7 +319,7 @@ export const TemplateCenter: React.FC = () => {
             </span>
           </div>
 
-          {/* Header: Title, Academic Meta & Actions */}
+          {/* Tiêu đề trang, thông số học thuật và các nút công cụ */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-5 border-b border-stone-300 dark:border-stone-800 mb-6">
             <div>
               <div className="flex items-center gap-2 mb-1.5">
@@ -363,7 +365,7 @@ export const TemplateCenter: React.FC = () => {
             </div>
           </div>
 
-          {/* Quick Stats Strip */}
+          {/* Dải thông số thống kê số lượng biểu mẫu */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             <div className="p-3.5 rounded-xl bg-white dark:bg-stone-900 border-2 border-stone-200/90 dark:border-stone-800/90 shadow-2xs">
               <div className="font-mono text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-100">8+</div>
@@ -383,10 +385,10 @@ export const TemplateCenter: React.FC = () => {
             </div>
           </div>
 
-          {/* Main Category & Search Command Station */}
+          {/* LUỒNG 5: Trạm điều khiển danh mục và tìm kiếm biểu mẫu */}
           <div className="bg-white dark:bg-stone-900 rounded-2xl border-2 border-stone-300 dark:border-stone-800 p-5 sm:p-6 shadow-xs space-y-4 mb-6">
             <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-              {/* Category Pills */}
+              {/* Các nhãn chọn danh mục (Tất cả, Word, LaTeX, Slide, Biểu mẫu) */}
               <div className="flex flex-wrap items-center gap-1.5">
                 {[
                   { key: 'ALL' as CategoryType, label: 'Tất cả biểu mẫu' },
@@ -411,7 +413,7 @@ export const TemplateCenter: React.FC = () => {
                 ))}
               </div>
 
-              {/* Search input */}
+              {/* Ô tìm kiếm biểu mẫu */}
               <div className="relative min-w-[280px]">
                 <Filter className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
                 <input
@@ -425,7 +427,7 @@ export const TemplateCenter: React.FC = () => {
             </div>
           </div>
 
-          {/* Grid of Templates */}
+          {/* LUỒNG 5: Lưới danh sách các biểu mẫu chuẩn */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
             {filteredTemplates.map((tpl) => (
               <div
@@ -433,7 +435,7 @@ export const TemplateCenter: React.FC = () => {
                 className="flex flex-col justify-between bg-[#fffdfa] dark:bg-[#12161f] border border-stone-200/90 dark:border-stone-800/90 hover:border-emerald-500/80 dark:hover:border-emerald-500/80 rounded-2xl p-6 shadow-xs hover:shadow-md transition-all duration-200 group"
               >
                 <div>
-                  {/* Category badge & Hot tag */}
+                  {/* Nhãn định dạng tệp tin và huy hiệu Nổi bật */}
                   <div className="flex items-center justify-between mb-3.5">
                     <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-md font-bold border ${tpl.badgeClass}`}>
                       {tpl.categoryLabel}
@@ -455,7 +457,7 @@ export const TemplateCenter: React.FC = () => {
                     {tpl.desc}
                   </p>
 
-                  {/* Feature Checklist */}
+                  {/* Danh sách các đặc điểm quy chuẩn của mẫu */}
                   <div className="space-y-2 mb-6 p-3 rounded-xl bg-stone-50 dark:bg-stone-900/40 border border-stone-200/60 dark:border-stone-800/60">
                     <span className="text-[10px] font-mono font-bold text-stone-400 uppercase tracking-wider block mb-1">
                       Đặc điểm quy chuẩn:
@@ -474,7 +476,7 @@ export const TemplateCenter: React.FC = () => {
                   <span className="text-[11px] text-stone-400 font-mono">{tpl.fileSize} • {tpl.format}</span>
                   
                   <div className="flex items-center gap-1.5">
-                    {/* Preview PDF */}
+                    {/* Xem trước bản mẫu dạng PDF */}
                     <button
                       onClick={() => handlePreviewPdf(tpl)}
                       className="p-2 rounded-xl border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-600 dark:text-stone-300 transition-colors cursor-pointer"
@@ -483,7 +485,7 @@ export const TemplateCenter: React.FC = () => {
                       <Eye className="w-3.5 h-3.5" />
                     </button>
 
-                    {/* Overleaf Link if available */}
+                    {/* Nút mở trực tiếp mẫu trên Overleaf */}
                     {tpl.overleafUrl && (
                       <a
                         href={tpl.overleafUrl}
@@ -497,7 +499,7 @@ export const TemplateCenter: React.FC = () => {
                       </a>
                     )}
 
-                    {/* Direct Download Button */}
+                    {/* Nút tải tệp tin mẫu về máy */}
                     <button
                       onClick={() => handleDownload(tpl)}
                       className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
@@ -511,7 +513,7 @@ export const TemplateCenter: React.FC = () => {
             ))}
           </div>
 
-          {/* ─── Interactive Academic Citation Generator ──────────────────── */}
+          {/* ─── Công cụ tạo trích dẫn học thuật tương tác (IEEE, APA, BibTeX) ─── */}
           <div className="bg-[#fffdfa] dark:bg-[#12161f] border border-stone-200/90 dark:border-stone-800 rounded-2xl p-6 sm:p-8 mb-12 shadow-xs">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6 pb-4 border-b border-stone-100 dark:border-stone-800">
               <div>
@@ -700,7 +702,7 @@ export const TemplateCenter: React.FC = () => {
         </div>
       </main>
 
-      {/* ─── Modal: Format Rubric Inspector (Quy Chuẩn Căn Lề) ──────────── */}
+      {/* ─── Hộp thoại: Bảng quy chuẩn căn lề & định dạng văn bản UTC ───────── */}
       {rubricModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="bg-[#fffdfa] dark:bg-[#12161f] border border-stone-200 dark:border-stone-800 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
@@ -808,7 +810,7 @@ export const TemplateCenter: React.FC = () => {
         </div>
       )}
 
-      {/* ─── Modal: Interactive 10-Point Submission Checklist ───────────── */}
+      {/* ─── Hộp thoại: Bảng kiểm tra 10 điểm trước khi nộp đồ án / khóa luận ── */}
       {checklistModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="bg-[#fffdfa] dark:bg-[#12161f] border border-stone-200 dark:border-stone-800 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">

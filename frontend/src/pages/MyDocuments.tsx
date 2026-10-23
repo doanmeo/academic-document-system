@@ -1,3 +1,5 @@
+// === LUỒNG 6: KHÔNG GIAN CÁ NHÂN SINH VIÊN (MyDocuments Page) ===
+// Quản lý các học liệu sinh viên đã đăng tải, theo dõi trạng thái kiểm duyệt (Nháp, Chờ duyệt, Đã duyệt)
 ﻿import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getMyDocuments, deleteDocument, submitDocument } from '../api/documentApi';
@@ -51,7 +53,7 @@ export default function MyDocuments() {
     fetchDocuments();
   }, [page, status, keyword]);
 
-  // Load User Contribution Stats (F5)
+  // LUỒNG 6: Nạp chỉ số đóng góp học thuật của sinh viên
   useEffect(() => {
     userApi
       .getMyStats()
@@ -110,11 +112,11 @@ export default function MyDocuments() {
 
       <main className="w-full pt-20 pb-16 flex-grow bg-paper-grid">
         <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 space-y-6">
-          {/* Main Grid: 4 Cols Profile Card + 8 Cols Documents Management */}
+          {/* Bố cục chính: Cột trái (4 cột) Thẻ sinh viên & Cột phải (8 cột) Quản lý tài liệu */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* LEFT COLUMN: USER PROFILE CARD (4 Cols) */}
+            {/* CỘT TRÁI: THẺ HỒ SƠ SINH VIÊN */}
             <div className="lg:col-span-4 bg-[#fffdfa] dark:bg-[#12161f] rounded-2xl shadow-xs border-2 border-stone-300 dark:border-stone-800 p-6 space-y-6">
-              {/* Profile Identity */}
+              {/* Thông tin định danh: Họ tên, Mã sinh viên, Chuyên ngành */}
               <div className="flex flex-col items-center text-center">
                 <div className="w-20 h-20 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-2xl shadow-sm mb-3">
                   {user?.fullName?.charAt(0) || 'U'}
@@ -141,7 +143,7 @@ export default function MyDocuments() {
                 </p>
               </div>
 
-              {/* Contribution Telemetry (F5: Real User Contribution Stats) */}
+              {/* Thống kê đóng góp: Số bài đăng, Tổng lượt xem, Lượt tải */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-label-code text-caption uppercase tracking-wider font-bold text-on-surface">
@@ -221,7 +223,7 @@ export default function MyDocuments() {
 
               </div>
 
-            {/* RIGHT COLUMN: DOCUMENTS MANAGEMENT (8 Cols) */}
+            {/* LUỒNG 6: CỘT PHẢI: QUẢN LÝ TÀI LIỆU ĐÃ ĐĂNG */}
             <div className="lg:col-span-8 space-y-4">
               {/* Top Action Ribbon */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#fffdfa] dark:bg-[#12161f] p-5 rounded-2xl shadow-xs border-2 border-stone-300 dark:border-stone-800">
@@ -243,7 +245,7 @@ export default function MyDocuments() {
                 </Link>
               </div>
 
-              {/* Filter Tabs & Search */}
+              {/* Các tab lọc trạng thái (Tất cả, Đã duyệt, Chờ duyệt, Bản nháp) */}
               <div className="bg-[#fffdfa] dark:bg-[#12161f] p-4 rounded-2xl shadow-xs border-2 border-stone-300 dark:border-stone-800 space-y-3">
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
                   {tabs.map((tab) => {
@@ -284,7 +286,7 @@ export default function MyDocuments() {
                 </div>
               </div>
 
-              {/* Documents List */}
+              {/* Danh sách học liệu của sinh viên */}
               {loading ? (
                 <div className="flex justify-center py-16">
                   <Spinner />
@@ -356,7 +358,7 @@ export default function MyDocuments() {
                           </div>
                         </div>
 
-                        {/* Action buttons */}
+                        {/* Các nút thao tác: Xem, Chỉnh sửa, Tải về */}
                         <div className="flex items-center gap-2 self-end md:self-center shrink-0">
                           {doc.status === 'REVISION_REQUIRED' && (
                             <Link

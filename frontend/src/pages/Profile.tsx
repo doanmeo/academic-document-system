@@ -1,3 +1,5 @@
+// === LUỒNG 6: KHÔNG GIAN CÁ NHÂN SINH VIÊN (Profile Page) ===
+// Hồ sơ học thuật sinh viên UTC: Cập nhật thông tin cá nhân, đổi mật khẩu, cài đặt thông báo
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
@@ -16,13 +18,13 @@ export default function Profile() {
   const [bio, setBio] = useState('Sinh viên ngành Công nghệ phần mềm & Hệ thống thông tin. Quan tâm nghiên cứu kiến trúc phân tán, Microservices và Cloud Native.')
   const [saveSuccess, setSaveSuccess] = useState(false)
 
-  // Password state
+  // Trạng thái đổi mật khẩu
   const [oldPassword, setOldPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [pwdMsg, setPwdMsg] = useState('')
 
-  // Notifications
+  // Trạng thái cài đặt thông báo
   const [notifyApproval, setNotifyApproval] = useState(true)
   const [notifyComment, setNotifyComment] = useState(true)
   const [notifyWeekly, setNotifyWeekly] = useState(false)
@@ -56,7 +58,7 @@ export default function Profile() {
 
       <main className="w-full pt-20 pb-16 flex-grow bg-paper-grid">
         <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 space-y-6">
-          {/* Header Block with Swiss Academic Tagging */}
+          {/* Tiêu đề trang hồ sơ học thuật cá nhân */}
           <div className="bg-surface-container-low p-6 lg:p-8 rounded-xl border border-surface-container shadow-xs">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div>
@@ -245,7 +247,7 @@ export default function Profile() {
                 </button>
               </div>
 
-              {/* TAB 1: THÔNG TIN CÁ NHÂN */}
+              {/* TAB 1: CẬP NHẬT THÔNG TIN HỌC THUẬT */}
               {activeTab === 'info' && (
                 <div className="bg-surface-container-lowest p-6 lg:p-8 rounded-xl border border-surface-container shadow-xs space-y-6">
                   <div className="flex items-center justify-between pb-4 border-b border-surface-container">
@@ -348,7 +350,7 @@ export default function Profile() {
                 </div>
               )}
 
-              {/* TAB 2: ĐỔI MẬT KHẨU */}
+              {/* TAB 2: ĐỔI MẬT KHẨU XÁC THỰC */}
               {activeTab === 'password' && (
                 <div className="bg-surface-container-lowest p-6 lg:p-8 rounded-xl border border-surface-container shadow-xs space-y-5">
                   <div className="flex items-center justify-between pb-4 border-b border-surface-container">
@@ -413,7 +415,7 @@ export default function Profile() {
                 </div>
               )}
 
-              {/* TAB 3: CÀI ĐẶT THÔNG BÁO */}
+              {/* TAB 3: CÀI ĐẶT THÔNG BÁO HỆ THỐNG */}
               {activeTab === 'notifications' && (
                 <div className="bg-surface-container-lowest p-6 lg:p-8 rounded-xl border border-surface-container shadow-xs space-y-5">
                   <div className="flex items-center justify-between pb-4 border-b border-surface-container">

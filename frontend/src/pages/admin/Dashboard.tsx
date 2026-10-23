@@ -1,3 +1,5 @@
+// === LUỒNG 7: PHÂN HỆ QUẢN TRỊ ADMIN (Dashboard Analytics) ===
+// Bảng điều khiển thống kê tổng quan: Số lượng học liệu, bài chờ duyệt, người dùng, báo cáo vi phạm
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getDashboard } from '../../api/adminApi'
@@ -72,7 +74,7 @@ function getDocTypeLabel(codeOrLabel?: string | null): string {
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
+      {/* Tiêu đề Bảng điều khiển Quản trị */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-surface-container">
         <div>
           <div className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400 font-label-code text-caption font-bold tracking-widest uppercase mb-1">
@@ -100,9 +102,9 @@ function getDocTypeLabel(codeOrLabel?: string | null): string {
         </div>
       </div>
 
-      {/* 4 Metric Stats Grid */}
+      {/* LUỒNG 7: Lưới 4 chỉ số thống kê trung tâm */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Documents */}
+        {/* 1. Tổng số tài liệu trong hệ thống */}
         <Link
           to="/admin/documents"
           className="bg-surface-container-lowest rounded-2xl p-5 shadow-xs border border-surface-container hover:border-primary/40 hover:shadow-sm transition-all group"
@@ -126,7 +128,7 @@ function getDocTypeLabel(codeOrLabel?: string | null): string {
           </p>
         </Link>
 
-        {/* Pending Documents */}
+        {/* 2. Số tài liệu đang chờ kiểm duyệt */}
         <Link
           to="/admin/pending"
           className={`bg-surface-container-lowest rounded-2xl p-5 shadow-xs border transition-all group ${
@@ -154,7 +156,7 @@ function getDocTypeLabel(codeOrLabel?: string | null): string {
           </p>
         </Link>
 
-        {/* Total Users */}
+        {/* 3. Tổng số tài khoản sinh viên / giảng viên */}
         <Link
           to="/admin/users"
           className="bg-surface-container-lowest rounded-2xl p-5 shadow-xs border border-surface-container hover:border-secondary/40 hover:shadow-sm transition-all group"
@@ -178,7 +180,7 @@ function getDocTypeLabel(codeOrLabel?: string | null): string {
           </p>
         </Link>
 
-        {/* Reports */}
+        {/* 4. Số báo cáo vi phạm cần xử lý */}
         <Link
           to="/admin/reports"
           className={`bg-surface-container-lowest rounded-2xl p-5 shadow-xs border transition-all group ${
@@ -207,7 +209,7 @@ function getDocTypeLabel(codeOrLabel?: string | null): string {
         </Link>
       </div>
 
-      {/* Main Grid: Status Progress & Recent Documents */}
+      {/* Biểu đồ phân bổ trạng thái và Bảng tài liệu nộp gần đây */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Status Breakdown (5 cols) */}
         <div className="lg:col-span-5 bg-surface-container-lowest rounded-2xl p-6 shadow-xs border border-surface-container space-y-5">
@@ -360,7 +362,7 @@ function getDocTypeLabel(codeOrLabel?: string | null): string {
         </div>
       </div>
 
-      {/* ─── FACULTY-CENTRIC ACADEMIC ANALYTICS ─────────────────────────── */}
+      {/* ─── BÁO CÁO PHÂN TÍCH HỌC THUẬT KHOA CNTT ────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Academic Breakdown: Majors & Subjects (7 cols) */}
         <div className="lg:col-span-7 bg-surface-container-lowest rounded-2xl p-6 shadow-xs border border-surface-container space-y-6">

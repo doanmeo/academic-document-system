@@ -74,6 +74,10 @@ export const fetchSafePdfBlob = async (url: string): Promise<Blob> => {
     },
   })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const contentType = res.headers.get('content-type') || ''
+  if (contentType.includes('text/html')) {
+    throw new Error('Đường dẫn không phải tệp PDF hợp lệ (máy chủ trả về trang HTML do cơ chế rewrite)')
+  }
   const rawBlob = await res.blob()
   return new Blob([rawBlob], { type: 'application/pdf' })
 }

@@ -1,3 +1,5 @@
+// === LUỒNG 7: PHÂN HỆ QUẢN TRỊ ADMIN (Reports Moderation) ===
+// Xử lý báo cáo vi phạm bản quyền và nội dung không phù hợp
 import React, { useEffect, useState } from 'react'
 import { getAdminReports, handleReport } from '../../api/adminApi'
 import type { PageResponse } from '../../types/document'
@@ -120,7 +122,7 @@ export default function Reports() {
         </div>
       )}
 
-      {/* Header Banner */}
+      {/* Tiêu đề Trung tâm xử lý báo cáo vi phạm */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-surface-container">
         <div>
           <div className="flex items-center gap-1.5 text-secondary font-label-code text-caption font-bold tracking-widest uppercase mb-1">
@@ -186,7 +188,7 @@ export default function Reports() {
         </div>
       </div>
 
-      {/* Reports Table */}
+      {/* LUỒNG 7: Bảng danh sách các báo cáo vi phạm */}
       {loading ? (
         <div className="flex justify-center py-16">
           <Spinner />
@@ -279,7 +281,7 @@ export default function Reports() {
         </div>
       )}
 
-      {/* Report Resolution Modal */}
+      {/* Hộp thoại xử lý báo cáo (Ẩn tài liệu / Bác bỏ báo cáo) */}
       {selected && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-[#fffdfa] dark:bg-[#12161f] rounded-2xl max-w-2xl w-full p-6 shadow-2xl border-2 border-stone-300 dark:border-stone-800 space-y-4 max-h-[90vh] overflow-y-auto">

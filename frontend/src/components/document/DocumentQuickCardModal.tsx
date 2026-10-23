@@ -1,3 +1,5 @@
+// === LUỒNG 2 & 3: HỘP THOẠI XEM NHANH HỌC LIỆU (Document Quick View Modal) ===
+// Xem nhanh tóm tắt, tác giả, chỉ số tương tác và nút đọc PDF trực tiếp
 import React, { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {

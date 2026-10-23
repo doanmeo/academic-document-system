@@ -1,3 +1,5 @@
+// === LUỒNG 7: PHÂN HỆ QUẢN TRỊ ADMIN (Pending Approvals) ===
+// Hàng đợi thẩm định và phê duyệt tài liệu: Duyệt bài (APPROVE), Từ chối (REJECT), Yêu cầu sửa đổi (REVISION_REQUIRED)
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { 
@@ -128,7 +130,7 @@ export default function PendingList() {
         </div>
       )}
 
-      {/* Header Banner */}
+      {/* Tiêu đề Hàng đợi thẩm định học liệu */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-surface-container">
         <div>
           <div className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400 font-label-code text-caption font-bold tracking-widest uppercase mb-1">
@@ -229,7 +231,7 @@ export default function PendingList() {
       ) : (
         /* Master - Detail Workspace */
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left Column: Documents List (4 cols) */}
+          {/* LUỒNG 7: Cột trái: Danh sách các tài liệu đang chờ duyệt */}
           <div className="lg:col-span-4 bg-surface-container-lowest rounded-2xl border border-surface-container shadow-xs overflow-hidden flex flex-col">
             <div className="p-4 border-b border-surface-container bg-surface-container-low/60 flex items-center justify-between">
               <span className="font-headline-sm font-bold text-stone-900 dark:text-stone-100 text-body-sm">
@@ -295,7 +297,7 @@ export default function PendingList() {
             )}
           </div>
 
-          {/* Right Column: Document Details & Actions (8 cols) */}
+          {/* LUỒNG 7: Cột phải: Chi tiết hồ sơ và các nút quyết định thẩm định */}
           <div className="lg:col-span-8 bg-surface-container-lowest rounded-2xl border border-surface-container shadow-xs p-6 md:p-8">
             {!selectedId ? (
               <div className="flex flex-col items-center justify-center py-20 text-center space-y-3">
@@ -508,7 +510,7 @@ export default function PendingList() {
                   </div>
                 )}
 
-                {/* Action Buttons */}
+                {/* Các nút hành động: Phê duyệt, Yêu cầu sửa đổi, Từ chối */}
                 <div className="pt-6 border-t border-surface-container flex flex-wrap gap-3">
                   <button
                     onClick={() => setModal('approve')}

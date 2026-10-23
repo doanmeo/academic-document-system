@@ -1,3 +1,5 @@
+// === LUỒNG 6: KHÔNG GIAN CÁ NHÂN SINH VIÊN (Bookmarks Page) ===
+// Tủ học liệu cá nhân: Danh sách các tài liệu sinh viên đã bấm Bookmark lưu trữ
 ﻿import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getMyBookmarks, removeBookmark } from '../api/interactionApi';
@@ -92,7 +94,7 @@ export default function Bookmarks() {
 
       <main className="w-full pt-20 pb-16 flex-grow bg-paper-grid">
         <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 space-y-6">
-          {/* Header Ribbon */}
+          {/* Tiêu đề trang Tủ học liệu đã lưu */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-surface-container">
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5 text-secondary font-label-code text-caption font-bold tracking-widest uppercase mb-1">
@@ -120,7 +122,7 @@ export default function Bookmarks() {
             </div>
           </div>
 
-          {/* Search & Sort Filter Bar */}
+          {/* Thanh tìm kiếm và sắp xếp tài liệu đã lưu */}
           <div className="bg-surface-container-lowest rounded-xl shadow-xs border border-surface-container p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="relative flex-1 w-full">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">
@@ -151,7 +153,7 @@ export default function Bookmarks() {
             </div>
           </div>
 
-          {/* Main Content Grid */}
+          {/* LUỒNG 6: Lưới danh sách các tài liệu đã lưu */}
           {loading ? (
             <div className="flex justify-center py-16">
               <Spinner />
@@ -186,7 +188,7 @@ export default function Bookmarks() {
                       onClick={() => navigate(`/documents/${doc.id}`)}
                       className="doc-card flex flex-col bg-surface-container-lowest rounded-xl shadow-xs hover:shadow-md transition-all border border-surface-container overflow-hidden cursor-pointer group"
                     >
-                      {/* Card Top Bar */}
+                      {/* Thanh nhãn thể loại và nút bỏ lưu */}
                       <div className="p-3.5 flex items-center justify-between bg-surface-container-low border-b border-surface-container">
                         <div className="flex items-center gap-1.5">
                           <span className="bg-primary text-on-primary font-label-code text-[11px] px-2 py-0.5 rounded font-bold uppercase">

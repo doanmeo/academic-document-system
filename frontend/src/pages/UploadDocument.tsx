@@ -1,3 +1,5 @@
+// === LUỒNG 4: ĐĂNG TẢI HỌC LIỆU & QUÉT TRÙNG LẶP ĐỀ TÀI (Upload & Novelty Checker Flow) ===
+// Kéo thả tải file, tự động điền tiêu đề, AI sinh tóm tắt, đối soát trùng lặp đề tài thời gian thực
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/layout/Navbar'
@@ -18,13 +20,13 @@ export default function UploadDocument() {
   const toast = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Catalogs
+  // LUỒNG 4: Danh mục dữ liệu (Môn học, Chuyên ngành, Niên khóa, Công nghệ)
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [majors, setMajors] = useState<Major[]>([])
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([])
   const [technologies, setTechnologies] = useState<Technology[]>([])
 
-  // Form states
+  // LUỒNG 4: Trạng thái các trường dữ liệu của biểu mẫu đăng tải
   const [file, setFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [title, setTitle] = useState('')
@@ -39,15 +41,15 @@ export default function UploadDocument() {
   const [selectedTechIds, setSelectedTechIds] = useState<number[]>([])
   const [pledgeAccepted, setPledgeAccepted] = useState(false)
 
-  // AI Abstract generation state (F4)
+  // LUỒNG 4: Trạng thái gọi AI sinh tóm tắt học thuật tự động (Gemini / OpenRouter)
   const [generatingAiAbstract, setGeneratingAiAbstract] = useState(false)
 
-  // Academic similarity & check states
+  // LUỒNG 4: Trạng thái đối soát trùng lặp đề tài nghiên cứu
   const [similarDocs, setSimilarDocs] = useState<RelatedDocument[]>([])
   const [checkingSimilarity, setCheckingSimilarity] = useState(false)
   const [showTechAccordion, setShowTechAccordion] = useState(false)
 
-  // Status
+  // Trạng thái tiến trình đăng tải
   const [submitting, setSubmitting] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [error, setError] = useState('')
@@ -69,11 +71,11 @@ export default function UploadDocument() {
       .catch(console.error)
   }, [])
 
-  // Auto clean filename to document title
+  // LUỒNG 4: Tự động trích xuất và làm sạch tên file thành Tiêu đề đề tài
   const handleFileSelected = (selectedFile: File) => {
     setFile(selectedFile)
     setError('')
-    // Auto-fill title if empty
+    // Tự động điền tiêu đề nếu ô nhập đang trống
     if (!title) {
       const cleanName = selectedFile.name
         .replace(/\.[^/.]+$/, '') // remove extension
@@ -137,7 +139,7 @@ export default function UploadDocument() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
-  // Checklist Validation Statuses
+  // Kiểm tra tính hợp lệ của các trường dữ liệu theo quy chế học thuật
   const isAdvisorRequired = ['THESIS', 'ASSIGNMENT', 'CAPSTONE', 'PROJECT'].includes(documentTypeCode)
   const isAdvisorValid = !isAdvisorRequired || advisorName.trim().length > 0
   const isAbstractValid = abstractText.trim().length >= 15
@@ -148,7 +150,7 @@ export default function UploadDocument() {
   const isPledgeValid = pledgeAccepted
   const isAllValid = isFileValid && isTitleValid && isSubjectValid && isYearValid && isAdvisorValid && isAbstractValid && isPledgeValid
 
-  // AI Generate Abstract (Gemini với OpenRouter failover + Đọc các trang đầu tài liệu PDF, Word DOCX)
+  // LUỒNG 4: AI đọc 2-3 trang đầu tệp tin (PDF, DOCX) và sinh tóm tắt học thuật chuẩn UTC
   const handleGenerateAiAbstract = async () => {
     if (!title.trim() && !file) {
       toast.warning('Cần tên đề tài hoặc tệp đính kèm', 'Vui lòng nhập Tên đề tài hoặc tải lên tệp tài liệu trước khi yêu cầu AI sinh tóm tắt.')
@@ -245,7 +247,7 @@ export default function UploadDocument() {
     setUploadProgress(15)
 
     try {
-      // 1. Tạo tài liệu DRAFT
+      // Bước 1: Tạo bản ghi học liệu mới ở trạng thái bản nháp (DRAFT)
       const created = await createDocument({
         title: effectiveTitle,
         subjectId: effectiveSubjectId,
@@ -263,7 +265,7 @@ export default function UploadDocument() {
       const docId = created.id
       setUploadProgress(40)
 
-      // 2. Upload tệp đính kèm (nếu có file)
+      // Bước 2: Tải tệp tin nhị phân (PDF/Word/PPTX) lên máy chủ qua FormData
       if (file) {
         await uploadFile(file, docId, true, (progress) => {
           setUploadProgress(40 + Math.round((progress * 40) / 100))
@@ -272,7 +274,7 @@ export default function UploadDocument() {
 
       setUploadProgress(85)
 
-      // 3. Nếu là nộp phê duyệt -> Chuyển sang PENDING
+      // Bước 3: Chuyển trạng thái sang Chờ duyệt (PENDING) để Ban Quản trị thẩm định
       if (shouldSubmitToPending) {
         await submitDocument(docId)
         setUploadProgress(100)
@@ -312,7 +314,7 @@ export default function UploadDocument() {
 
       <main className="w-full pt-20 pb-16 flex-grow bg-paper-grid">
         <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-          {/* Header */}
+          {/* Tiêu đề trang đăng tải học liệu */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-surface-container">
             <div>
               <div className="flex items-center gap-2 mb-1.5">
@@ -339,7 +341,7 @@ export default function UploadDocument() {
             </Link>
           </div>
 
-          {/* Error banner if any */}
+          {/* Khung cảnh báo lỗi nếu có */}
           {error && (
             <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2.5 text-red-800 text-body-sm">
               <span className="material-symbols-outlined text-[20px] text-red-600 shrink-0">error</span>
@@ -347,7 +349,7 @@ export default function UploadDocument() {
             </div>
           )}
 
-          {/* ─── 1. Frictionless Dropzone (Top & Centered) ────────────────── */}
+          {/* LUỒNG 4: 1. Vùng kéo thả tệp tin học liệu trực quan (Dropzone) */}
           <div
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -420,7 +422,7 @@ export default function UploadDocument() {
             )}
           </div>
 
-          {/* ─── 2. Metadata Form ─────────────────────────────────────────── */}
+          {/* LUỒNG 4: 2. Biểu mẫu thông tin học thuật của đề tài */}
           <div className="bg-[#fffdfa] dark:bg-[#12161f] rounded-2xl border-2 border-stone-300 dark:border-stone-800 p-6 shadow-xs space-y-5">
             {/* Title */}
             {/* Title */}
@@ -437,7 +439,7 @@ export default function UploadDocument() {
               />
             </div>
 
-            {/* ─── Real-time Similarity & Overlap Detection Box ─────────────── */}
+            {/* LUỒNG 4: Khung cảnh báo đối soát đề tài trùng lặp thời gian thực (Debounce) */}
             {title.trim().length >= 4 && (
               <div className="p-4 rounded-xl border transition-all text-xs space-y-2 bg-slate-50 border-slate-200">
                 <div className="flex items-center justify-between">
@@ -492,7 +494,7 @@ export default function UploadDocument() {
               </div>
             )}
 
-            {/* Categorization Grid: Document Type, Subject, Major, Year */}
+            {/* Lưới phân loại: Thể loại, Môn học, Chuyên ngành, Niên khóa */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-mono font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 mb-1">
@@ -559,7 +561,7 @@ export default function UploadDocument() {
                 />
               </div>
 
-              {/* F3: Target Year (Năm sinh viên) */}
+              {/* Đối tượng sinh viên hướng tới (Năm 1 đến Năm 5) */}
               <div>
                 <label className="block text-xs font-mono font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 mb-1">
                   Phù hợp cho sinh viên năm
@@ -581,7 +583,7 @@ export default function UploadDocument() {
               </div>
             </div>
 
-            {/* Advisor & Github */}
+            {/* Giảng viên hướng dẫn & Liên kết mã nguồn GitHub/GitLab */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-mono font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 mb-1">
@@ -612,7 +614,7 @@ export default function UploadDocument() {
               </div>
             </div>
 
-            {/* Abstract with AI Assistant (F4) */}
+            {/* LUỒNG 4: Ô tóm tắt nội dung kèm nút trợ lý AI sinh tóm tắt tự động */}
             <div>
               <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
                 <label className="block text-xs font-mono font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
@@ -654,7 +656,7 @@ export default function UploadDocument() {
               />
             </div>
 
-            {/* Collapsible Tech Tags (De-emphasized / Optional) */}
+            {/* Danh mục thẻ công nghệ áp dụng */}
             {technologies.length > 0 && (
               <div className="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50">
                 <button
@@ -695,7 +697,7 @@ export default function UploadDocument() {
               </div>
             )}
 
-            {/* ─── 3. Academic Integrity Pledge (Mandatory) ─────────────── */}
+            {/* 3. Cam kết liêm chính học thuật và bản quyền UTC (Bắt buộc) */}
             <div className="p-4 bg-stone-50 dark:bg-stone-900/60 rounded-xl border border-stone-200 dark:border-stone-800 space-y-2">
               <CustomCheckbox
                 checked={pledgeAccepted}
@@ -707,7 +709,7 @@ export default function UploadDocument() {
               />
             </div>
 
-            {/* ─── Academic Checklist Status Widget ─────────────── */}
+            {/* Bảng kiểm tra tiến độ hoàn thiện hồ sơ đăng tải */}
             <div className="p-4 bg-stone-50 dark:bg-stone-900/60 rounded-xl border border-stone-200 dark:border-stone-800 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-mono font-bold text-stone-800 dark:text-stone-200 uppercase tracking-wider flex items-center gap-1.5">
@@ -748,7 +750,7 @@ export default function UploadDocument() {
               </div>
             </div>
 
-            {/* Progress bar if uploading */}
+            {/* Thanh đo phần trăm tiến độ tải tệp tin lên máy chủ */}
             {submitting && (
               <div className="space-y-1.5">
                 <div className="flex justify-between text-caption font-semibold text-primary">
@@ -764,7 +766,7 @@ export default function UploadDocument() {
               </div>
             )}
 
-            {/* ─── 4. Action Buttons ────────────────────────────────────── */}
+            {/* 4. Các nút thao tác: Lưu bản nháp hoặc Nộp bài xét duyệt */}
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-surface-container">
               <button
                 type="button"

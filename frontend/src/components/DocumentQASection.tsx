@@ -1,3 +1,5 @@
+// === LUỒNG 3: XEM CHI TIẾT & TƯƠNG TÁC HỌC LIỆU (Document Q&A Section) ===
+// Khu vực hỏi đáp, bình luận và phản biện học thuật cho tài liệu
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {

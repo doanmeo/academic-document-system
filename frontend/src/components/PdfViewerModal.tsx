@@ -81,6 +81,7 @@ export default function PdfViewerModal({
         .then((blob) => {
           if (!active) return
           if (!blob || blob.size === 0) throw new Error('Học liệu rỗng')
+          if (blob.type && blob.type.includes('text/html')) throw new Error('Tệp tải về là trang HTML')
           const pdfBlob = new Blob([blob], { type: 'application/pdf' })
           currentBlobUrl = URL.createObjectURL(pdfBlob)
           setBlobUrl(currentBlobUrl)

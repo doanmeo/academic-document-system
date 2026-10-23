@@ -1,3 +1,5 @@
+// === TRANG CHỦ: CỔNG HỌC LIỆU SỐ KHOA CNTT - ĐH GIAO THÔNG VẬN TẢI ===
+// Cung cấp thanh tìm kiếm trung tâm, lối tắt môn học trọng tâm, học liệu mới nhất và số liệu thống kê
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {

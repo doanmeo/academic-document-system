@@ -1,3 +1,5 @@
+// === LUỒNG 6: KHÔNG GIAN CÁ NHÂN SINH VIÊN (Collections Page) ===
+// Quản lý Bộ sưu tập học liệu: Tạo bộ sưu tập theo môn học, chia sẻ liên kết cộng tác, xuất trích dẫn hàng loạt
 import React, { useEffect, useState, useMemo } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
@@ -34,7 +36,7 @@ import PdfViewerModal from '../components/PdfViewerModal'
 import CustomSelect from '../components/ui/CustomSelect'
 import CustomCheckbox from '../components/ui/CustomCheckbox'
 
-// Preset templates for quick collection creation
+// Mẫu bộ sưu tập có sẵn để tạo nhanh
 const ACADEMIC_PRESETS = [
   {
     title: 'Ôn thi KTHP Kỳ này',
@@ -66,30 +68,30 @@ export const Collections: React.FC = () => {
   const [copied, setCopied] = useState(false)
   const [cloning, setCloning] = useState(false)
 
-  // Collection list search
+  // Tìm kiếm trong danh sách bộ sưu tập
   const [colSearchQuery, setColSearchQuery] = useState('')
 
-  // In-collection filters & sorting
+  // Bộ lọc và sắp xếp tài liệu bên trong bộ sưu tập
   const [itemKeyword, setItemKeyword] = useState('')
   const [itemTypeFilter, setItemTypeFilter] = useState<string>('ALL')
   const [itemSubjectFilter, setItemSubjectFilter] = useState<string>('ALL')
   const [itemSortBy, setItemSortBy] = useState<'default' | 'title' | 'rating' | 'views'>('default')
 
-  // Modals state
+  // Trạng thái các hộp thoại
   const [showCreate, setShowCreate] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [newDesc, setNewDesc] = useState('')
   const [isPublic, setIsPublic] = useState(true)
   const [submitting, setSubmitting] = useState(false)
 
-  // Edit Collection Modal
+  // Chỉnh sửa thông tin bộ sưu tập Modal
   const [showEdit, setShowEdit] = useState(false)
   const [editTitle, setEditTitle] = useState('')
   const [editDesc, setEditDesc] = useState('')
   const [editPublic, setEditPublic] = useState(true)
   const [updating, setUpdating] = useState(false)
 
-  // Edit Note Modal
+  // Chỉnh sửa ghi chú cá nhân cho tài liệu Modal
   const [editingItem, setEditingItem] = useState<CollectionItem | null>(null)
   const [itemNoteText, setItemNoteText] = useState('')
   const [savingNote, setSavingNote] = useState(false)
@@ -165,7 +167,7 @@ export const Collections: React.FC = () => {
     loadCollectionDetail(col.id)
   }
 
-  // Create Collection
+  // LUỒNG 6: Tạo mới bộ sưu tập tài liệu
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newTitle.trim()) return
@@ -241,7 +243,7 @@ export const Collections: React.FC = () => {
     }
   }
 
-  // Delete Collection
+  // Xóa bộ sưu tập
   const handleDeleteCollection = async (id: number) => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa bộ sưu tập này? Mọi liên kết học liệu trong bộ sưu tập sẽ bị hủy.')) return
     try {
@@ -253,7 +255,7 @@ export const Collections: React.FC = () => {
     }
   }
 
-  // Remove Item
+  // Xóa tài liệu khỏi bộ sưu tập
   const handleRemoveItem = async (colId: number, docId: number) => {
     try {
       await collectionApi.removeItemFromCollection(colId, docId)
@@ -314,7 +316,7 @@ export const Collections: React.FC = () => {
     }
   }
 
-  // Copy share URL
+  // Sao chép liên kết chia sẻ công khai
   const handleCopyShareLink = () => {
     if (!selectedCol?.shareToken) return
     const url = `${window.location.origin}/collections/public/${selectedCol.shareToken}`
@@ -490,7 +492,7 @@ export const Collections: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* ─── LEFT PANE: COLLECTIONS LIST ─────────────────────────── */}
+            {/* CỘT TRÁI: DANH SÁCH CÁC BỘ SƯU TẬP CỦA TÔI */}
             {!shareToken && (
               <div className="lg:col-span-4 space-y-4">
                 {/* Search collections & count */}
@@ -610,7 +612,7 @@ export const Collections: React.FC = () => {
               </div>
             )}
 
-            {/* ─── RIGHT PANE: SELECTED COLLECTION WORKSPACE ───────────── */}
+            {/* CỘT PHẢI: KHÔNG GIAN LÀM VIỆC CỦA BỘ SƯU TẬP ĐANG CHỌN */}
             <div className={shareToken ? 'lg:col-span-12' : 'lg:col-span-8'}>
               {detailLoading ? (
                 <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-16 text-center text-stone-400 flex flex-col items-center justify-center gap-3 shadow-xs">
@@ -670,7 +672,7 @@ export const Collections: React.FC = () => {
                           <span>{copied ? 'Đã sao chép!' : 'Chia sẻ'}</span>
                         </button>
 
-                        {/* Batch citation export */}
+                        {/* Nút xuất trích dẫn học thuật hàng loạt */}
                         {selectedCol.items && selectedCol.items.length > 0 && (
                           <button
                             type="button"

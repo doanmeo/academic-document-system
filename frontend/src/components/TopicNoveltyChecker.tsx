@@ -1,3 +1,5 @@
+// === LUỒNG 4: ĐĂNG TẢI HỌC LIỆU & QUÉT TRÙNG LẶP ĐỀ TÀI (Topic Novelty Checker) ===
+// Phân tích độ mới và đối soát tương đồng đề tài nghiên cứu / đồ án tốt nghiệp trong Khoa
 import React, { useState, useEffect, useRef } from 'react'
 import {
   Sparkles,
@@ -25,29 +27,29 @@ export default function TopicNoveltyChecker() {
   const [majors, setMajors] = useState<Major[]>([])
   const [advisors, setAdvisors] = useState<string[]>([])
 
-  // Main Topic & Content Inputs
+  // Các ô nhập liệu cốt lõi: Tiêu đề đề tài & Tóm tắt
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
 
-  // Secondary Metadata Inputs (<= 20% weight)
+  // Các trường thông tin bổ trợ: Môn học, GVHD, Chuyên ngành (Trọng số <= 20%)
   const [subjectId, setSubjectId] = useState<number | ''>('')
   const [majorId, setMajorId] = useState<number | ''>('')
   const [advisorName, setAdvisorName] = useState('')
 
-  // State
+  // Trạng thái dữ liệu phân tích và kết quả đối soát
   const [loading, setLoading] = useState(false)
   const [generatingAbstract, setGeneratingAbstract] = useState(false)
   const [result, setResult] = useState<TopicComparisonResult | null>(null)
   const [hasSearched, setHasSearched] = useState(false)
 
-  // PDF Preview Modal
+  // Hộp thoại xem trước tài liệu PDF
   const [pdfModal, setPdfModal] = useState<{
     isOpen: boolean
     docId?: number
     title?: string
   }>({ isOpen: false })
 
-  // Catalog loading
+  // Nạp danh mục môn học, chuyên ngành, niên khóa
   useEffect(() => {
     Promise.all([catalogApi.getSubjects(), catalogApi.getMajors(), catalogApi.getAdvisors()])
       .then(([subRes, majRes, advRes]: any[]) => {
@@ -61,7 +63,7 @@ export default function TopicNoveltyChecker() {
   const pdfInputRef = useRef<HTMLInputElement>(null)
   const [readingPdf, setReadingPdf] = useState(false)
 
-  // AI-assisted Abstract Generation từ Tiêu đề
+  // LUỒNG 4: AI sinh tóm tắt đề tài học thuật từ Tiêu đề
   const handleGenerateAbstract = async () => {
     if (!title.trim() || title.trim().length < 4) return
     setGeneratingAbstract(true)
@@ -82,7 +84,7 @@ export default function TopicNoveltyChecker() {
     }
   }
 
-  // Đọc 2-3 trang đầu tài liệu PDF tải lên và dùng AI tóm tắt chính xác
+  // LUỒNG 4: Đọc 2-3 trang đầu tài liệu PDF và dùng AI tóm tắt chính xác
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -174,7 +176,7 @@ export default function TopicNoveltyChecker() {
 
   return (
     <div className="space-y-6">
-      {/* ── TOP HEADER WITH ARCHIVAL METADATA ─────────────────────────── */}
+      {/* Tiêu đề đầu trang và chỉ số thống kê kho lưu trữ */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-5 border-b border-stone-300 dark:border-stone-800">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
@@ -194,15 +196,15 @@ export default function TopicNoveltyChecker() {
           </p>
         </div>
 
-        {/* Total Documents in Archive Counter */}
+        {/* Bộ đếm tổng số tài liệu trong kho lưu trữ */}
         <div className="px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 font-mono text-xs font-bold text-stone-700 dark:text-stone-300 shrink-0">
           KHO ĐỐI CHIẾU: <span className="text-blue-600 dark:text-blue-400">50+ ĐỒ ÁN &amp; KLTN</span>
         </div>
       </div>
 
-      {/* ── WORKSPACE GRID: FORM (5 COLS) + RESULTS (7 COLS) ────────────────── */}
+      {/* Bàn làm việc 2 cột: Cột nhập thông tin (5 cột) & Cột kết quả phân tích (7 cột) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left: Input Form (5 cols) */}
+        {/* Cột trái: Biểu mẫu nhập thông tin đề tài */}
         <div className="lg:col-span-5 bg-white dark:bg-stone-900 rounded-2xl border-2 border-stone-300 dark:border-stone-800 p-5 sm:p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-stone-200 dark:border-stone-800">
             <span className="text-xs font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wide font-sans">
@@ -222,7 +224,7 @@ export default function TopicNoveltyChecker() {
           </div>
 
           <form onSubmit={handleAnalyze} className="space-y-4">
-            {/* 1. Title Input (Core) */}
+            {/* 1. Ô nhập Tiêu đề đề tài cần kiểm tra */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1">
@@ -242,7 +244,7 @@ export default function TopicNoveltyChecker() {
               />
             </div>
 
-            {/* 2. Abstract / Description Input (Core) with AI Generator */}
+            {/* 2. Ô nhập Tóm tắt nội dung kèm nút kích hoạt AI sinh tóm tắt */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1">
@@ -278,7 +280,7 @@ export default function TopicNoveltyChecker() {
                     )}
                   </button>
 
-                  {/* AI Draft Button */}
+                  {/* Nút bấm AI sinh bản thảo tóm tắt */}
                   <button
                     type="button"
                     onClick={handleGenerateAbstract}
@@ -313,7 +315,7 @@ export default function TopicNoveltyChecker() {
               </span>
             </div>
 
-            {/* 3. Secondary Context Options (< 20% weight) */}
+            {/* 3. Các tùy chọn ngữ cảnh học thuật: Môn học, Chuyên ngành, Giảng viên */}
             <div className="pt-2 border-t border-stone-200 dark:border-stone-800 space-y-3">
               <span className="text-[11px] font-mono font-bold text-stone-500 uppercase block">
                 Thông tin bổ trợ (tùy chọn):
@@ -370,7 +372,7 @@ export default function TopicNoveltyChecker() {
               </div>
             </div>
 
-            {/* Submit Action Button */}
+            {/* Nút bấm tiến hành phân tích tính mới của đề tài */}
             <button
               type="submit"
               disabled={loading || title.trim().length < 4}
@@ -391,7 +393,7 @@ export default function TopicNoveltyChecker() {
           </form>
         </div>
 
-        {/* Right: Results View (7 cols) */}
+        {/* Cột phải: Khu vực hiển thị kết quả thẩm định độ tương đồng */}
         <div className="lg:col-span-7 space-y-5">
           {!hasSearched && (
             <div className="bg-white dark:bg-stone-900 border-2 border-dashed border-stone-300 dark:border-stone-800 rounded-2xl p-8 sm:p-12 text-center space-y-4">
@@ -425,7 +427,7 @@ export default function TopicNoveltyChecker() {
 
           {!loading && result && (
             <div className="space-y-5">
-              {/* Verdict Summary Card */}
+              {/* Thẻ kết luận tổng quan (Độc lập / Có liên quan mật thiết) */}
               {(() => {
                 const risk = getRiskDisplay(result.riskLevel)
                 const Icon = risk.icon
@@ -451,7 +453,7 @@ export default function TopicNoveltyChecker() {
                         </p>
                       </div>
 
-                      {/* Scores */}
+                      {/* Điểm số thành phần */}
                       <div className="flex items-center gap-3 shrink-0 bg-stone-50 dark:bg-stone-800/80 p-3 rounded-xl border border-stone-200 dark:border-stone-700">
                         <div className="text-center px-2">
                           <span className="text-[10px] font-mono text-stone-500 uppercase block">Độ trùng lặp</span>
@@ -469,7 +471,7 @@ export default function TopicNoveltyChecker() {
                       </div>
                     </div>
 
-                    {/* Matched Highlights */}
+                    {/* Điểm nổi bật trùng khớp */}
                     {result.extractedTokens && result.extractedTokens.length > 0 && (
                       <div className="flex flex-wrap items-center gap-1.5 text-xs font-mono">
                         <span className="text-stone-500 text-[11px]">Từ khóa nhận diện:</span>
@@ -487,7 +489,7 @@ export default function TopicNoveltyChecker() {
                 )
               })()}
 
-              {/* ── MATCHED PAST THESES LIST ─────────────────────────────────── */}
+              {/* Danh sách các đề tài khóa trước có độ tương đồng cao nhất */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-bold font-sans text-stone-900 dark:text-stone-100 flex items-center gap-2">
@@ -513,7 +515,7 @@ export default function TopicNoveltyChecker() {
                         key={m.id}
                         className="bg-white dark:bg-stone-900 rounded-xl border-2 border-stone-300 dark:border-stone-800 p-4 sm:p-5 shadow-xs space-y-3"
                       >
-                        {/* Title and Overlap Score */}
+                        {/* Tiêu đề tài liệu và Tỷ lệ phần trăm tương đồng */}
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                           <div className="space-y-1 min-w-0">
                             <h5 className="text-xs sm:text-sm font-bold font-serif-academic text-stone-950 dark:text-stone-50 leading-snug">
@@ -538,7 +540,7 @@ export default function TopicNoveltyChecker() {
                           </div>
                         </div>
 
-                        {/* Abstract Snippet from Matched Thesis */}
+                        {/* Đoạn trích dẫn tóm tắt của đề tài khóa trước */}
                         {m.abstractSnippet && (
                           <div className="p-3 rounded-lg bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700/80 text-xs font-sans text-stone-700 dark:text-stone-300 leading-relaxed space-y-1">
                             <span className="text-[10px] font-mono uppercase font-bold text-stone-500 block">
@@ -550,13 +552,13 @@ export default function TopicNoveltyChecker() {
                           </div>
                         )}
 
-                        {/* Matched Keywords & Overlapping Aspects */}
+                        {/* Các từ khóa và khía cạnh học thuật trùng nhau */}
                         <div className="flex flex-wrap items-center gap-1.5 text-xs font-mono text-amber-700 dark:text-amber-300">
                           <span className="text-stone-500 text-[11px]">Điểm giao thoa:</span>
                           <span>{m.overlappingAspects}</span>
                         </div>
 
-                        {/* Action buttons */}
+                        {/* Nút xem nhanh PDF hoặc mở chi tiết */}
                         <div className="flex items-center justify-between pt-2 border-t border-stone-200 dark:border-stone-700">
                           <div className="flex items-center gap-2">
                             <button
@@ -601,7 +603,7 @@ export default function TopicNoveltyChecker() {
         </div>
       </div>
 
-      {/* ── PDF PREVIEW MODAL ─────────────────────────────────────────────────── */}
+      {/* Cửa sổ xem trước tệp tin PDF an toàn */}
       <PdfViewerModal
         isOpen={pdfModal.isOpen}
         onClose={() => setPdfModal({ isOpen: false })}

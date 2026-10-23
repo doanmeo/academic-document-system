@@ -1,3 +1,5 @@
+// === LUỒNG 7: PHÂN HỆ QUẢN TRỊ ADMIN (User Management) ===
+// Quản trị người dùng: Khóa / Mở khóa tài khoản, phân quyền sinh viên và quản trị viên
 import React, { useEffect, useState } from 'react'
 import { getAdminUsers, toggleUserActive } from '../../api/adminApi'
 import type { PageResponse } from '../../types/document'
@@ -79,7 +81,7 @@ export default function UserManagement() {
         </div>
       )}
 
-      {/* Header Banner */}
+      {/* Tiêu đề Quản trị người dùng */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-surface-container">
         <div>
           <div className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400 font-label-code text-caption font-bold tracking-widest uppercase mb-1">
@@ -150,7 +152,7 @@ export default function UserManagement() {
         </div>
       </div>
 
-      {/* Users Table Card */}
+      {/* LUỒNG 7: Bảng danh sách tài khoản người dùng */}
       <div className="bg-surface-container-lowest rounded-2xl shadow-xs border border-surface-container overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left font-body-sm text-body-sm">
