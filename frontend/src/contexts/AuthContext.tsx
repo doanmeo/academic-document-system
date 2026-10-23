@@ -1,3 +1,5 @@
+// === LUỒNG 1: XÁC THỰC & PHÂN QUYỀN (Auth & RBAC Flow) ===
+// Quản lý trạng thái đăng nhập, lưu trữ token, thông tin sinh viên toàn ứng dụng
 import {
   createContext,
   useContext,
@@ -9,7 +11,7 @@ import {
 import * as authApi from '../api/authApi'
 import type { User, RegisterRequest } from '../types/auth'
 
-// ─── Context shape ────────────────────────────────────────────────────────────
+// ─── Cấu trúc dữ liệu của AuthContext ─────────────────────────────────────────
 interface AuthContextType {
   user: User | null
   loading: boolean
@@ -23,12 +25,12 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
+// ─── Component cung cấp AuthContext cho toàn bộ cây giao diện ──────────────────
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Khi app khởi động: nếu có accessToken → fetch thông tin user hiện tại
+  // LUỒNG 1: Khi ứng dụng khởi động - nạp lại phiên đăng nhập nếu đã có accessToken
   useEffect(() => {
     const init = async () => {
       const token = localStorage.getItem('accessToken')
@@ -40,8 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const me = await authApi.getMe()
         setUser(me)
       } catch {
-        // Token hết hạn hoặc không hợp lệ → axios interceptor đã xử lý refresh
-        // Nếu refresh cũng fail → interceptor đã clear localStorage
+        // Token hết hạn hoặc không hợp lệ → axios interceptor đã xử lý tự động refresh
+        // Nếu refresh thất bại → interceptor đã tự động xóa localStorage
         setUser(null)
       } finally {
         setLoading(false)
@@ -50,18 +52,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     init()
   }, [])
 
-  // ─── login ──────────────────────────────────────────────────────────────────
+  // ─── LUỒNG 1: Đăng nhập tài khoản ───────────────────────────────────────────
   const login = useCallback(async (email: string, password: string) => {
     const { accessToken, refreshToken, user: loggedInUser } = await authApi.login({
       email,
       password,
     })
+    // Lưu cặp token vào bộ nhớ trình duyệt LocalStorage
     localStorage.setItem('accessToken', accessToken)
     localStorage.setItem('refreshToken', refreshToken)
+    // Cập nhật State user -> kích hoạt hiệu ứng domino đổi giao diện toàn web
     setUser(loggedInUser)
   }, [])
 
-  // ─── register ────────────────────────────────────────────────────────────────
+  // ─── LUỒNG 1: Đăng ký tài khoản sinh viên mới ───────────────────────────────
   const register = useCallback(async (payload: RegisterRequest) => {
     const { accessToken, refreshToken, user: newUser } = await authApi.register(payload)
     localStorage.setItem('accessToken', accessToken)
@@ -69,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(newUser)
   }, [])
 
-  // ─── logout ──────────────────────────────────────────────────────────────────
+  // ─── LUỒNG 1: Đăng xuất tài khoản ───────────────────────────────────────────
   const logout = useCallback(async () => {
     const refreshToken = localStorage.getItem('refreshToken')
     try {
@@ -77,21 +81,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await authApi.logout({ refreshToken })
       }
     } catch {
-      // Bỏ qua lỗi khi logout (token đã hết hạn trên server)
+      // Bỏ qua lỗi khi logout nếu token đã bị hủy trước đó trên server
     } finally {
+      // Dọn dẹp sạch sẽ token khỏi LocalStorage và đưa state user về null
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
       setUser(null)
     }
   }, [])
 
-  // ─── refreshUser: re-fetch thông tin user (dùng sau khi cập nhật profile) ──
+  // ─── Cập nhật lại thông tin user (dùng sau khi chỉnh sửa hồ sơ) ──────────────
   const refreshUser = useCallback(async () => {
     try {
       const me = await authApi.getMe()
       setUser(me)
     } catch {
-      // Không làm gì — interceptor đã xử lý
+      // Interceptor đã tự động xử lý
     }
   }, [])
 
@@ -106,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
+// ─── Custom Hook useAuth tiện lợi cho các component gọi trực tiếp ──────────────
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext)
   if (!context) {

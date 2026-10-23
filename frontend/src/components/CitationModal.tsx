@@ -1,3 +1,5 @@
+// === LUỒNG 3: XEM CHI TIẾT & TƯƠNG TÁC HỌC LIỆU (Citation Modal) ===
+// Hộp thoại tạo và sao chép trích dẫn học thuật tự động (IEEE, APA, BibTeX)
 import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import type { CitationFormat, DocumentDetail, DocumentSummary } from '../types/document'
@@ -63,7 +65,7 @@ export default function CitationModal({ isOpen, onClose, doc }: CitationModalPro
         className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 flex flex-col gap-5 animate-in zoom-in-95 duration-200 text-slate-800"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
+        {/* Tiêu đề hộp thoại trích dẫn */}
         <div className="flex items-start justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold text-xl">
@@ -87,7 +89,7 @@ export default function CitationModal({ isOpen, onClose, doc }: CitationModalPro
           </button>
         </div>
 
-        {/* Tab selection */}
+        {/* LUỒNG 3: Chọn định dạng trích dẫn (IEEE, APA, BibTeX) */}
         <div>
           <label className="block text-[11px] font-mono font-bold text-slate-500 uppercase tracking-wider mb-2">
             Chọn định dạng trích dẫn:
@@ -115,7 +117,7 @@ export default function CitationModal({ isOpen, onClose, doc }: CitationModalPro
           </p>
         </div>
 
-        {/* Citation Box */}
+        {/* Khung hiển thị nội dung văn bản trích dẫn */}
         <div className="relative">
           <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 font-mono text-xs text-slate-800 leading-relaxed min-h-[110px] break-words whitespace-pre-wrap select-all">
             {loading ? (
@@ -129,7 +131,7 @@ export default function CitationModal({ isOpen, onClose, doc }: CitationModalPro
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Nút bấm sao chép và đóng hộp thoại */}
         <div className="flex items-center justify-between gap-3 pt-2">
           <span className="text-xs text-emerald-600 font-medium hidden sm:inline">
             ✓ 1-Click Copy vào Clipboard

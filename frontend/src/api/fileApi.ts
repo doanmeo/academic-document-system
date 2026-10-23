@@ -1,3 +1,5 @@
+// === LUỒNG 3: XEM CHI TIẾT & TƯƠNG TÁC HỌC LIỆU (File & PDF Streaming API) ===
+// Quản lý tải tệp tin, xem trước an toàn và luồng dữ liệu PDF nhị phân chống IDM
 import api from './axios'
 import type { UploadedFile, SignedUrlResponse } from '../types/document'
 

@@ -1,3 +1,5 @@
+// === LUỒNG 3: XEM CHI TIẾT & TƯƠNG TÁC HỌC LIỆU (Interaction API) ===
+// Gọi các API tương tác người dùng: Đánh dấu lưu (Bookmark), Đánh giá sao (Rating), Báo cáo (Report)
 import api from './axios'
 import type { DocumentSummary, PageResponse } from '../types/document'
 import type { Report } from '../types/admin'

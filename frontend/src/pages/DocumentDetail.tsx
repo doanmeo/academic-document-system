@@ -1,3 +1,5 @@
+// === LUỒNG 3: XEM CHI TIẾT & TƯƠNG TÁC HỌC LIỆU (Document Detail & Interaction Flow) ===
+// Bàn làm việc học thuật: Đọc PDF trực tuyến (chống IDM), Tải file, Đánh dấu, Đánh giá sao, Trích dẫn, Báo cáo vi phạm
 import { useEffect, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useParams, useNavigate, Link } from 'react-router-dom'
@@ -76,16 +78,16 @@ export default function DocumentDetail() {
   const [showCitation, setShowCitation] = useState(false)
   const [showCollectionModal, setShowCollectionModal] = useState(false)
 
-  // Active Research Workbench Tab: 'reader' | 'code' | 'qa' | 'integrity'
+  // Tab bàn làm việc học thuật đang kích hoạt: Đọc tài liệu | Mã nguồn | Hỏi đáp thảo luận | Liêm chính học thuật
   const [activeTab, setActiveTab] = useState<'reader' | 'code' | 'qa' | 'integrity'>('reader')
 
-  // Academic Related Documents State
+  // LUỒNG 3: Danh sách học liệu liên quan cùng môn học / chuyên ngành
   const [relatedDocs, setRelatedDocs] = useState<RelatedDocument[]>([])
 
-  // Review Timeline State
+  // LUỒNG 3: Lịch sử thẩm định và kiểm duyệt của giảng viên / quản trị viên
   const [reviews, setReviews] = useState<DocumentReviewHistory[]>([])
 
-  // PDF Viewer State & Bulletproof Blob
+  // LUỒNG 3: Quản lý trình xem PDF trực tuyến và luồng dữ liệu Blob an toàn (Chống IDM bắt link)
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const [activeFileId, setActiveFileId] = useState<number | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
@@ -96,7 +98,7 @@ export default function DocumentDetail() {
   const [pdfLoading, setPdfLoading] = useState(false)
   const [pdfError, setPdfError] = useState<string | null>(null)
 
-  // Interactions State
+  // LUỒNG 3: Trạng thái các tương tác người dùng (Đánh dấu lưu, Đánh giá sao)
   const [bookmarked, setBookmarked] = useState(false)
   const [bmLoading, setBmLoading] = useState(false)
   const [userRating, setUserRating] = useState<number | null>(null)
@@ -104,19 +106,19 @@ export default function DocumentDetail() {
   const [rateScore, setRateScore] = useState(5)
   const [rateLoading, setRateLoading] = useState(false)
 
-  // Inline Quick Citation Widget
+  // LUỒNG 3: Hộp trích dẫn nhanh (IEEE, APA, BibTeX)
   const [quickCiteFormat, setQuickCiteFormat] = useState<CitationFormat>('IEEE')
   const [quickCopied, setQuickCopied] = useState(false)
   const [cloneCopied, setCloneCopied] = useState(false)
 
-  // Report Modal State
+  // LUỒNG 3: Trạng thái hộp thoại báo cáo vi phạm bản quyền / nội dung xấu
   const [showReport, setShowReport] = useState(false)
   const [reportReasons, setReportReasons] = useState<LovItem[]>([])
   const [reportReason, setReportReason] = useState('COPYRIGHT')
   const [reportDesc, setReportDesc] = useState('')
   const [reportLoading, setReportLoading] = useState(false)
 
-  // Fetch document details & related academic documents
+  // LUỒNG 3: Nạp thông tin chi tiết học liệu và danh sách tài liệu liên quan theo ID
   useEffect(() => {
     if (!id) return
     const docId = Number(id)
@@ -129,17 +131,17 @@ export default function DocumentDetail() {
         setBookmarked(!!data.bookmarked)
         if (data.userRating) setUserRating(data.userRating)
 
-        // Fetch related academic documents in parallel
+        // LUỒNG 3: Tải song song danh sách tài liệu liên quan cùng môn học
         getRelatedDocuments(docId, 4)
           .then((res) => setRelatedDocs(res || []))
           .catch(() => setRelatedDocs([]))
 
-        // Fetch review timeline history
+        // LUỒNG 3: Tải lịch sử đánh giá / thẩm định học liệu
         documentApi.getDocumentReviews(docId)
           .then((res) => setReviews(res || []))
           .catch(() => setReviews([]))
 
-        // Automatically resolve primary file for direct viewing
+        // LUỒNG 3: Tự động phát hiện tệp PDF chính để nạp vào khung đọc trực tuyến
         const primary = data.files.find((f) => f.isPrimary) ?? data.files[0]
         if (primary) {
           setActiveFileId(primary.id)
@@ -161,7 +163,7 @@ export default function DocumentDetail() {
     fetchDoc()
   }, [id])
 
-  // Resilient stream loader using internal /api/files/:id/view (never triggers IDM intercept)
+  // LUỒNG 3: Kỹ thuật tải luồng Blob nhị phân an toàn - Tuyệt đối không kích hoạt IDM bắt link
   const loadPdfBlobForFile = async (fileId: number) => {
     setPdfLoading(true)
     setPdfError(null)
@@ -201,7 +203,7 @@ export default function DocumentDetail() {
       }
     }
   }, [blobUrl])
-  // Load report reasons
+  // LUỒNG 3: Nạp danh mục các lý do báo cáo vi phạm từ Backend
   useEffect(() => {
     getLov('REPORT_REASON')
       .then((res) => {
@@ -213,7 +215,7 @@ export default function DocumentDetail() {
       .catch(() => {})
   }, [])
 
-  // Handle Select file for viewing
+  // LUỒNG 3: Xử lý khi người dùng chọn một tệp trong danh sách để đọc trực tuyến
   // Handle Select file for viewing
   const handleSelectFile = async (fileId: number) => {
     setActiveFileId(fileId)
@@ -228,7 +230,7 @@ export default function DocumentDetail() {
     viewerContainerRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  // Handle Download file
+  // LUỒNG 3: Xử lý tải tệp tin chính thức về máy tính (tự động tăng downloadCount)
   const handleDownload = async (fileId?: number) => {
     if (!doc) return
     const targetFile = fileId
@@ -254,7 +256,7 @@ export default function DocumentDetail() {
     }
   }
 
-  // Handle Bookmark toggle
+  // LUỒNG 3: Xử lý bật/tắt Đánh dấu lưu tài liệu vào Tủ học liệu cá nhân
   const handleBookmark = async () => {
     if (!doc) return
     if (!isAuthenticated) {
@@ -280,7 +282,7 @@ export default function DocumentDetail() {
     }
   }
 
-  // Handle Direct Instant Rating
+  // LUỒNG 3: Xử lý đánh giá trực tiếp 1-5 sao cho tài liệu
   const handleDirectRate = async (score: number) => {
     if (!isAuthenticated) {
       toast.info('Yêu cầu đăng nhập', 'Bạn cần đăng nhập tài khoản sinh viên/giảng viên để đánh giá học liệu.')
@@ -315,7 +317,7 @@ export default function DocumentDetail() {
     }
   }
 
-  // Handle Rating
+  // LUỒNG 3: Xử lý gửi điểm đánh giá từ Modal
   const handleRateSubmit = async () => {
     if (!doc) return
     if (!isAuthenticated) {
@@ -346,7 +348,7 @@ export default function DocumentDetail() {
       )
     } catch (err) {
       console.warn('Rating submit fallback:', err)
-      // Optimistic update so the user is never blocked
+      // Cập nhật giao diện tức thì (Optimistic UI) để người dùng không phải chờ đợi
       setUserRating(rateScore)
       setShowRateModal(false)
       setDoc({ ...doc, avgRating: newAvg, ratingCount: newCount, userRating: rateScore })
@@ -356,7 +358,7 @@ export default function DocumentDetail() {
     }
   }
 
-  // Handle Report Submit
+  // LUỒNG 3: Xử lý gửi báo cáo vi phạm bản quyền / nội dung lên quản trị viên
   const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!doc) return
@@ -384,7 +386,7 @@ export default function DocumentDetail() {
     }
   }
 
-  // Copy Quick Citation
+  // LUỒNG 3: Sao chép trích dẫn học thuật vào Clipboard
   const handleCopyCitation = async () => {
     if (!doc) return
     const citationStr = generateClientCitation(doc, quickCiteFormat)
@@ -398,7 +400,7 @@ export default function DocumentDetail() {
     }
   }
 
-  // Copy Clone Command
+  // Sao chép câu lệnh git clone vào bộ nhớ tạm
   const handleCopyClone = async (url: string) => {
     try {
       await navigator.clipboard.writeText(`git clone ${url}`)
@@ -410,7 +412,7 @@ export default function DocumentDetail() {
     }
   }
 
-  // Pager & Zoom handlers
+  // Xử lý chuyển trang và phóng to/thu nhỏ văn bản PDF
   const handlePrevPage = () => {
     if (currentPage > 1) setCurrentPage((p) => p - 1)
   }
@@ -423,7 +425,7 @@ export default function DocumentDetail() {
   const handleZoomOut = () => {
     if (zoomLevel > 75) setZoomLevel((z) => z - 25)
   }
-  // Sync isFullscreen with native browser fullscreen state
+  // Đồng bộ chế độ toàn màn hình với trình duyệt
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement)
@@ -440,7 +442,7 @@ export default function DocumentDetail() {
     }
   }, [])
 
-  // Allow ESC key to exit CSS fullscreen fallback as well
+  // Cho phép phím ESC thoát khỏi chế độ toàn màn hình
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isFullscreen) {
@@ -534,7 +536,7 @@ export default function DocumentDetail() {
   const totalFileSize = doc.files.reduce((acc, f) => acc + (f.fileSize || 0), 0)
   const repoUrl = doc.githubUrl || doc.repositoryUrl
 
-  // Status badge helper
+  // Trợ thủ hiển thị nhãn trạng thái phê duyệt của tài liệu
   const renderStatusBadge = () => {
     switch (doc.status) {
       case 'APPROVED':
@@ -583,7 +585,7 @@ export default function DocumentDetail() {
       <Navbar />
 
       <main className="w-full pt-16 relative z-10 flex-1 flex flex-col bg-paper-grid">
-        {/* ─── ACCESSION & BREADCRUMB BAR (LEDGER STYLE) ────────────────── */}
+        {/* ─── THANH ĐIỀU HƯỚNG BREADCRUMB VÀ MÃ ĐỊNH DANH HỌC LIỆU ─────── */}
         <div className="w-full bg-[#f4f2ea]/90 dark:bg-[#111827]/90 backdrop-blur-md border-b border-stone-200/90 dark:border-slate-800 py-3 shadow-2xs">
           <div className="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 text-stone-600 dark:text-slate-400 flex-wrap">
@@ -627,12 +629,12 @@ export default function DocumentDetail() {
           </div>
         </div>
 
-        {/* ─── MAIN TWO-COLUMN WORKBENCH ─────────────────────────────────── */}
+        {/* ─── BÀN LÀM VIỆC NGHIÊN CỨU 2 CỘT ─────────────────────────────── */}
         <div className="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-8 w-full flex-1">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* ═══ LEFT WORKBENCH COLUMN (~68%, 8 cols) ═══ */}
+            {/* ═══ CỘT TRÁI (~68%): NỘI DUNG TÀI LIỆU VÀ CÔNG CỤ ĐỌC TRỰC TUYẾN ═══ */}
             <div className="lg:col-span-8 flex flex-col gap-6">
-              {/* 1. DOCUMENT IDENTITY & DOSSIER HEADER */}
+              {/* 1. THÔNG TIN ĐỊNH DANH TÀI LIỆU */}
               <div className="bg-white dark:bg-[#111827] rounded-2xl border border-stone-200/90 dark:border-slate-800 p-6 sm:p-8 shadow-xs flex flex-col gap-5 relative overflow-hidden">
                 {/* Stamp accent banner */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-radial from-amber-500/10 via-transparent to-transparent pointer-events-none" />
@@ -662,12 +664,12 @@ export default function DocumentDetail() {
                   )}
                 </div>
 
-                {/* Main Academic Title */}
+                {/* Tiêu đề chính thức của học liệu / đề tài nghiên cứu */}
                 <h1 className="font-serif-academic text-2xl sm:text-3xl font-bold text-stone-900 dark:text-stone-100 leading-tight tracking-tight">
                   {doc.title}
                 </h1>
 
-                {/* Subject & Meta Row */}
+                {/* Môn học, Niên khóa và thông tin phân loại */}
                 <div className="flex flex-wrap items-center gap-4 text-stone-500 dark:text-slate-400 text-xs border-y border-stone-100 dark:border-slate-800 py-3 font-mono">
                   <span className="flex items-center gap-1.5">
                     <BookOpen className="w-4 h-4 text-amber-700 dark:text-sky-400" />
@@ -694,7 +696,7 @@ export default function DocumentDetail() {
                   </span>
                 </div>
 
-                {/* Academic Abstract Callout */}
+                {/* Phần tóm tắt nội dung học thuật (Abstract) */}
                 <div className="p-5 bg-[#faf9f5] dark:bg-slate-900/50 rounded-xl border border-stone-200 dark:border-slate-800 space-y-2.5">
                   <div className="text-xs uppercase tracking-wider text-amber-800 dark:text-sky-400 font-mono font-bold flex items-center gap-1.5">
                     <FileText className="w-4 h-4" />
@@ -711,7 +713,7 @@ export default function DocumentDetail() {
                   )}
                 </div>
 
-                {/* Faculty Integrity & Honor Pledge Seal */}
+                {/* Huy hiệu cam kết liêm chính học thuật Khoa CNTT - UTC */}
                 <div className="p-4 bg-gradient-to-r from-emerald-50/60 via-amber-50/40 to-stone-50/80 dark:from-emerald-950/20 dark:via-amber-950/10 dark:to-slate-900/40 border border-emerald-300/80 dark:border-emerald-800/40 rounded-xl space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-200/60 dark:border-emerald-900/40 pb-2.5">
                     <div className="flex items-center gap-2">
@@ -774,7 +776,7 @@ export default function DocumentDetail() {
                 )}
               </div>
 
-              {/* 2. RESEARCH WORKBENCH TABS SELECTOR */}
+              {/* 2. THANH CHỌN TAB BÀN LÀM VIỆC (Đọc PDF / Mã nguồn / Hỏi đáp) */}
               <div className="bg-white dark:bg-[#111827] rounded-xl border border-stone-200/90 dark:border-slate-800 p-1.5 shadow-2xs flex flex-wrap gap-1">
                 <button
                   onClick={() => setActiveTab('reader')}
@@ -840,10 +842,10 @@ export default function DocumentDetail() {
                 </button>
               </div>
 
-              {/* 3. TAB CONTENT WORKSPACE */}
+              {/* 3. VÙNG NỘI DUNG CỦA TAB ĐANG CHỌN */}
               {activeTab === 'reader' && (
                 <div className="flex flex-col gap-6 animate-in fade-in duration-200">
-                  {/* IN-LINE RESILIENT PDF VIEWER */}
+                  {/* LUỒNG 3: TRÌNH ĐỌC PDF TRỰC TUYẾN CHỐNG IDM */}
                   <div
                     ref={viewerContainerRef}
                     className={`bg-white dark:bg-[#111827] shadow-xs overflow-hidden flex flex-col ${
@@ -852,7 +854,7 @@ export default function DocumentDetail() {
                         : 'rounded-2xl border border-stone-200/90 dark:border-slate-800'
                     }`}
                   >
-                    {/* Viewer Controls Toolbar */}
+                    {/* Thanh công cụ điều khiển: Chuyển trang, Zoom, Toàn màn hình */}
                     <div className="bg-[#f7f5ee] dark:bg-slate-800/90 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs border-b border-stone-200 dark:border-slate-700 shrink-0">
                       <div className="flex items-center gap-2">
                         <span className="px-2.5 py-1 bg-white dark:bg-slate-900 font-mono font-bold text-stone-800 dark:text-slate-200 rounded-md flex items-center gap-1.5 border border-stone-300 dark:border-slate-700 shadow-2xs">
@@ -1107,7 +1109,7 @@ export default function DocumentDetail() {
                     </div>
                   </div>
 
-                  {/* DOCUMENT FILES LEDGER */}
+                  {/* LUỒNG 3: Danh mục các tệp tin đính kèm của tài liệu */}
                   <div className="p-6 bg-white dark:bg-[#111827] rounded-2xl border border-stone-200/90 dark:border-slate-800 shadow-xs flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-bold font-serif-academic text-stone-900 dark:text-white flex items-center gap-2">
@@ -1196,7 +1198,7 @@ export default function DocumentDetail() {
                 </div>
               )}
 
-              {/* TAB 2: MÃ NGUỒN & KHO LƯU TRỮ REPO */}
+              {/* TAB 2: MÃ NGUỒN & LIÊN KẾT KHO LƯU TRỮ GITHUB / GITLAB */}
               {activeTab === 'code' && (
                 <div className="flex flex-col gap-6 animate-in fade-in duration-200">
                   {/* REPO ACCESS CARD */}
@@ -1284,7 +1286,7 @@ export default function DocumentDetail() {
                 </div>
               )}
 
-              {/* TAB 3: THẢO LUẬN & PHẢN BIỆN HỌC THUẬT */}
+              {/* TAB 3: THẢO LUẬN & HỎI ĐÁP Q&A VỀ TÀI LIỆU */}
               {activeTab === 'qa' && (
                 <div className="flex flex-col gap-6 animate-in fade-in duration-200">
                   <div className="p-4 bg-amber-50/70 dark:bg-slate-900/70 rounded-xl border border-amber-300/80 dark:border-slate-800 flex items-center gap-3 text-xs text-amber-950 dark:text-slate-300">
@@ -1297,7 +1299,7 @@ export default function DocumentDetail() {
                 </div>
               )}
 
-              {/* TAB 4: LỊCH SỬ THẨM ĐỊNH & LIÊM CHÍNH */}
+              {/* TAB 4: LỊCH SỬ THẨM ĐỊNH VÀ TIẾN TRÌNH DUYỆT BÀI */}
               {activeTab === 'integrity' && (
                 <div className="flex flex-col gap-6 animate-in fade-in duration-200">
                   {/* REVIEW TIMELINE (LỊCH SỬ THẨM ĐỊNH) */}
@@ -1367,7 +1369,7 @@ export default function DocumentDetail() {
                 </div>
               )}
 
-              {/* 4. HỌC LIỆU LIÊN QUAN CÙNG MẠCH CHUYÊN ĐỀ */}
+              {/* LUỒNG 3: HỌC LIỆU LIÊN QUAN GỢI Ý CÙNG MÔN HỌC / CHỦ ĐỀ */}
               {relatedDocs.length > 0 && (
                 <div className="bg-white dark:bg-[#111827] rounded-2xl border border-stone-200/90 dark:border-slate-800 p-6 shadow-xs flex flex-col gap-4">
                   <div className="flex items-center justify-between pb-3 border-b border-stone-100 dark:border-slate-800">
@@ -1422,9 +1424,9 @@ export default function DocumentDetail() {
               )}
             </div>
 
-            {/* ═══ RIGHT COLUMN (~32%, 4 cols) STICKY DOSSIER SIDEBAR ═══ */}
+            {/* ═══ CỘT PHẢI (~32%): CÁC HÀNH ĐỘNG TƯƠNG TÁC VÀ THÔNG TIN TÁC GIẢ ═══ */}
             <div className="lg:col-span-4 flex flex-col gap-6 sticky top-20">
-              {/* CARD 1: THAO TÁC HỌC THUẬT (ACTION STATION) */}
+              {/* KHỐI 1: CÁC NÚT TƯƠNG TÁC HỌC LIỆU (Tải về, Lưu, Trích dẫn, Báo cáo) */}
               <div className="bg-white dark:bg-[#111827] rounded-2xl border border-stone-200/90 dark:border-slate-800 p-6 shadow-xs flex flex-col gap-4">
                 <div className="flex items-center justify-between pb-3 border-b border-stone-100 dark:border-slate-800 font-mono">
                   <span className="text-xs font-bold uppercase tracking-wider text-stone-800 dark:text-slate-200 flex items-center gap-1.5">
@@ -1436,7 +1438,7 @@ export default function DocumentDetail() {
                   </span>
                 </div>
 
-                {/* Primary Action Button: Download Official Document */}
+                {/* LUỒNG 3: Nút tải tệp tin chính thức về máy tính */}
                 <button
                   onClick={() => handleDownload()}
                   disabled={dlLoading}
@@ -1463,7 +1465,7 @@ export default function DocumentDetail() {
                   <span>ĐỌC TOÀN MÀN HÌNH</span>
                 </button>
 
-                {/* Academic Citation Modal Trigger */}
+                {/* LUỒNG 3: Nút mở hộp thoại trích dẫn học thuật (IEEE / APA / BibTeX) */}
                 <button
                   onClick={() => setShowCitation(true)}
                   className="w-full py-2.5 px-4 bg-stone-50 dark:bg-slate-900 hover:bg-stone-100 dark:hover:bg-slate-800 border border-stone-300 dark:border-slate-700 text-stone-800 dark:text-slate-200 text-xs font-mono font-bold flex items-center justify-center gap-2 rounded-xl transition-colors cursor-pointer uppercase tracking-wider"
@@ -1473,7 +1475,7 @@ export default function DocumentDetail() {
                   <span>TRÍCH DẪN ĐẦY ĐỦ (APA/IEEE/BIBTEX)</span>
                 </button>
 
-                {/* Bookmark Toggle Button */}
+                {/* LUỒNG 3: Nút lưu/bỏ lưu vào Tủ học liệu cá nhân */}
                 <button
                   onClick={handleBookmark}
                   disabled={bmLoading}
@@ -1505,7 +1507,7 @@ export default function DocumentDetail() {
                   <span>THÊM VÀO BỘ SƯU TẬP</span>
                 </button>
 
-                {/* Report Infringement Trigger */}
+                {/* LUỒNG 3: Nút mở form báo cáo vi phạm bản quyền */}
                 <button
                   onClick={() => {
                     if (!isAuthenticated) {
@@ -1523,7 +1525,7 @@ export default function DocumentDetail() {
                 </button>
               </div>
 
-              {/* CARD 2: INSTANT QUICK CITATION BOX (1-CLICK COPY) */}
+              {/* KHỐI 2: HỘP TRÍCH DẪN NHANH 1-CLICK SAO CHÉP */}
               <div className="bg-white dark:bg-[#111827] rounded-2xl border border-stone-200/90 dark:border-slate-800 p-6 shadow-xs flex flex-col gap-3.5">
                 <div className="flex items-center justify-between pb-2 border-b border-stone-100 dark:border-slate-800">
                   <span className="text-xs font-mono font-bold uppercase tracking-wider text-stone-900 dark:text-white flex items-center gap-1.5">
@@ -1561,7 +1563,7 @@ export default function DocumentDetail() {
                 </button>
               </div>
 
-              {/* CARD 3: HỒ SƠ HỌC THUẬT & GIẢNG VIÊN HƯỚNG DẪN */}
+              {/* KHỐI 3: HỒ SƠ TÁC GIẢ, GIẢNG VIÊN HƯỚNG DẪN & ĐÁNH GIÁ SAO */}
               <div className="bg-white dark:bg-[#111827] rounded-2xl border border-stone-200/90 dark:border-slate-800 p-6 shadow-xs flex flex-col gap-4">
                 <div className="text-xs font-mono font-bold text-stone-900 dark:text-white uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-stone-100 dark:border-slate-800">
                   <School className="w-4 h-4 text-amber-700 dark:text-sky-400" />
@@ -1608,7 +1610,7 @@ export default function DocumentDetail() {
                     </span>
                   </div>
 
-                  {/* Star Rating & Peer Review */}
+                  {/* LUỒNG 3: Đánh giá chất lượng sao của sinh viên & đồng nghiệp */}
                   <div className="flex flex-col items-center gap-2.5 p-4 bg-amber-50/70 dark:bg-slate-900/60 rounded-xl border border-amber-300 dark:border-slate-800 text-center shadow-xs">
                     <div className="flex items-center justify-center gap-1.5">
                       <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
@@ -1655,7 +1657,7 @@ export default function DocumentDetail() {
 
       <Footer />
 
-      {/* ─── MODAL: REPORT INFRINGEMENT ─────────────────────────────────── */}
+      {/* ─── HỘP THOẠI BÁO CÁO VI PHẠM BẢN QUYỀN ───────────────────────── */}
       {showReport &&
         createPortal(
           <div className="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-4">
@@ -1736,7 +1738,7 @@ export default function DocumentDetail() {
           document.body
         )}
 
-      {/* ─── MODAL: RATING ──────────────────────────────────────────────── */}
+      {/* ─── HỘP THOẠI GỬI ĐÁNH GIÁ SAO ────────────────────────────────── */}
       {showRateModal &&
         createPortal(
           <div className="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-4">
@@ -1827,14 +1829,14 @@ export default function DocumentDetail() {
           document.body
         )}
 
-      {/* Citation Modal */}
+      {/* LUỒNG 3: Hộp thoại trích dẫn học thuật */}
       <CitationModal
         isOpen={showCitation}
         onClose={() => setShowCitation(false)}
         doc={doc}
       />
 
-      {/* Add To Collection Modal */}
+      {/* Hộp thoại thêm vào Bộ sưu tập cá nhân */}
       {doc && (
         <AddToCollectionModal
           documentId={doc.id}

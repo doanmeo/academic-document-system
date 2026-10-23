@@ -1,3 +1,5 @@
+// === LUỒNG 1: XÁC THỰC & PHÂN QUYỀN (Auth & RBAC Flow) ===
+// Màn hình Đăng nhập tài khoản Sinh viên / Giảng viên / Quản trị viên
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
@@ -13,15 +15,19 @@ export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
 
+  // ─── LUỒNG 1: Xử lý Submit Form Đăng nhập ───────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
     try {
+      // 1. Gọi hàm login() trong AuthContext (gửi API POST /auth/login & lưu token)
       await login(email, password)
+      // 2. Chuyển hướng người dùng về trang chủ
       navigate('/')
     } catch (err) {
+      // 3. Nếu sai mật khẩu hoặc lỗi server, hiển thị thông báo lỗi thân thiện
       setError(getErrorMessage(err))
     } finally {
       setLoading(false)
@@ -31,7 +37,7 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-surface flex flex-col justify-between items-center px-4 py-8 antialiased">
       <div className="w-full max-w-[460px] bg-surface-container-lowest rounded-2xl shadow-xl overflow-hidden border border-surface-container my-auto">
-        {/* Header Ribbon */}
+        {/* Banner tiêu đề trang */}
         <div className="p-6 md:p-8 flex flex-col items-center text-center bg-surface-container-low border-b border-surface-container">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary-fixed text-on-primary-fixed rounded-full text-caption font-label-code uppercase tracking-wider mb-3">
             <span className="material-symbols-outlined text-[16px]">school</span>
@@ -48,7 +54,7 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Login Form */}
+        {/* Form đăng nhập */}
         <form onSubmit={handleSubmit} className="p-6 md:p-8 flex flex-col gap-5 bg-surface-container-lowest">
           {error && (
             <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-body-sm">
@@ -57,7 +63,7 @@ export default function Login() {
             </div>
           )}
 
-          {/* Email / Student Code */}
+          {/* Ô nhập Email hoặc Mã sinh viên */}
           <div className="flex flex-col gap-1.5">
             <label className="font-body-sm text-body-sm text-on-surface font-semibold flex items-center justify-between" htmlFor="email">
               <span>Email hoặc Mã sinh viên</span>
@@ -77,7 +83,7 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Password */}
+          {/* Ô nhập Mật khẩu */}
           <div className="flex flex-col gap-1.5">
             <label className="font-body-sm text-body-sm text-on-surface font-semibold flex items-center justify-between" htmlFor="password">
               <span>Mật khẩu</span>
@@ -105,7 +111,7 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Submit Button */}
+          {/* Nút bấm Đăng nhập */}
           <button
             type="submit"
             disabled={loading}
@@ -121,7 +127,7 @@ export default function Login() {
             )}
           </button>
 
-          {/* Account Hint */}
+          {/* Gợi ý tài khoản demo */}
           <div className="bg-surface-container-low p-3 rounded-xl border border-surface-container text-xs text-on-surface-variant space-y-1">
             <div className="font-semibold text-primary flex items-center gap-1">
               <span className="material-symbols-outlined text-[15px]">info</span>
@@ -142,7 +148,7 @@ export default function Login() {
         </form>
       </div>
 
-      {/* Footer Branding */}
+      {/* Thông tin chân trang */}
       <footer className="text-center text-outline text-caption py-4">
         <p>© {new Date().getFullYear()} Trường Đại học Giao thông Vận tải • Khoa Công nghệ Thông tin</p>
       </footer>

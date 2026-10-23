@@ -1,3 +1,5 @@
+// === LUỒNG 2: TRA CỨU & KHÁM PHÁ HỌC LIỆU ĐA CHIỀU (Search & Filter Flow) ===
+// Thẻ hiển thị tóm tắt học liệu (Hiển thị nhãn màu, thông số tương tác, nút xem nhanh PDF)
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
@@ -29,6 +31,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
 }) => {
   const navigate = useNavigate()
 
+  // Bảng cấu hình nhãn màu sắc & biểu tượng theo từng loại học liệu chuẩn UTC
   const typeConfig: Record<string, { label: string; badge: string; icon: React.ReactNode }> = {
     THESIS: {
       label: 'Khóa luận tốt nghiệp',
@@ -129,7 +132,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
       }`}
     >
       <div>
-        {/* Top Badges */}
+        {/* LUỒNG 2: Nhãn loại học liệu phía trên thẻ (Màu tím: Khóa luận, Màu xanh: BTL, Màu xanh lá: Slide...) */}
         <div className="flex items-center justify-between gap-2 mb-3">
           <span
             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${conf.badge}`}
@@ -143,7 +146,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
           </span>
         </div>
 
-        {/* Title */}
+        {/* LUỒNG 2: Tiêu đề học liệu (Click vào để mở trang chi tiết) */}
         <h3
           className="text-sm md:text-base font-bold text-slate-900 dark:text-white leading-snug line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mb-2.5"
           title={doc.title}
@@ -157,14 +160,14 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
           </Link>
         </h3>
 
-        {/* Abstract snippet */}
+        {/* Tóm tắt ngắn gọn nội dung tài liệu */}
         {doc.abstractText && (
           <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-3 leading-relaxed">
             {doc.abstractText}
           </p>
         )}
 
-        {/* Academic Meta */}
+        {/* Thông tin học thuật: Môn học, Niên khóa, Tác giả/Giảng viên */}
         <div className="space-y-1.5 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-xs">
           <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 truncate">
             <Layers className="w-3.5 h-3.5 text-blue-500 shrink-0" />
@@ -178,7 +181,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
             </div>
           )}
 
-          {/* Highlights (Has solution or Code snippet) */}
+          {/* Điểm nhấn học thuật: Đính kèm mã nguồn (Source Code) hoặc có lời giải chi tiết */}
           <div className="flex flex-wrap items-center gap-1.5 pt-1">
             {doc.hasSolution && (
               <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/30">
@@ -201,7 +204,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
         </div>
       </div>
 
-      {/* Card Footer */}
+      {/* Chân thẻ học liệu: Lượt xem (Eye), Lượt tải (Download), Đánh giá sao và nút xem trước nhanh PDF */}
       <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-400 dark:text-slate-500">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1" title="Lượt xem">

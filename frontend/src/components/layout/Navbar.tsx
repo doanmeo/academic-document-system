@@ -148,10 +148,10 @@ export default function Navbar() {
             )}
           </button>
 
-          {/* In-app Notification Bell */}
+          {/* LUỒNG 1: Chuông thông báo (chỉ hiện khi đã đăng nhập) */}
           {isAuthenticated && <NotificationBell />}
 
-          {/* Upload Document Button */}
+          {/* LUỒNG 1 & LUỒNG 4: Nút Đăng tải học liệu (chỉ hiện khi đã đăng nhập) */}
           {isAuthenticated && (
             <Link
               to="/documents/upload"
@@ -162,7 +162,7 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* Auth State */}
+          {/* LUỒNG 1: Trạng thái xác thực - Chưa đăng nhập hiện 2 nút, Đã đăng nhập hiện Avatar và Tên SV */}
           {!isAuthenticated ? (
             <div className="flex items-center gap-2 shrink-0">
               <Link

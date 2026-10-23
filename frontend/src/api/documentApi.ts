@@ -1,3 +1,6 @@
+// === LUỒNG 2: TRA CỨU & KHÁM PHÁ HỌC LIỆU ĐA CHIỀU (Search & Filter Flow) ===
+// === LUỒNG 3: XEM CHI TIẾT & TƯƠNG TÁC HỌC LIỆU (Document Detail & Interaction Flow) ===
+// Các hàm gọi API tương tác với Học liệu, Tìm kiếm, Xem chi tiết, Trích dẫn
 import api from './axios'
 import type {
   DocumentDetail,

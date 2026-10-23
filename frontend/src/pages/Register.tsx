@@ -1,3 +1,5 @@
+// === LUỒNG 1: XÁC THỰC & PHÂN QUYỀN (Auth & RBAC Flow) ===
+// Màn hình Đăng ký tài khoản Sinh viên Khoa CNTT - UTC
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
@@ -36,6 +38,7 @@ export default function Register() {
   const { register } = useAuth()
   const navigate = useNavigate()
 
+  // Nạp danh mục các chuyên ngành từ Backend (KTPM, CNTT, HTTT, ATTT, KHDL)
   useEffect(() => {
     getMajors()
       .then((data) => {
@@ -44,7 +47,7 @@ export default function Register() {
         }
       })
       .catch(() => {
-        // Fallback demo majors if backend not connected yet
+        // Danh mục chuyên ngành dự phòng nếu Backend chưa kết nối
         setMajors([
           { id: 1, code: 'KTPM', name: 'Kỹ thuật phần mềm', isActive: true },
           { id: 2, code: 'CNTT', name: 'Công nghệ thông tin', isActive: true },
@@ -67,7 +70,7 @@ export default function Register() {
     }
   }
 
-  // Password strength calculation
+  // Tính toán trực quan độ mạnh của mật khẩu
   const getPasswordStrength = () => {
     const pwd = form.password
     if (!pwd) return { width: '0%', color: '', label: 'Độ mạnh mật khẩu', textColor: 'text-on-surface-variant' }
@@ -86,6 +89,7 @@ export default function Register() {
   const isPasswordMatch = form.confirmPassword.length > 0 && form.password === form.confirmPassword
   const strength = getPasswordStrength()
 
+  // ─── LUỒNG 1: Xử lý Submit Form Đăng ký tài khoản ────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -114,6 +118,7 @@ export default function Register() {
     setLoading(true)
 
     try {
+      // 1. Gọi hàm register() trong AuthContext (gửi API POST /auth/register & lưu token)
       await register({
         fullName: form.fullName,
         studentCode: form.studentCode,
@@ -121,8 +126,10 @@ export default function Register() {
         email: form.email,
         password: form.password,
       })
+      // 2. Đăng ký thành công -> tự động đăng nhập và đưa người dùng về trang chủ
       navigate('/')
     } catch (err) {
+      // 3. Hiển thị lỗi từ backend (ví dụ email hoặc mã sinh viên đã tồn tại)
       setError(getErrorMessage(err))
       setFieldErrors(getFieldErrors(err))
     } finally {
@@ -133,7 +140,7 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-surface flex flex-col justify-between items-center px-4 py-8 antialiased">
       <div className="w-full max-w-[500px] bg-surface-container-lowest rounded-2xl shadow-xl overflow-hidden border border-surface-container my-auto">
-        {/* Header Ribbon */}
+        {/* Banner tiêu đề trang */}
         <div className="p-6 md:p-8 flex flex-col items-center text-center bg-surface-container-low border-b border-surface-container">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary-fixed text-on-primary-fixed rounded-full text-caption font-label-code uppercase tracking-wider mb-3">
             <span className="material-symbols-outlined text-[16px]">school</span>
@@ -150,7 +157,7 @@ export default function Register() {
           </p>
         </div>
 
-        {/* Register Form */}
+        {/* Form đăng ký tài khoản */}
         <form onSubmit={handleSubmit} className="p-6 md:p-8 flex flex-col gap-4 bg-surface-container-lowest">
           {error && (
             <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-body-sm">
@@ -159,7 +166,7 @@ export default function Register() {
             </div>
           )}
 
-          {/* Full Name */}
+          {/* Ô nhập Họ và tên */}
           <div className="flex flex-col gap-1.5">
             <label className="font-body-sm text-body-sm text-on-surface font-semibold flex items-center justify-between" htmlFor="fullname">
               <span>Họ và tên sinh viên</span>
@@ -180,7 +187,7 @@ export default function Register() {
             {fieldErrors.fullName && <p className="text-xs text-error">{fieldErrors.fullName}</p>}
           </div>
 
-          {/* MSSV & Major Grid */}
+          {/* Ô nhập MSSV & Chọn ngành đào tạo */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="font-body-sm text-body-sm text-on-surface font-semibold" htmlFor="mssv">
@@ -221,7 +228,7 @@ export default function Register() {
             </div>
           </div>
 
-          {/* Email */}
+          {/* Ô nhập Email học thuật UTC */}
           <div className="flex flex-col gap-1.5">
             <label className="font-body-sm text-body-sm text-on-surface font-semibold" htmlFor="email">
               Email học thuật UTC
@@ -245,7 +252,7 @@ export default function Register() {
             {fieldErrors.email && <p className="text-xs text-error">{fieldErrors.email}</p>}
           </div>
 
-          {/* Password */}
+          {/* Ô nhập Mật khẩu */}
           <div className="flex flex-col gap-1.5">
             <label className="font-body-sm text-body-sm text-on-surface font-semibold" htmlFor="password">
               Mật khẩu tài khoản
@@ -272,7 +279,7 @@ export default function Register() {
                 </span>
               </button>
             </div>
-            {/* Strength Bar */}
+            {/* Thanh đo độ mạnh mật khẩu */}
             <div className="flex flex-col gap-1 mt-1">
               <div className="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden flex">
                 <div
@@ -288,7 +295,7 @@ export default function Register() {
             {fieldErrors.password && <p className="text-xs text-error">{fieldErrors.password}</p>}
           </div>
 
-          {/* Confirm Password */}
+          {/* Ô nhập Xác nhận mật khẩu */}
           <div className="flex flex-col gap-1.5">
             <label className="font-body-sm text-body-sm text-on-surface font-semibold" htmlFor="confirmPassword">
               Xác nhận mật khẩu
@@ -318,7 +325,7 @@ export default function Register() {
             )}
           </div>
 
-          {/* Terms checkbox */}
+          {/* Hộp kiểm Điều khoản và Quy chế học liệu */}
           <div className="pt-1">
             <CustomCheckbox
               id="terms"
@@ -334,7 +341,7 @@ export default function Register() {
             />
           </div>
 
-          {/* Submit button */}
+          {/* Nút bấm Đăng ký */}
           <button
             type="submit"
             disabled={loading}
@@ -352,7 +359,7 @@ export default function Register() {
             )}
           </button>
 
-          {/* Divider */}
+          {/* Phân cách */}
           <div className="relative flex items-center justify-center my-2">
             <div className="w-full h-px bg-surface-container-highest"></div>
             <span className="absolute bg-surface-container-lowest px-3 font-caption text-[11px] text-on-surface-variant uppercase tracking-wider">
@@ -360,7 +367,7 @@ export default function Register() {
             </span>
           </div>
 
-          {/* Bottom Login Link */}
+          {/* Đường dẫn sang trang đăng nhập */}
           <div className="pt-2 flex justify-center text-center">
             <p className="font-body-sm text-body-sm text-on-surface-variant">
               Đã có tài khoản sinh viên?{' '}

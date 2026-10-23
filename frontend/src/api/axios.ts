@@ -1,5 +1,8 @@
+// === LUỒNG 1: XÁC THỰC & CẤU HÌNH TRUYỀN THÔNG MẠNG (Axios Client & Interceptors) ===
+// Quản lý baseURL, tự động gắn accessToken vào Header và tự động Refresh Token khi hết hạn
 import axios, { AxiosRequestConfig } from 'axios'
 
+// LUỒNG 1: Tự động phát hiện và chuẩn hóa địa chỉ API gốc (baseURL)
 const resolveBaseUrl = () => {
   let url = (import.meta.env.VITE_API_BASE_URL || '').trim()
   if (!url) {
@@ -14,7 +17,7 @@ const resolveBaseUrl = () => {
 
 const BASE_URL = resolveBaseUrl()
 
-// ─── Instance chính ───────────────────────────────────────────────────────────
+// ─── Khởi tạo instance Axios dùng chung toàn dự án ─────────────────────────────
 const api = axios.create({
   baseURL: BASE_URL,
   headers: {
@@ -23,14 +26,15 @@ const api = axios.create({
   },
 })
 
-// ─── REQUEST interceptor: gắn accessToken ────────────────────────────────────
+// ─── REQUEST INTERCEPTOR: Tự động gắn accessToken vào Header ───────────────────
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken')
     if (token) {
+      // Gắn Bearer Token để Backend xác thực danh tính sinh viên/giảng viên
       config.headers.Authorization = `Bearer ${token}`
     }
-    // Khi gửi FormData, xóa Content-Type để Axios và trình duyệt tự động sinh multipart boundary hợp lệ
+    // Khi gửi FormData (upload file), xóa Content-Type để Axios và trình duyệt tự động sinh multipart boundary hợp lệ
     if (config.data instanceof FormData) {
       delete config.headers['Content-Type']
     }
@@ -39,7 +43,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// ─── RESPONSE interceptor: xử lý 401 → thử refresh → redirect /login ─────────
+// ─── RESPONSE INTERCEPTOR: Xử lý lỗi 401, tự động cấp mới Token không ngắt quãng người dùng ───
 let isRefreshing = false
 let failedQueue: Array<{
   resolve: (token: string) => void
@@ -60,7 +64,7 @@ api.interceptors.response.use(
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean }
     const reqUrl = originalRequest?.url ?? ''
 
-    // Chỉ retry khi: 401, chưa retry lần nào, và không phải các endpoint auth (login/register/refresh)
+    // Chỉ tự động refresh khi: Lỗi 401 Unauthorized, chưa từng retry, và không phải các API auth cơ bản
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
@@ -71,7 +75,7 @@ api.interceptors.response.use(
       const refreshToken = localStorage.getItem('refreshToken')
       const hadAccessToken = Boolean(localStorage.getItem('accessToken'))
 
-      // Nếu khách chưa đăng nhập (không có refreshToken) → trả lỗi về cho component tự xử lý, không ép reload /login trên trang công khai
+      // Nếu khách chưa từng đăng nhập → trả lỗi về cho component tự xử lý, không ép chuyển trang /login
       if (!refreshToken) {
         if (hadAccessToken) {
           localStorage.clear()
@@ -82,7 +86,7 @@ api.interceptors.response.use(
         return Promise.reject(error)
       }
 
-      // Nếu đang có request refresh đang chạy → xếp hàng chờ
+      // Nếu đang có một tiến trình refresh token chạy ngầm → xếp hàng các request đến sau
       if (isRefreshing) {
         return new Promise<string>((resolve, reject) => {
           failedQueue.push({ resolve, reject })
@@ -101,7 +105,7 @@ api.interceptors.response.use(
       isRefreshing = true
 
       try {
-        // Dùng axios thuần (không qua interceptor) để tránh vòng lặp vô tận
+        // Dùng axios thuần (không qua interceptor) để tránh bị lặp vô tận
         const { data } = await axios.post(
           `${BASE_URL}/auth/refresh`,
           { refreshToken }
@@ -109,10 +113,11 @@ api.interceptors.response.use(
         const newAccessToken: string = data.data.accessToken
         const newRefreshToken: string = data.data.refreshToken
 
+        // Cập nhật cặp token mới vào LocalStorage
         localStorage.setItem('accessToken', newAccessToken)
         localStorage.setItem('refreshToken', newRefreshToken)
 
-        // Cập nhật header cho request gốc bị lỗi
+        // Cập nhật token mới vào request vừa bị lỗi và gửi lại
         originalRequest.headers = {
           ...originalRequest.headers,
           Authorization: `Bearer ${newAccessToken}`,
@@ -121,6 +126,7 @@ api.interceptors.response.use(
         processQueue(null, newAccessToken)
         return api(originalRequest)
       } catch (refreshError) {
+        // Nếu refresh token cũng hết hạn → xóa phiên đăng nhập và đưa người dùng về trang /login
         processQueue(refreshError, null)
         localStorage.clear()
         if (window.location.pathname !== '/login') {

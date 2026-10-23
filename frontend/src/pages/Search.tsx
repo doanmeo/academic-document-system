@@ -1,3 +1,5 @@
+// === LUỒNG 2: TRA CỨU & KHÁM PHÁ HỌC LIỆU ĐA CHIỀU (Search & Filter Flow) ===
+// Tìm kiếm, phân loại đa chiều (Môn học, Ngành, GVHD, Năm học, Sắp xếp, Phân trang)
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import {
@@ -76,17 +78,17 @@ export default function Search() {
   const [totalPages, setTotalPages] = useState<number>(0)
   const [totalElements, setTotalElements] = useState<number>(0)
 
-  // View mode: 'grid' vs 'ledger' (table list)
+  // Chế độ hiển thị: Dạng lưới thẻ (grid) hoặc dạng danh sách bảng (ledger)
   const [viewMode, setViewMode] = useState<'grid' | 'ledger'>('grid')
 
-  // Catalogs
+  // LUỒNG 2: Danh mục bộ lọc (Môn học, Chuyên ngành, Niên khóa, Giảng viên, Công nghệ)
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [majors, setMajors] = useState<Major[]>([])
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([])
   const [advisors, setAdvisors] = useState<string[]>([])
   const [technologies, setTechnologies] = useState<Technology[]>([])
 
-  // Search Filters
+  // LUỒNG 2: Trạng thái các bộ lọc tìm kiếm
   const [keyword, setKeyword] = useState(initialQ)
   const [selectedSubject, setSelectedSubject] = useState<string>(searchParams.get('subjectId') || '')
   const [selectedMajor, setSelectedMajor] = useState<string>(searchParams.get('majorId') || '')
@@ -98,7 +100,7 @@ export default function Search() {
   const [sortBy, setSortBy] = useState<'newest' | 'views' | 'downloads'>('newest')
   const searchInputRef = useRef<HTMLInputElement>(null)
 
-  // Modals
+  // Các hộp thoại nổi (Xem nhanh, Đọc PDF, Trích dẫn, Báo cáo vi phạm)
   const [viewerModal, setViewerModal] = useState<{ isOpen: boolean; doc: DocumentSummary | null }>({
     isOpen: false,
     doc: null,
@@ -112,7 +114,7 @@ export default function Search() {
     doc: null,
   })
 
-  // Hotkey Ctrl + K to focus search
+  // Phím tắt nhanh Ctrl + K để focus ngay vào ô tìm kiếm
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -125,7 +127,7 @@ export default function Search() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  // Sync keyword & tab when searchParams changes
+  // LUỒNG 2: Đồng bộ URL Params (useSearchParams) - hỗ trợ lưu và chia sẻ liên kết tìm kiếm
   useEffect(() => {
     const q = searchParams.get('q')
     if (q !== null && q !== keyword) {
@@ -145,7 +147,7 @@ export default function Search() {
     if (typeCode) setSelectedType(typeCode)
   }, [searchParams])
 
-  // Load catalogs on mount
+  // LUỒNG 2: Nạp sẵn toàn bộ danh mục bộ lọc khi vừa tải trang
   useEffect(() => {
     catalogApi.getSubjects().then((res: any) => setSubjects(Array.isArray(res) ? res : res?.data || [])).catch(() => {})
     catalogApi.getMajors().then((res: any) => setMajors(Array.isArray(res) ? res : res?.data || [])).catch(() => {})
@@ -154,12 +156,12 @@ export default function Search() {
     catalogApi.getTechnologies().then((res: any) => setTechnologies(Array.isArray(res) ? res : res?.data || [])).catch(() => {})
   }, [])
 
-  // Reset page when filters change
+  // LUỒNG 2: Đưa về trang đầu tiên (trang 0) mỗi khi người dùng đổi bất kỳ bộ lọc nào
   useEffect(() => {
     setPage(0)
   }, [keyword, selectedSubject, selectedMajor, selectedAdvisor, selectedYear, selectedType, selectedTargetYear, onlySourceCode, sortBy])
 
-  // Search documents
+  // LUỒNG 2: Kích hoạt tìm kiếm dữ liệu qua API documentApi.search()
   useEffect(() => {
     if (activeTab !== 'search') return
 
@@ -264,7 +266,7 @@ export default function Search() {
     }
   }
 
-  // Active filter count and tags
+  // Đếm số lượng và hiển thị danh sách các nhãn bộ lọc đang được kích hoạt
   const activeFiltersList: { label: string; onRemove: () => void }[] = []
   if (keyword) {
     activeFiltersList.push({
@@ -325,7 +327,7 @@ export default function Search() {
 
       <main className="flex-grow pt-16 flex flex-col bg-paper-grid">
 
-        {/* ─── DEDICATED SUB-VIEW: TOPIC NOVELTY CHECKER ───────────────────── */}
+        {/* ─── PHÂN HỆ PHỤ: CÔNG CỤ QUÉT TRÙNG LẶP ĐỀ TÀI (TOPIC NOVELTY) ─── */}
         {activeTab === 'novelty' && (
           <div className="flex-1 w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-4 space-y-4">
             <div className="pb-3 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between">
@@ -349,10 +351,10 @@ export default function Search() {
           </div>
         )}
 
-        {/* ─── MAIN DEDICATED WORKSPACE: TRA CỨU TÀI LIỆU ──────────────────── */}
+        {/* ─── KHÔNG GIAN LÀM VIỆC CHÍNH: TRA CỨU TÀI LIỆU HỌC THUẬT ─────── */}
         {activeTab === 'search' && (
           <div className="flex-1 w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-6 space-y-6">
-            {/* Header: Title, Academic Meta & View Switcher */}
+            {/* Tiêu đề trang, thông tin học thuật và nút đổi chế độ hiển thị */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-5 border-b border-stone-300 dark:border-stone-800">
               <div>
                 <div className="flex items-center gap-2 mb-1.5">
@@ -372,13 +374,13 @@ export default function Search() {
                 </p>
               </div>
 
-              {/* Ledger Counter & View Mode Switcher */}
+              {/* Bộ đếm kết quả và nút chuyển đổi Dạng lưới / Dạng bảng */}
               <div className="flex items-center gap-3 shrink-0">
                 <div className="px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 font-mono text-xs font-bold text-stone-700 dark:text-stone-300">
                   <span className="text-blue-600 dark:text-blue-400">{totalElements}</span> TÀI LIỆU
                 </div>
 
-                {/* View Mode Buttons */}
+                {/* Nút bấm chuyển giao diện Dạng lưới (Grid) / Dạng bảng (Table) */}
                 <div className="flex items-center p-1 rounded-lg bg-stone-200/80 dark:bg-stone-900 border border-stone-300 dark:border-stone-700">
                   <button
                     type="button"
@@ -408,9 +410,9 @@ export default function Search() {
               </div>
             </div>
 
-            {/* Main Search Command Card */}
+            {/* LUỒNG 2: Khung điều khiển tìm kiếm trung tâm */}
             <div className="bg-white dark:bg-stone-900 rounded-2xl border-2 border-stone-300 dark:border-stone-800 p-5 sm:p-6 shadow-xs space-y-4">
-              {/* Omnisearch Input */}
+              {/* LUỒNG 2: Ô nhập từ khóa tìm kiếm toàn diện */}
               <div className="flex flex-col sm:flex-row gap-3 items-center">
                 <div className="relative flex-1 w-full">
                   <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-blue-600 dark:text-blue-400">
@@ -443,7 +445,7 @@ export default function Search() {
                   </div>
                 </div>
 
-                {/* Reset Filters button */}
+                {/* Nút đặt lại toàn bộ bộ lọc về mặc định */}
                 <button
                   type="button"
                   onClick={handleResetFilters}
@@ -454,7 +456,7 @@ export default function Search() {
                 </button>
               </div>
 
-              {/* Hot Subject Quick Pills */}
+              {/* Các thẻ môn học nổi bật / được quan tâm nhiều */}
               <div className="flex items-center gap-1.5 flex-wrap pt-1">
                 <span className="text-[11px] font-mono font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1 mr-1">
                   <Flame className="w-3.5 h-3.5 fill-current" />
@@ -485,9 +487,9 @@ export default function Search() {
                 })}
               </div>
 
-              {/* 6 Dimension Selectors Grid */}
+              {/* LUỒNG 2: Lưới 6 bộ lọc đa chiều (Môn học, Ngành, GVHD, Loại học liệu, Năm sinh viên, Niên khóa) */}
               <div className="pt-4 border-t border-stone-200 dark:border-stone-800 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                {/* 1. Môn học */}
+                {/* 1. Bộ lọc Môn học */}
                 <div>
                   <label className="block text-[10px] font-mono font-bold text-stone-500 uppercase tracking-wider mb-1">
                     MÔN HỌC ({subjects.length})
@@ -504,7 +506,7 @@ export default function Search() {
                   />
                 </div>
 
-                {/* 2. Chuyên ngành */}
+                {/* 2. Bộ lọc Chuyên ngành đào tạo */}
                 <div>
                   <label className="block text-[10px] font-mono font-bold text-stone-500 uppercase tracking-wider mb-1">
                     CHUYÊN NGÀNH
@@ -521,7 +523,7 @@ export default function Search() {
                   />
                 </div>
 
-                {/* 3. Giảng viên hướng dẫn */}
+                {/* 3. Bộ lọc Giảng viên hướng dẫn */}
                 <div>
                   <label className="block text-[10px] font-mono font-bold text-stone-500 uppercase tracking-wider mb-1">
                     GV HƯỚNG DẪN
@@ -538,7 +540,7 @@ export default function Search() {
                   />
                 </div>
 
-                {/* 4. Loại tài liệu (8 loại chuẩn) */}
+                {/* 4. Bộ lọc Loại tài liệu học thuật (8 loại chuẩn UTC) */}
                 <div>
                   <label className="block text-[10px] font-mono font-bold text-stone-500 uppercase tracking-wider mb-1">
                     LOẠI TÀI LIỆU
@@ -555,7 +557,7 @@ export default function Search() {
                   />
                 </div>
 
-                {/* 5. Năm học sinh viên */}
+                {/* 5. Bộ lọc Năm học sinh viên (Năm 1 đến Năm 5) */}
                 <div>
                   <label className="block text-[10px] font-mono font-bold text-stone-500 uppercase tracking-wider mb-1">
                     NĂM SINH VIÊN
@@ -576,7 +578,7 @@ export default function Search() {
                   />
                 </div>
 
-                {/* 6. Niên khóa */}
+                {/* 6. Bộ lọc Niên khóa học thuật */}
                 <div>
                   <label className="block text-[10px] font-mono font-bold text-stone-500 uppercase tracking-wider mb-1">
                     NIÊN KHÓA
@@ -594,9 +596,9 @@ export default function Search() {
                 </div>
               </div>
 
-              {/* Secondary Options: Source code toggle & Sorting */}
+              {/* Tùy chọn bổ trợ: Lọc có Source Code và Thứ tự sắp xếp */}
               <div className="pt-3 border-t border-dashed border-stone-200 dark:border-stone-800 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
-                {/* Source code checkbox */}
+                {/* Hộp kiểm: Chỉ hiển thị tài liệu có kèm mã nguồn (Source Code) */}
                 <div className="flex items-center gap-2">
                   <CustomCheckbox
                     checked={onlySourceCode}
@@ -612,7 +614,7 @@ export default function Search() {
                   />
                 </div>
 
-                {/* Sort selector */}
+                {/* LUỒNG 2: Ô chọn tiêu chí sắp xếp (Mới nhất, Xem nhiều, Tải nhiều) */}
                 <div className="flex items-center gap-2">
                   <span className="text-stone-500">SẮP XẾP:</span>
                   <div className="flex items-center gap-1">
@@ -639,7 +641,7 @@ export default function Search() {
               </div>
             </div>
 
-            {/* Active Filters Tag Strip */}
+            {/* Thanh hiển thị các nhãn bộ lọc đang áp dụng */}
             {activeFiltersList.length > 0 && (
               <div className="flex items-center gap-2 flex-wrap text-xs font-mono">
                 <span className="text-stone-500 font-bold uppercase text-[10px]">ĐANG LỌC THEO:</span>
@@ -668,7 +670,7 @@ export default function Search() {
               </div>
             )}
 
-            {/* Results Section */}
+            {/* LUỒNG 2: Khu vực hiển thị kết quả tìm kiếm */}
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
@@ -707,7 +709,7 @@ export default function Search() {
               </div>
             ) : (
               <div className="space-y-6">
-                {/* ─── GRID VIEW ───────────────────────────────────────────── */}
+                {/* ─── HIỂN THỊ DẠNG LƯỚI THẺ HỌC LIỆU (GRID VIEW) ──────────────── */}
                 {viewMode === 'grid' && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     {documents.map((doc) => (
@@ -725,7 +727,7 @@ export default function Search() {
                   </div>
                 )}
 
-                {/* ─── LEDGER / TABLE VIEW ─────────────────────────────────── */}
+                {/* ─── HIỂN THỊ DẠNG BẢNG SỔ CÁI (TABLE / LEDGER VIEW) ─────────── */}
                 {viewMode === 'ledger' && (
                   <div className="bg-white dark:bg-stone-900 rounded-xl border-2 border-stone-300 dark:border-stone-800 overflow-hidden shadow-xs">
                     <div className="overflow-x-auto">
@@ -804,7 +806,7 @@ export default function Search() {
                   </div>
                 )}
 
-                {/* Pagination */}
+                {/* LUỒNG 2: Thanh phân trang học liệu (Pagination) */}
                 {totalPages > 1 && (
                   <div className="pt-4 border-t border-stone-300 dark:border-stone-800">
                     <Pagination
@@ -822,7 +824,7 @@ export default function Search() {
           </div>
         )}
 
-        {/* ─── CENTERED QUICK DOCUMENT MODAL (POPUPS INSTEAD OF RIGHT DRAWER) ── */}
+        {/* ─── HỘP THOẠI XEM NHANH TÀI LIỆU CĂN GIỮA MÀN HÌNH ──────────── */}
         <DocumentQuickCardModal
           isOpen={!!selectedDoc}
           doc={selectedDoc}
@@ -835,7 +837,7 @@ export default function Search() {
           isBookmarked={selectedDoc?.bookmarked || false}
         />
 
-        {/* ─── AUXILIARY MODALS: PDF VIEWER, CITATION, REPORT ─────────────── */}
+        {/* ─── CÁC HỘP THOẠI PHỤ: ĐỌC PDF, TRÍCH DẪN, BÁO CÁO VI PHẠM ────── */}
         <PdfViewerModal
           isOpen={viewerModal.isOpen}
           onClose={() => setViewerModal({ isOpen: false, doc: null })}

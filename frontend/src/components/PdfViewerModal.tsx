@@ -1,3 +1,5 @@
+// === LUỒNG 3: XEM CHI TIẾT & TƯƠNG TÁC HỌC LIỆU (PDF Viewer Modal) ===
+// Cửa sổ đọc tài liệu PDF trực tuyến toàn màn hình (Dùng luồng Blob nhị phân chống IDM)
 import { useState, useEffect } from 'react'
 import { getPreviewUrl, getDownloadUrl, getFileBlob, fetchSafePdfBlob } from '../api/fileApi'
 import { useToast } from '../contexts/ToastContext'
@@ -63,7 +65,7 @@ export default function PdfViewerModal({
           setBlobUrl(currentBlobUrl)
           return
         } catch {
-          // Ignore fallback fetch error
+          // Bỏ qua lỗi fallback
         }
         setBlobUrl(null)
         setError('Không thể mở tệp học liệu trực tuyến lúc này. Vui lòng thử lại hoặc tải về máy.')
@@ -137,7 +139,7 @@ export default function PdfViewerModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-200">
-      {/* Top Controls Bar */}
+      {/* Thanh điều khiển trên cùng (Tên tài liệu, Zoom, Tải về, Đóng) */}
       <div className="bg-slate-900 text-white px-4 sm:px-6 py-3 border-b border-slate-800 flex items-center justify-between shrink-0 shadow-lg">
         <div className="flex items-center gap-3 max-w-xl min-w-0">
           <div className="p-2 rounded-xl bg-primary/20 text-sky-400 shrink-0">
@@ -149,9 +151,9 @@ export default function PdfViewerModal({
           </div>
         </div>
 
-        {/* Action Controls */}
+        {/* Cụm nút thao tác */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {/* Zoom controls */}
+          {/* Nút thu nhỏ / phóng to tài liệu */}
           <div className="hidden sm:flex items-center bg-slate-800 rounded-lg p-0.5 border border-slate-700 text-xs">
             <button
               onClick={() => setZoomLevel((z) => Math.max(50, z - 10))}
@@ -170,7 +172,7 @@ export default function PdfViewerModal({
             </button>
           </div>
 
-          {/* Download button */}
+          {/* LUỒNG 3: Nút tải tệp tin về máy tính */}
           <button
             onClick={handleDownload}
             disabled={downloading}
@@ -181,7 +183,7 @@ export default function PdfViewerModal({
             <span className="hidden sm:inline">Tải về</span>
           </button>
 
-          {/* Close button */}
+          {/* Nút đóng cửa sổ xem trước */}
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
@@ -192,7 +194,7 @@ export default function PdfViewerModal({
         </div>
       </div>
 
-      {/* Main Content Viewer */}
+      {/* LUỒNG 3: Khung hiển thị tài liệu PDF bằng Blob URL an toàn */}
       <div className="flex-1 w-full bg-slate-900/60 flex items-center justify-center p-2 sm:p-4 overflow-hidden">
         {loading ? (
           <div className="flex flex-col items-center gap-3 text-slate-400">
