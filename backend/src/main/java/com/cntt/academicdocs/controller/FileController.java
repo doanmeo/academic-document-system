@@ -53,7 +53,7 @@ public class FileController {
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
-    @GetMapping(value = "/{fileId}/view", produces = MediaType.APPLICATION_PDF_VALUE)
+    @GetMapping(value = "/{fileId}/view", produces = {MediaType.APPLICATION_OCTET_STREAM_VALUE, MediaType.APPLICATION_PDF_VALUE})
     @Operation(summary = "Xem trực tuyến nội dung PDF dạng stream (không kích hoạt IDM)")
     public ResponseEntity<byte[]> viewFileInline(@PathVariable Long fileId) {
         byte[] pdfBytes = fileService.getFileBytes(
@@ -63,7 +63,7 @@ public class FileController {
         );
 
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         headers.set(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "inline");
         headers.set("X-Content-Type-Options", "nosniff");
         headers.setCacheControl(org.springframework.http.CacheControl.noCache().getHeaderValue());

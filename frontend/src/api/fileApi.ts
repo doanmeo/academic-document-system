@@ -56,7 +56,7 @@ export const getFileBlob = async (fileId: number): Promise<Blob> => {
     responseType: 'blob',
     headers: {
       'X-Requested-With': 'XMLHttpRequest',
-      'Accept': 'application/pdf, application/octet-stream',
+      'Accept': 'application/octet-stream',
     },
   })
   return res.data
